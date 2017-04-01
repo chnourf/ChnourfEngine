@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Fichiers sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Fichiers de ressources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Fichiers sources\Core">
+      <UniqueIdentifier>{62daaaa0-26a2-448b-a183-794e72463d5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Shaders">
+      <UniqueIdentifier>{afb0ce71-32dc-44a0-ae26-b2ae4a9e9ca6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Managers">
+      <UniqueIdentifier>{1cc7181f-5ca9-4c77-94f1-c88592331b13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Core\Init">
+      <UniqueIdentifier>{66ee4e84-1ea5-47a8-8074-b2346480c13d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Rendering">
+      <UniqueIdentifier>{3c963c62-9a38-4c66-a5d0-c2ad4713c8b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Rendering\Models">
+      <UniqueIdentifier>{0bd56b0a-3164-4aee-b36c-ce487c3c430e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers sources\Rendering\Light">
+      <UniqueIdentifier>{a3ee4611-4368-4dac-8100-1f1a6fd129f3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\ShaderManager.cpp">
+      <Filter>Fichiers sources\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Init\InitGlut.cpp">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\SceneManager.cpp">
+      <Filter>Fichiers sources\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\ModelManager.cpp">
+      <Filter>Fichiers sources\Managers</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Models\Model.cpp">
+      <Filter>Fichiers sources\Rendering\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Camera.cpp">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Managers\InputManager.cpp">
+      <Filter>Fichiers sources\Managers</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Managers\ShaderManager.h">
+      <Filter>Fichiers sources\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Init\WindowInfo.h">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Init\ContextInfo.h">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Init\FramebufferInfo.h">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Init\InitGlew.h">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Init\InitGlut.h">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Init\IListener.h">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\SceneManager.h">
+      <Filter>Fichiers sources\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\VertexFormat.h">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\IGameObject.h">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\ModelManager.h">
+      <Filter>Fichiers sources\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Models\Model.h">
+      <Filter>Fichiers sources\Rendering\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Camera.h">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Light\DirectionalLight.h">
+      <Filter>Fichiers sources\Rendering\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Light\Light.h">
+      <Filter>Fichiers sources\Rendering\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Light\PointLight.h">
+      <Filter>Fichiers sources\Rendering\Light</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\InputManager.h">
+      <Filter>Fichiers sources\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Singleton.h">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Vertex_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Fragment_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>
