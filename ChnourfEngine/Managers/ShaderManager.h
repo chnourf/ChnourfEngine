@@ -14,7 +14,7 @@ namespace Manager
 		~ShaderManager();
 
 		void CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename);
-		const GLuint GetShader(const std::string& aShaderName);
+		const GLuint GetShader (const std::string& aShaderName) const;
 		void DeleteShader(const std::string& aShaderName);
 
 	private:

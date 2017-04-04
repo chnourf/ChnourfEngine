@@ -20,12 +20,16 @@ namespace Manager
 	public:
 		~SceneManager();
 
+		void Initialize();
+
 		void NotifyBeginFrame() override;
 		void NotifyDisplayFrame() override;
 		void NotifyEndFrame() override;
 		void NotifyReshape(int aWidth, int aHeight, int aPrevious_width, int aPrevious_height) override;
 
 		SceneManager();
+
+		inline ModelManager* GetModelManager() { return myModelManager.get(); }
 
 	private:
 		static void KeyboardCallback(unsigned char key, int x, int y); // to be moved to input manager

@@ -93,7 +93,7 @@ void ShaderManager::CreateProgram(const std::string& aShaderName, const std::str
 	myPrograms.insert(std::pair<std::string, GLuint> (aShaderName, program));
 }
 
-const GLuint ShaderManager::GetShader(const std::string& aShaderName)
+const GLuint ShaderManager::GetShader(const std::string& aShaderName) const
 {
 	return myPrograms.at(aShaderName);
 }

@@ -1,14 +1,4 @@
-﻿  Model.cpp
-  Camera.cpp
-  ShaderManager.cpp
-  SceneManager.cpp
-  ModelManager.cpp
-  InputManager.cpp
-  main.cpp
-  InitGlut.cpp
-d:\projets\chnourf_engine\chnourfengine\core\init\initglut.cpp(73): warning C4305: 'argument': truncation from 'double' to 'GLclampf'
-d:\projets\chnourf_engine\chnourfengine\core\init\initglut.cpp(98): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  Generating Code...
+﻿  SceneManager.cpp
   SOIL.lib(SOIL.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/LTCG' specification
 InitGlut.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification

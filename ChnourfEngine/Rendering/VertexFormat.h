@@ -5,19 +5,21 @@
 
 namespace Rendering
 {
-	struct VertexFormat
+	struct Vertex
 	{
 		glm::vec3 position;
 		glm::vec3 normal;
 		glm::vec2 uv;
-		//glm::vec4 color;
 
-		VertexFormat(const glm::vec3& aPos, const glm::vec3& aNormal, const glm::vec2& aUV)
+		Vertex()
+		{
+		}
+
+		Vertex(const glm::vec3& aPos, const glm::vec3& aNormal, const glm::vec2& aUV)
 		{
 			position = aPos;
 			normal = aNormal;
 			uv = aUV;
-			//color = aColor;
 		}
 	};
 }

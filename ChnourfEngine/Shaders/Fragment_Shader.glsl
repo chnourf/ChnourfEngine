@@ -9,7 +9,7 @@ in vec3 fragPos;
 
 struct Material {
     vec3 ambient;
-    sampler2D  diffuse;
+	sampler2D  diffuse;
     sampler2D  specular;
     float shininess;
 }; 

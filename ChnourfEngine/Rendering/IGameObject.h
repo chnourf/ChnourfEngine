@@ -6,6 +6,11 @@
 #include "../Dependencies/SOIL/SOIL.h"
 #include "VertexFormat.h"
 
+namespace Manager
+{
+	class ShaderManager;
+}
+
 namespace Rendering
 {
 	class IGameObject
@@ -13,14 +18,10 @@ namespace Rendering
 	public:
 		virtual ~IGameObject() = 0;
 
-		virtual void Draw() = 0;
+		virtual void Draw(const Manager::ShaderManager* aShaderManager) = 0;
 		virtual void Update() = 0;
 		virtual void SetProgram(GLuint aShaderName) = 0;
 		virtual void Destroy() = 0;
-
-		virtual GLuint GetVao() const = 0;
-		virtual const std::vector<GLuint>& GetVbos() const = 0;
-		virtual const GLuint& GetProgram() = 0;
 	};
 
 	inline IGameObject::~IGameObject()

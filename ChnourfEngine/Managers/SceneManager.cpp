@@ -6,8 +6,6 @@ using namespace Manager;
 
 SceneManager::SceneManager()
 {
-	glEnable(GL_DEPTH_TEST);
-
 	myShaderManager = std::make_unique<ShaderManager>();
 	myShaderManager->CreateProgram("colorShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\Fragment_Shader.glsl");
 
@@ -16,13 +14,18 @@ SceneManager::SceneManager()
 	glutMouseFunc(MouseCallback);
 	glutMotionFunc(MotionCallback);
 
-	myModelManager = std::make_unique<ModelManager>(myShaderManager.get());
+	myModelManager = std::make_unique<ModelManager>();
 
 	myPointLight = DirectionalLight(glm::vec3(0.5f, -1.f, -0.5f), glm::vec3(0.6f, 0.8f, 0.8f));
 }
 
 SceneManager::~SceneManager()
 {
+}
+
+void SceneManager::Initialize()
+{
+	myModelManager->FillScene(myShaderManager.get());
 }
 
 void SceneManager::NotifyBeginFrame()

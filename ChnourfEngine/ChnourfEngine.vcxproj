@@ -83,8 +83,8 @@
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>Dependencies\freeglut;Dependencies\glew;Dependencies\SOIL</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>Dependencies\freeglut;Dependencies\glew;Dependencies\SOIL;Dependencies\Assimp</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;assimp-vc140-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -111,8 +111,8 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>Dependencies\freeglut;Dependencies\glew;Dependencies\SOIL</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>Dependencies\freeglut;Dependencies\glew;Dependencies\SOIL;Dependencies\Assimp</AdditionalLibraryDirectories>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);opengl32.lib;freeglut.lib;glew32.lib;SOIL.lib;assimp-vc140-mt.lib</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -123,6 +123,7 @@
     <ClCompile Include="Managers\SceneManager.cpp" />
     <ClCompile Include="Managers\ShaderManager.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
+    <ClCompile Include="Rendering\Models\Mesh.cpp" />
     <ClCompile Include="Rendering\Models\Model.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +133,7 @@
     <ClInclude Include="Core\Init\InitGlew.h" />
     <ClInclude Include="Core\Init\InitGlut.h" />
     <ClInclude Include="Core\Init\WindowInfo.h" />
+    <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\Singleton.h" />
     <ClInclude Include="Managers\InputManager.h" />
     <ClInclude Include="Managers\ModelManager.h" />
@@ -142,7 +144,9 @@
     <ClInclude Include="Rendering\Light\DirectionalLight.h" />
     <ClInclude Include="Rendering\Light\Light.h" />
     <ClInclude Include="Rendering\Light\PointLight.h" />
+    <ClInclude Include="Rendering\Models\Mesh.h" />
     <ClInclude Include="Rendering\Models\Model.h" />
+    <ClInclude Include="Rendering\TextureFormat.h" />
     <ClInclude Include="Rendering\VertexFormat.h" />
   </ItemGroup>
   <ItemGroup>

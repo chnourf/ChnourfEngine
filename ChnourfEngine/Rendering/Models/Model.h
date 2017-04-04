@@ -3,6 +3,13 @@
 #include "glm\gtx\rotate_vector.hpp"
 #include "glm\gtc\type_ptr.hpp"
 #include "../IGameObject.h"
+#include "Mesh.h"
+
+struct aiMaterial;
+struct aiMesh;
+struct aiNode;
+struct aiScene;
+enum aiTextureType;
 
 namespace Rendering
 {
@@ -17,8 +24,8 @@ namespace Rendering
 		{}
 
 		glm::vec3 ambient;
-		glm::vec3 diffuse;
-		glm::vec3 specular;
+		glm::vec3 diffuse; //not used
+		glm::vec3 specular; //not used
 		float shininess;
 	};
 
@@ -30,31 +37,32 @@ namespace Rendering
 			Model();
 			Model(const glm::mat4& aTransform);
 			Model(const glm::mat4& aTransform, const Material& aMaterial);
+			Model(const GLchar* aPath, const glm::mat4& aTransform);
 			~Model();
 
 			void Create();
-			void Draw() override;
+			void Draw(const Manager::ShaderManager* aShaderManager) override;
 			void Update() override;
 			void SetProgram(GLuint aShaderName) override;
 			void Destroy() override;
 
-			GLuint GetVao() const override;
-			const std::vector<GLuint>& GetVbos() const override;
-			const GLuint& GetProgram() override { return program; };
-
 			glm::mat4 myTransform;
 
 		protected:
-			GLuint vao;
-			GLuint program;
-			std::vector<GLuint> vbos;
-
-			std::vector<VertexFormat> myVertices;
-			std::vector<GLuint> myTextures;
-			Material myMaterial;
 
 		private:
+			//to be moved in mesh ? Dunno
+			GLuint program;
+			
+			std::string myDirectory;
+			std::vector<Mesh*> myMeshes;
+			void ProcessNode(aiNode* node, const aiScene* scene);
+			Mesh* ProcessMesh(aiMesh* mesh, const aiScene* scene);
+			Material myMaterial;
 			void CreateTexture(GLuint& aTextureID, const std::string& aPath);
+			void LoadModel(const std::string& aPath);
+
+			std::vector<TextureFormat> LoadMaterialTextures(aiMaterial* aMat, aiTextureType anAiType, TextureType aType);
 		};
 	}
 }

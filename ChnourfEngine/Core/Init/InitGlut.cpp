@@ -39,6 +39,8 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 	//init GLEW, this can be called in main.cpp
 	Init::Init_GLEW();
 
+	glEnable(GL_DEPTH_TEST);
+
 	//cleanup
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
