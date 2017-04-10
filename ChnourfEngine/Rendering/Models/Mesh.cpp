@@ -2,8 +2,6 @@
 
 #include "../../Managers/SceneManager.h"
 
-#include <sstream>
-
 namespace Rendering
 {
 	Mesh::Mesh(const std::vector<Vertex>& aVertices, const std::vector<GLuint>& anIndices, const std::vector<TextureFormat>& aTextures)
@@ -60,16 +58,12 @@ namespace Rendering
 		{
 			glActiveTexture(GL_TEXTURE0 + i); // Activate proper texture unit before binding
 											  // Retrieve texture number (the N in diffuse_textureN)
-			std::stringstream ss;
 			std::string number;
 			auto name = textures[i].myType;
 			if (name == TextureType::diffuse)
-				ss << diffuseNr++; // Transfer GLuint to stream
+				diffuseNr++; // Transfer GLuint to stream
 			else if (name == TextureType::specular)
-				ss << specularNr++; // Transfer GLuint to stream
-			number = ss.str();
-
-			number = "";// to be removed
+				specularNr++; // Transfer GLuint to stream
 
 			glUniform1f(glGetUniformLocation(aShader, ("material." + name + number).c_str()), i);
 			glBindTexture(GL_TEXTURE_2D, textures[i].myId);

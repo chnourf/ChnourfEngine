@@ -3,7 +3,22 @@
 #include "../Dependencies/glew/glew.h"
 #include "../Dependencies/freeglut/freeglut.h"
 #include <iostream>
-#include <map>
+#include <vector>
+
+struct Program
+{
+	Program(){}
+
+	Program(const std::string& aName, GLuint anId) :
+		myShaderName(aName),
+		myId(anId)
+	{}
+
+	std::string myShaderName;
+	GLuint myId;
+
+	//add rendering queue here;
+};
 
 namespace Manager
 {
@@ -15,12 +30,13 @@ namespace Manager
 
 		void CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename);
 		const GLuint GetShader (const std::string& aShaderName) const;
+		const std::vector<Program> GetShaders() const { return myPrograms; }
 		void DeleteShader(const std::string& aShaderName);
 
 	private:
 		std::string ReadShader(const std::string& aFilename);
 		GLuint CreateShader(GLenum aShaderType, std::string aSource, const std::string& aShaderName);
 
-		std::map<std::string, GLuint> myPrograms;
+		std::vector<Program> myPrograms;
 	};
 }

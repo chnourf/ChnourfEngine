@@ -63,6 +63,9 @@
     <ClCompile Include="Rendering\Models\Mesh.cpp">
       <Filter>Fichiers sources\Rendering\Models</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Cubemap.cpp">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Managers\ShaderManager.h">
@@ -128,14 +131,32 @@
     <ClInclude Include="Core\Math.h">
       <Filter>Fichiers sources\Core</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Cubemap.h">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Vertex_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
-    <None Include="Shaders\Fragment_Shader.glsl">
+    <None Include="packages.config" />
+    <None Include="Shaders\StandardBlinn_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
-    <None Include="packages.config" />
+    <None Include="Shaders\StandardBlinnTransparent_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\FBO_Pixel_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\FBO_Vertex_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Cubemap_Pixel_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Cubemap_Vertex_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

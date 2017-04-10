@@ -1,4 +1,5 @@
 #include "ModelManager.h"
+#include "../Core/Math.h"
 #include <string>
 
 using namespace Manager;
@@ -11,9 +12,38 @@ ModelManager::ModelManager()
 
 void ModelManager::FillScene(const ShaderManager* aShaderManager)
 {
+
+	glm::vec3 grassPositions[] = {
+		glm::vec3(-1.0f,  0.0f,  1.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
+	for (int i = 0; i < 10; ++i)
+	{
+		glm::mat4 grassModelTrans;
+		grassModelTrans = glm::translate(grassModelTrans, grassPositions[i]);
+
+		Models::Model* grass = new Models::Model("Data/Grass/grassPlanes.obj", grassModelTrans);
+		grass->SetProgram(aShaderManager->GetShader("transparentShader"));
+		grass->Create();
+		auto key = "grass" + std::to_string(i);
+		gameModelList[key] = grass;
+	}
+
 	glm::mat4 modelTrans;
+	modelTrans = glm::scale(modelTrans, glm::vec3(0.3f));
+	modelTrans = glm::rotate(modelTrans, (float)M_PI_2, glm::vec3(-1.f, 0.f, 0.f));
 	Models::Model* batman = new Models::Model("Data/Nanosuit/nanosuit2.3ds", modelTrans);
 	batman->SetProgram(aShaderManager->GetShader("colorShader"));
+	batman->Create();
 	auto key = "batman";
 	gameModelList[key] = batman;
 }

@@ -52,7 +52,7 @@ namespace Rendering
 
 		private:
 			//to be moved in mesh ? Dunno
-			GLuint program;
+			GLuint myProgram;
 			
 			std::string myDirectory;
 			std::vector<Mesh*> myMeshes;

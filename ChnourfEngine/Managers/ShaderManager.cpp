@@ -1,7 +1,9 @@
 #include "ShaderManager.h" 
+
+#include <algorithm>
+#include <cassert>
 #include<iostream>
 #include<fstream>
-#include<vector>
 
 using namespace Manager;
 
@@ -11,7 +13,7 @@ ShaderManager::~ShaderManager()
 {
 	for (auto program : myPrograms)
 	{
-		glDeleteProgram(program.second);
+		glDeleteProgram(program.myId);
 	}
 
 	myPrograms.clear();
@@ -90,17 +92,38 @@ void ShaderManager::CreateProgram(const std::string& aShaderName, const std::str
 		std::cout << "Shader Loader : LINK ERROR" << std::endl << &program_log[0] << std::endl;
 	}
 
-	myPrograms.insert(std::pair<std::string, GLuint> (aShaderName, program));
+	glDeleteShader(vertex_shader);
+	glDeleteShader(fragment_shader);
+
+	myPrograms.push_back(Program(aShaderName, program));
 }
 
 const GLuint ShaderManager::GetShader(const std::string& aShaderName) const
 {
-	return myPrograms.at(aShaderName);
+	for (auto program : myPrograms)
+	{
+		if (program.myShaderName == aShaderName)
+		{
+			return program.myId;
+		}
+	}
+	assert(false);
+	return 0;
 }
 
 void ShaderManager::DeleteShader(const std::string& aShaderName)
 {
-	auto program = myPrograms.at(aShaderName);
-	glDeleteProgram(program);
-	myPrograms.erase(aShaderName);
+	for (auto it = myPrograms.begin(); it != myPrograms.end(); ++it)
+	{
+		auto program = *it;
+		if (program.myShaderName == aShaderName)
+		{
+			glDeleteProgram(program.myId);
+			std::iter_swap(it, myPrograms.end() - 1);
+			myPrograms.erase(myPrograms.end() - 1, myPrograms.end());
+			return;
+		}
+	}
+
+	assert(false);
 }

@@ -174,9 +174,9 @@ namespace Rendering
 			glGenTextures(1, &aTextureID);
 			glBindTexture(GL_TEXTURE_2D, aTextureID);
 			int width, height;
-			unsigned char* image = SOIL_load_image(aPath.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+			unsigned char* image = SOIL_load_image(aPath.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
 			assert(image);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			SOIL_free_image_data(image);
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -184,32 +184,25 @@ namespace Rendering
 
 		void Model::Draw(const Manager::ShaderManager* aShaderManager)
 		{
-			GLuint transformLoc1 = glGetUniformLocation(program, "model");
+			// needs to be done before all glUniform
+			glUseProgram(myProgram);
+
+			GLuint transformLoc1 = glGetUniformLocation(myProgram, "model");
 			glUniformMatrix4fv(transformLoc1, 1, GL_FALSE, glm::value_ptr(myTransform));
 
-
-			glm::mat4 trans;
-			trans = glm::rotate(trans, (float) -M_PI_2, glm::vec3(1.0, 0.0, 0.0));
-			//trans = glm::rotate(trans, glutGet(GLUT_ELAPSED_TIME) * 1.0f / 10000.0f, glm::vec3(0.0, 0.0, 1.0));
-			//trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-
-			GLuint transformLoc = glGetUniformLocation(program, "transform");
-			glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-
-			GLint matAmbientLoc = glGetUniformLocation(program, "material.ambient");
+			GLint matAmbientLoc = glGetUniformLocation(myProgram, "material.ambient");
 			//GLint matDiffuseLoc = glGetUniformLocation(program, "material.diffuse");
 			//GLint matSpecularLoc = glGetUniformLocation(program, "material.specular");
-			GLint matShineLoc = glGetUniformLocation(program, "material.shininess");
+			GLint matShineLoc = glGetUniformLocation(myProgram, "material.shininess");
 
 			glUniform3f(matAmbientLoc, myMaterial.ambient.r, myMaterial.ambient.g, myMaterial.ambient.b);
 			//glUniform3f(matDiffuseLoc, myMaterial.diffuse.r, myMaterial.diffuse.g, myMaterial.diffuse.b);
 			//glUniform3f(matSpecularLoc, myMaterial.specular.r, myMaterial.specular.g, myMaterial.specular.b);
 			glUniform1f(matShineLoc, myMaterial.shininess);
-			glUseProgram(program);
 
 			for (auto mesh : myMeshes)
 			{
-				mesh->Draw(program, aShaderManager);
+				mesh->Draw(myProgram, aShaderManager);
 			}
 		}
 
@@ -220,7 +213,7 @@ namespace Rendering
 
 		void Model::SetProgram(GLuint aShaderName)
 		{
-			program = aShaderName;
+			myProgram = aShaderName;
 		}
 
 		void Model::Destroy()

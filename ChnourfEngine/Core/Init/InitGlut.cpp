@@ -41,6 +41,10 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 
 	glEnable(GL_DEPTH_TEST);
 
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
+
 	//cleanup
 	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
@@ -72,7 +76,7 @@ void Init_GLUT::IdleCallback(void)
 void Init_GLUT::DisplayCallback()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.3, 0.5, 0.7, 1.0);
+	glClearColor(0.3f, 0.5f, 0.7f, 1.0f);
 
 	if (listener)
 	{

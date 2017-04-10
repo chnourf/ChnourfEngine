@@ -31,6 +31,7 @@ void main()
     vec3 norm = normalize(normal);
     vec3 lightDir = normalize(-lightDirection);//normalize(pointLightPosition - fragPos);
     float diff = max(dot(norm, lightDir), 0.0);
+
     vec3 diffuse = lightColor * (diff * vec3(texture(material.diffuse, texcoord)));
     
     // Specular

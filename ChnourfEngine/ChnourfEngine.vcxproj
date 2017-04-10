@@ -123,6 +123,7 @@
     <ClCompile Include="Managers\SceneManager.cpp" />
     <ClCompile Include="Managers\ShaderManager.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
+    <ClCompile Include="Rendering\Cubemap.cpp" />
     <ClCompile Include="Rendering\Models\Mesh.cpp" />
     <ClCompile Include="Rendering\Models\Model.cpp" />
   </ItemGroup>
@@ -140,6 +141,7 @@
     <ClInclude Include="Managers\SceneManager.h" />
     <ClInclude Include="Managers\ShaderManager.h" />
     <ClInclude Include="Rendering\Camera.h" />
+    <ClInclude Include="Rendering\Cubemap.h" />
     <ClInclude Include="Rendering\IGameObject.h" />
     <ClInclude Include="Rendering\Light\DirectionalLight.h" />
     <ClInclude Include="Rendering\Light\Light.h" />
@@ -151,8 +153,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="Shaders\Fragment_Shader.glsl" />
+    <None Include="Shaders\Cubemap_Pixel_Shader.glsl" />
+    <None Include="Shaders\Cubemap_Vertex_Shader.glsl" />
+    <None Include="Shaders\FBO_Pixel_Shader.glsl" />
+    <None Include="Shaders\StandardBlinnTransparent_Shader.glsl" />
+    <None Include="Shaders\StandardBlinn_Shader.glsl" />
     <None Include="Shaders\Vertex_Shader.glsl" />
+    <None Include="Shaders\FBO_Vertex_Shader.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

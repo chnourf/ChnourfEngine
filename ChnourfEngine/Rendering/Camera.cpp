@@ -3,7 +3,7 @@
 
 Camera::Camera()
 {
-	myCameraPos = glm::vec3(0.0f, 0.0f, 15.0f);
+	myCameraPos = glm::vec3(0.0f, 2.0f, 5.0f);
 	myCameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	myCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 	//glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
