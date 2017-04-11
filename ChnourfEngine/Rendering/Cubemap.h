@@ -10,7 +10,7 @@ class Cubemap
 public:
 	Cubemap();
 
-	void Render(GLuint aProgram);
+	void Render(GLuint aProgram, const glm::mat4& aViewTransform);
 
 	void LoadTextures(const std::string& aPath);
 

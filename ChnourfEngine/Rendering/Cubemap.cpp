@@ -2,6 +2,10 @@
 
 #include "../Dependencies/SOIL/SOIL.h"
 
+
+#include "glm\gtc\type_ptr.hpp"
+
+#include <memory>
 #include <vector>
 
 Cubemap::Cubemap()
@@ -61,9 +65,12 @@ Cubemap::Cubemap()
 	glBindVertexArray(0);
 }
 
-void Cubemap::Render(GLuint aProgram)
+void Cubemap::Render(GLuint aProgram, const glm::mat4& aTransform)
 {
 	glUseProgram(aProgram);
+
+	GLuint transformLoc3 = glGetUniformLocation(aProgram, "view");
+	glUniformMatrix4fv(transformLoc3, 1, GL_FALSE, glm::value_ptr(aTransform));
 
 	glBindVertexArray(myVao);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, myTextureId);

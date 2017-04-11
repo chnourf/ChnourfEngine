@@ -11,6 +11,7 @@ SceneManager::SceneManager()
 	myShaderManager->CreateProgram("colorShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinn_Shader.glsl");
 	myShaderManager->CreateProgram("frameBufferShader", "Shaders\\FBO_Vertex_Shader.glsl", "Shaders\\FBO_Pixel_Shader.glsl");
 	myShaderManager->CreateProgram("cubemapShader", "Shaders\\Cubemap_Vertex_Shader.glsl", "Shaders\\Cubemap_Pixel_Shader.glsl");
+	myShaderManager->CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
 
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
 	glutKeyboardFunc(KeyboardCallback);
@@ -124,13 +125,17 @@ void SceneManager::NotifyDisplayFrame()
 
 		GLuint transformLoc3 = glGetUniformLocation(programId, "view");
 		glUniformMatrix4fv(transformLoc3, 1, GL_FALSE, glm::value_ptr(cameraTransform));
+
+		glBindTexture(GL_TEXTURE_CUBE_MAP, mySkybox.GetTexture());
 	}
 
-	//glDepthMask(GL_FALSE);
-	mySkybox.Render(myShaderManager->GetShader("cubemapShader"));
-	//glDepthMask(GL_TRUE);
 
 	myModelManager->Draw(cameraTransform, myShaderManager.get());
+
+	glDepthMask(GL_FALSE);
+	glm::mat4 view = glm::mat4(glm::mat3(cameraTransform));
+	mySkybox.Render(myShaderManager->GetShader("cubemapShader"), view);
+	glDepthMask(GL_TRUE);
 
 	// Second pass -------------------------------------------------------------------------------------------------------------------------------------------
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default

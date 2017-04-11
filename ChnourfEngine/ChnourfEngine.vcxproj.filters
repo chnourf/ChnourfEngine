@@ -158,5 +158,8 @@
     <None Include="Shaders\Cubemap_Vertex_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
+    <None Include="Shaders\StandardBlinnReflection_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
