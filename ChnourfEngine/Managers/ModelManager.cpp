@@ -12,7 +12,6 @@ ModelManager::ModelManager()
 
 void ModelManager::FillScene(const ShaderManager* aShaderManager)
 {
-
 	glm::vec3 grassPositions[] = {
 		glm::vec3(-1.0f,  0.0f,  1.0f),
 		glm::vec3(2.0f,  5.0f, -15.0f),
@@ -42,7 +41,7 @@ void ModelManager::FillScene(const ShaderManager* aShaderManager)
 	modelTrans = glm::scale(modelTrans, glm::vec3(0.3f));
 	modelTrans = glm::rotate(modelTrans, (float)M_PI_2, glm::vec3(-1.f, 0.f, 0.f));
 	Models::Model* batman = new Models::Model("Data/Nanosuit/nanosuit2.3ds", modelTrans);
-	batman->SetProgram(aShaderManager->GetShader("reflectionShader"));
+	batman->SetProgram(aShaderManager->GetShader("colorShader"));
 	batman->Create();
 	auto key = "batman";
 	gameModelList[key] = batman;

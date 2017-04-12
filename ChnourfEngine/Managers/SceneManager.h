@@ -7,6 +7,7 @@
 #include "../Rendering/Cubemap.h"
 #include "../Rendering/Light/DirectionalLight.h"
 #include "../Core/Init/IListener.h"
+#include "../Core/Init/WindowInfo.h"
 #include "../Core/Singleton.h"
 
 namespace Manager
@@ -21,7 +22,7 @@ namespace Manager
 	public:
 		~SceneManager();
 
-		void Initialize();
+		void Initialize(const Core::WindowInfo& aWindow);
 
 		void NotifyBeginFrame() override;
 		void NotifyDisplayFrame() override;
@@ -35,6 +36,11 @@ namespace Manager
 		static void KeyboardCallback(unsigned char key, int x, int y); // to be moved to input manager
 		static void MouseCallback(int button, int state, int x, int y);
 		static void MotionCallback(int x, int y);
+
+		int myWindowWidth;
+		int myWindowHeigth;
+
+		GLuint myViewConstantUbo;
 
 		std::unique_ptr<ModelManager> myModelManager;
 		std::unique_ptr<ShaderManager> myShaderManager;

@@ -89,7 +89,7 @@ void ShaderManager::CreateProgram(const std::string& aShaderName, const std::str
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &info_log_length);
 		std::vector<char> program_log(info_log_length);
 		glGetProgramInfoLog(program, info_log_length, NULL, &program_log[0]);
-		std::cout << "Shader Loader : LINK ERROR" << std::endl << &program_log[0] << std::endl;
+		std::cout << "Shader Loader : LINK ERROR in shader " << aShaderName.c_str() << std::endl << &program_log[0] << std::endl;
 	}
 
 	glDeleteShader(vertex_shader);

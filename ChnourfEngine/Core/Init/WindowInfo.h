@@ -14,12 +14,12 @@ namespace Core
 
 		WindowInfo()
 		{
-			name = "Chnourf Engine";
-			width = 800;
-			height = 600;
-			positionX = 200;
-			positionX = 200;
-			isReshapable = true;
+			//name = "Chnourf Engine";
+			//width = 800;
+			//height = 600;
+			//positionX = 200;
+			//positionX = 200;
+			//isReshapable = true;
 		}
 
 		WindowInfo(std::string aName, int aStartPositionX, int aStartPositionY, int aWidth, int aHeight, bool aIsReshapable) :

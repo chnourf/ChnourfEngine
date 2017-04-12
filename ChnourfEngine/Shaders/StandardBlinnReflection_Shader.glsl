@@ -2,10 +2,14 @@
 #version 450 core
  
 out vec4 out_color;
- 
-in vec2 texcoord;
-in vec3 normal;
-in vec3 fragPos;
+
+in VS_OUT
+{
+	vec2 texcoord;
+	vec3 normal;
+	vec3 fragPos;
+} fs_in;
+
 
 struct Material {
     vec3 ambient;
@@ -22,7 +26,7 @@ uniform samplerCube skybox;
 
 void main()
 {
-    vec3 I = normalize(fragPos - viewPos);
-    vec3 R = reflect(I, normalize(normal));
+    vec3 I = normalize(fs_in.fragPos - viewPos);
+    vec3 R = reflect(I, normalize(fs_in.normal));
     out_color = texture(skybox, R);
 }

@@ -69,7 +69,7 @@ void Cubemap::Render(GLuint aProgram, const glm::mat4& aTransform)
 {
 	glUseProgram(aProgram);
 
-	GLuint transformLoc3 = glGetUniformLocation(aProgram, "view");
+	GLuint transformLoc3 = glGetUniformLocation(aProgram, "cubemapView");
 	glUniformMatrix4fv(transformLoc3, 1, GL_FALSE, glm::value_ptr(aTransform));
 
 	glBindVertexArray(myVao);
