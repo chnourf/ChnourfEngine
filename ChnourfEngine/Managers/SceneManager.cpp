@@ -1,6 +1,8 @@
 #pragma once
 #include "SceneManager.h"
 #include "ModelManager.h"
+#include "../WorldGenerator/TerrainManager.h"
+#include "../Core/Vector.h"
 
 using namespace Manager;
 
@@ -26,6 +28,8 @@ SceneManager::SceneManager()
 	glutMotionFunc(MotionCallback);
 
 	myModelManager = std::make_unique<ModelManager>();
+
+	myTerrainManager = std::make_unique<TerrainManager>();
 
 	myPointLight = DirectionalLight(glm::vec3(0.5f, -1.f, -0.5f), glm::vec3(0.6f, 0.8f, 0.8f));
 
@@ -113,6 +117,7 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 void SceneManager::NotifyBeginFrame()
 {
 	myCurrentCamera.Update();
+	myTerrainManager->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));
 	myModelManager->Update();
 }
 
@@ -178,6 +183,12 @@ void SceneManager::NotifyReshape(int aWidth, int aHeight, int aPreviousWidth, in
 {
 	myWindowWidth = aWidth;
 	myWindowHeigth = aHeight;
+
+	glm::mat4 projection;
+	projection = glm::perspective(45.0f, (float)myWindowWidth / (float)myWindowHeigth, 0.1f, 100.0f);
+	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void SceneManager::KeyboardCallback(unsigned char key, int x, int y)

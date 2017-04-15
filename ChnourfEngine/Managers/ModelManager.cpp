@@ -30,6 +30,7 @@ void ModelManager::FillScene(const ShaderManager* aShaderManager)
 		glm::mat4 grassModelTrans;
 		grassModelTrans = glm::translate(grassModelTrans, grassPositions[i]);
 
+		// instancing would be useful here
 		Models::Model* grass = new Models::Model("Data/Grass/grassPlanes.obj", grassModelTrans);
 		grass->SetProgram(aShaderManager->GetShader("transparentShader"));
 		grass->Create();
@@ -43,8 +44,16 @@ void ModelManager::FillScene(const ShaderManager* aShaderManager)
 	Models::Model* batman = new Models::Model("Data/Nanosuit/nanosuit2.3ds", modelTrans);
 	batman->SetProgram(aShaderManager->GetShader("colorShader"));
 	batman->Create();
-	auto key = "batman";
-	gameModelList[key] = batman;
+	auto Nanosuitkey = "batman";
+	gameModelList[Nanosuitkey] = batman;
+
+	glm::mat4 terrainTrans;
+	terrainTrans = glm::scale(terrainTrans, glm::vec3(10.f));
+	Models::Model* terrainTest = new Models::Model("Data/TerrainTest/terrain.obj", terrainTrans);
+	terrainTest->SetProgram(aShaderManager->GetShader("colorShader"));
+	terrainTest->Create();
+	auto terrainKey = "terrain";
+	gameModelList[terrainKey] = terrainTest;
 }
 
 ModelManager::~ModelManager()

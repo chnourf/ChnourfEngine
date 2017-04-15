@@ -34,6 +34,9 @@
     <Filter Include="Fichiers sources\Rendering\Light">
       <UniqueIdentifier>{a3ee4611-4368-4dac-8100-1f1a6fd129f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers sources\WorldGenerator">
+      <UniqueIdentifier>{a0eee518-e479-4402-b502-6651d44007af}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -65,6 +68,18 @@
     </ClCompile>
     <ClCompile Include="Rendering\Cubemap.cpp">
       <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldGenerator\TerrainCell.cpp">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldGenerator\TerrainManager.cpp">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldGenerator\TerrainCellBuilder.cpp">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\PerlinNoise.cpp">
+      <Filter>Fichiers sources\Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -133,6 +148,21 @@
     </ClInclude>
     <ClInclude Include="Rendering\Cubemap.h">
       <Filter>Fichiers sources\Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\TerrainCell.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\TerrainManager.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\TerrainCellBuilder.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\PerlinNoise.h">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Vector.h">
+      <Filter>Fichiers sources\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -31,7 +31,7 @@ namespace Rendering
 		{
 			myTransform = aTransform;
 
-			myMaterial = Material(glm::vec3(.1f, .1f, .1f), glm::vec3(1.f, .5f, .31f), glm::vec3(.5f, .5f, .5f), 32.f);
+			myMaterial = Material(glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, .5f, .31f), glm::vec3(.5f, .5f, .5f), 32.f);
 
 			LoadModel(aPath);
 		}

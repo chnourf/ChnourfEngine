@@ -14,6 +14,7 @@ namespace Manager
 {
 	class ModelManager;
 	class ShaderManager;
+	class TerrainManager;
 
 	class SceneManager : public Core::IListener, public Singleton<SceneManager>
 	{
@@ -44,6 +45,7 @@ namespace Manager
 
 		std::unique_ptr<ModelManager> myModelManager;
 		std::unique_ptr<ShaderManager> myShaderManager;
+		std::unique_ptr<TerrainManager> myTerrainManager;
 		Camera myCurrentCamera;
 		DirectionalLight myPointLight;
 		Cubemap mySkybox;

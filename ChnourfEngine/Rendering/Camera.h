@@ -3,6 +3,8 @@
 #include "glm\glm.hpp"
 #include "IGameObject.h"
 
+#include "../Core/Vector.h"
+
 class Camera
 {
 public:

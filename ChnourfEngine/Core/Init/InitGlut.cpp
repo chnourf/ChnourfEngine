@@ -22,6 +22,8 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 		glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
 	}
 
+	glutSetOption(GLUT_MULTISAMPLE, 16);
+
 	glutInitDisplayMode(aFramebufferInfo.flags);
 	glutInitWindowPosition(aWindowInfo.positionX, aWindowInfo.positionY);
 	glutInitWindowSize(aWindowInfo.width, aWindowInfo.height);
@@ -38,6 +40,10 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 
 	//init GLEW, this can be called in main.cpp
 	Init::Init_GLEW();
+
+	glEnable(GL_MULTISAMPLE);
+
+	glShadeModel(GL_SMOOTH);
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);

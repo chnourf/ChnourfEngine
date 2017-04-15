@@ -117,6 +117,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Core\Init\InitGlut.cpp" />
+    <ClCompile Include="Core\PerlinNoise.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
     <ClCompile Include="Managers\ModelManager.cpp" />
@@ -126,6 +127,9 @@
     <ClCompile Include="Rendering\Cubemap.cpp" />
     <ClCompile Include="Rendering\Models\Mesh.cpp" />
     <ClCompile Include="Rendering\Models\Model.cpp" />
+    <ClCompile Include="WorldGenerator\TerrainCell.cpp" />
+    <ClCompile Include="WorldGenerator\TerrainCellBuilder.cpp" />
+    <ClCompile Include="WorldGenerator\TerrainManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Init\ContextInfo.h" />
@@ -135,7 +139,9 @@
     <ClInclude Include="Core\Init\InitGlut.h" />
     <ClInclude Include="Core\Init\WindowInfo.h" />
     <ClInclude Include="Core\Math.h" />
+    <ClInclude Include="Core\PerlinNoise.h" />
     <ClInclude Include="Core\Singleton.h" />
+    <ClInclude Include="Core\Vector.h" />
     <ClInclude Include="Managers\InputManager.h" />
     <ClInclude Include="Managers\ModelManager.h" />
     <ClInclude Include="Managers\SceneManager.h" />
@@ -150,6 +156,9 @@
     <ClInclude Include="Rendering\Models\Model.h" />
     <ClInclude Include="Rendering\TextureFormat.h" />
     <ClInclude Include="Rendering\VertexFormat.h" />
+    <ClInclude Include="WorldGenerator\TerrainCell.h" />
+    <ClInclude Include="WorldGenerator\TerrainCellBuilder.h" />
+    <ClInclude Include="WorldGenerator\TerrainManager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
