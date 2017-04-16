@@ -20,17 +20,21 @@ namespace Manager
 		void Update(const vec3f& aPlayerPosition);
 
 	private:
-		std::vector<TerrainCell*> myActivesCells;
+		std::vector<TerrainCell*> myActiveCells;
 		std::vector<TerrainCell*> myCachedCells; // to prevent when the character moves back and forth at the border of a cell
-		std::vector<vec2i> myCellsToLoad;
+		std::vector<TerrainCell*> myCellsToLoad;
 		std::vector<vec2i> myCellsToRemove;
 
 		std::unique_ptr<TerrainCellBuilder> myCellBuilder; // should be a pointer to a "builder manager" that dispatches works on several cellbuilder
 
 		void LoadCell(const vec2i& aGridIndex);
-		void UnloadCell(const vec2i& aGridIndex);
+		//void UnloadCell(const vec2i& aGridIndex);
 
-		const int myCellSize = 256; //256x256 square
-		const float myResolution = 0.5f; // 50 cm between each element
+		bool IsCellLoaded(const vec2i& aCellIndex);
+		bool IsCellLoading(const vec2i& aCellIndex);
+
+		const unsigned int myCellSize = 256; //256x256 square
+		const float myResolution = 0.05f; // 50 cm between each element
+		int myDetectionRadius;
 	};
 }

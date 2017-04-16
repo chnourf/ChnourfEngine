@@ -3,15 +3,14 @@
 #include <time.h>
 #include <iostream>
 
-TerrainCellBuilder::TerrainCellBuilder(int aCellSize):
+TerrainCellBuildingTask::TerrainCellBuildingTask(const int aSeed, const unsigned int aCellSize, TerrainCell* aCell):
 	myCellSize(aCellSize)
 {
-	unsigned int seed = time(NULL);
-	srand(seed);
-	myPerlin = PerlinNoise(seed);
+	myPerlin = PerlinNoise(aSeed);
+	myHandle = std::async(std::launch::async, [this, aCell]() {BuildCell(aCell); });
 }
 
-void TerrainCellBuilder::BuildCell(TerrainCell* aCell)
+void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 {
 	if (!aCell)
 	{
@@ -33,8 +32,57 @@ void TerrainCellBuilder::BuildCell(TerrainCell* aCell)
 				cellNoise += 1 / factor * myPerlin.noise(factor*x, factor*y, 0);
 			}
 
-			ushort elevation = (ushort) (cellNoise * 0xffff);
+			ushort elevation = (ushort)(cellNoise * 0xffff);
 			aCell->AddTerrainElement(TerrainElement(elevation));
 		}
+	}
+
+	aCell->OnFinishBuild();
+}
+
+TerrainCellBuildingTask::~TerrainCellBuildingTask()
+{
+	std::cout << "tile created !" << std::endl;
+}
+
+TerrainCellBuilder::TerrainCellBuilder(int aCellSize):
+	myCellSize(aCellSize)
+{
+	unsigned int seed = time(NULL);
+	srand(seed);
+}
+
+void TerrainCellBuilder::BuildCellRequest(TerrainCell* aCell)
+{
+	if (myLoadingTasks.size() < myMaximumThreadLoad)
+	{
+		myLoadingTasks.push_back(new TerrainCellBuildingTask(mySeed, myCellSize, aCell));
+	}
+	else
+	{
+		myLoadingQueue.push_back(aCell);
+	}
+}
+
+void TerrainCellBuilder::Update()
+{
+	auto it = myLoadingTasks.begin();
+	while (it < myLoadingTasks.end())
+	{
+		if ((*it)->myHandle.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+		{
+			delete *it;
+			it = myLoadingTasks.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
+	//ugly
+	for (auto waitingTile : myLoadingQueue)
+	{
+		BuildCellRequest(waitingTile);
 	}
 }

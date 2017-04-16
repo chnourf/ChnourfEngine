@@ -5,14 +5,15 @@
 
 namespace Manager
 {
-	TerrainManager::TerrainManager()
+	TerrainManager::TerrainManager():
+		myDetectionRadius(1)
 	{
 		myCellBuilder = std::make_unique<TerrainCellBuilder> (myCellSize);
 	}
 
 	TerrainManager::~TerrainManager()
 	{
-		for (auto cell : myActivesCells)
+		for (auto cell : myActiveCells)
 		{
 			delete cell;
 		}
@@ -20,21 +21,67 @@ namespace Manager
 
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
-		//careful with the position sampled in CellBuilder, are they the same ? Where is (0,0) ?
-		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myCellSize*myResolution), aPlayerPosition.y / (myCellSize*myResolution));
+		myCellBuilder->Update();
 
-		auto it = std::find_if(myActivesCells.begin(), myActivesCells.end(), [](TerrainCell* aCell) {return aCell->GetGridIndex() == vec2i(0, 0); });
-		if (it == myActivesCells.end())
+		//careful with the position sampled in CellBuilder, are they the same ? Where is (0,0) ?
+		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myCellSize*myResolution), aPlayerPosition.z / (myCellSize*myResolution));
+
+		for (int x = positionOnGrid.x - myDetectionRadius; x < positionOnGrid.x + myDetectionRadius; x++)
 		{
-			LoadCell(vec2i(0, 0));
+			for (int y = positionOnGrid.y - myDetectionRadius; y < positionOnGrid.y + myDetectionRadius; y++)
+			{
+				auto cell = vec2i(x, y);
+				if (!IsCellLoaded(cell) && !IsCellLoading(cell))
+				{
+					LoadCell(vec2i(x, y));
+				}
+			}
 		}
+
+		auto it = myCellsToLoad.begin();
+		while (it < myCellsToLoad.end())
+		{
+			if ((*it)->IsBuilt())
+			{
+				myActiveCells.push_back(*it);
+				it = myCellsToLoad.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+	}
+
+	bool TerrainManager::IsCellLoaded(const vec2i& aCellIndex)
+	{
+		auto result = false;
+		auto it = std::find_if(myActiveCells.begin(), myActiveCells.end(), [aCellIndex](TerrainCell* aLoadedCell) {return aLoadedCell->GetGridIndex() == aCellIndex; });
+		if (it != myActiveCells.end())
+		{
+			result = true;
+		}
+
+		return result;
+	}
+
+	bool TerrainManager::IsCellLoading(const vec2i& aCellIndex)
+	{
+		auto result = false;
+		auto it = std::find_if(myCellsToLoad.begin(), myCellsToLoad.end(), [aCellIndex](TerrainCell* aCellToLoad) {return aCellToLoad->GetGridIndex() == aCellIndex; });
+		if (it != myCellsToLoad.end())
+		{
+			result = true;
+		}
+
+		return result;
 	}
 
 	void TerrainManager::LoadCell(const vec2i& aGridIndex)
 	{
 		// check that the cell is not already loading when we create another
 		auto cell = new TerrainCell(aGridIndex, myCellSize);
-		myCellBuilder->BuildCell(cell);
-		myActivesCells.push_back(cell);
+		myCellsToLoad.push_back(cell);
+		myCellBuilder->BuildCellRequest(cell);
 	}
 }

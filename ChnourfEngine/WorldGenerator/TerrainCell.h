@@ -25,9 +25,12 @@ public:
 	TerrainCell(const vec2i& aGridIndex, int aCellSize);
 	inline const vec2i& GetGridIndex() { return myGridIndex; }
 	__forceinline void AddTerrainElement(TerrainElement anElement) { myElements.push_back(anElement); }
+	__forceinline bool IsBuilt() { return myIsBuilt; }
+	void OnFinishBuild();
 
 private:
 	vec2i myGridIndex;
+	bool myIsBuilt;
 	std::vector<TerrainElement> myElements;
 	int myMoisture;
 	int myTemperature;
