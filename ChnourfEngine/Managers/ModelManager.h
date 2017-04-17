@@ -5,6 +5,8 @@
 
 using namespace Rendering;
 
+class TerrainCell;
+
 namespace Manager
 {
 	class ModelManager
@@ -19,6 +21,8 @@ namespace Manager
 		void Update();
 		void DeleteModel(const std::string& gameModelName);
 		const IGameObject& GetModel(const std::string& gameModelName) const;
+
+		void AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution);
 
 		inline const std::vector<TextureFormat>& GetLoadedTextures() { return myLoadedTextures; }
 		inline void AddLoadedTexture(const TextureFormat& aTexture) {

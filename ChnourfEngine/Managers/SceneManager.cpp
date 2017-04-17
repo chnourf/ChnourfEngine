@@ -14,6 +14,7 @@ SceneManager::SceneManager()
 	myShaderManager->CreateProgram("frameBufferShader", "Shaders\\FBO_Vertex_Shader.glsl", "Shaders\\FBO_Pixel_Shader.glsl");
 	myShaderManager->CreateProgram("cubemapShader", "Shaders\\Cubemap_Vertex_Shader.glsl", "Shaders\\Cubemap_Pixel_Shader.glsl");
 	myShaderManager->CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
+	myShaderManager->CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", "Shaders\\Terrain_Pixel_Shader.glsl");
 
 	// mandatory for UBO
 	for (auto shader : myShaderManager->GetShaders())
@@ -111,7 +112,7 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	myModelManager->FillScene(myShaderManager.get());
+	//myModelManager->FillScene(myShaderManager.get());
 }
 
 void SceneManager::NotifyBeginFrame()

@@ -3,6 +3,7 @@
 #include "glm\glm.hpp"
 #include "../Core/PerlinNoise.h"
 
+#include <queue>
 #include <vector>
 #include <future>
 
@@ -34,7 +35,6 @@ private:
 	std::vector<TerrainCellBuildingTask*> myLoadingTasks;
 	int mySeed;
 	const int myMaximumThreadLoad = 4;
-	int myCurrentThreadLoad;
-	std::vector<TerrainCell*> myLoadingQueue;
+	std::queue<TerrainCell*> myLoadingQueue;
 	unsigned int myCellSize;
 };

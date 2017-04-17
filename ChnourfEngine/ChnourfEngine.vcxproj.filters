@@ -81,6 +81,9 @@
     <ClCompile Include="Core\PerlinNoise.cpp">
       <Filter>Fichiers sources\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Models\TerrainCellModel.cpp">
+      <Filter>Fichiers sources\Rendering\Models</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Managers\ShaderManager.h">
@@ -164,6 +167,9 @@
     <ClInclude Include="Core\Vector.h">
       <Filter>Fichiers sources\Core</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Models\TerrainCellModel.h">
+      <Filter>Fichiers sources\Rendering\Models</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Vertex_Shader.glsl">
@@ -189,6 +195,12 @@
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
     <None Include="Shaders\StandardBlinnReflection_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Terrain_Pixel_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Terrain_Vertex_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
   </ItemGroup>

@@ -23,8 +23,9 @@ class TerrainCell
 {
 public:
 	TerrainCell(const vec2i& aGridIndex, int aCellSize);
-	inline const vec2i& GetGridIndex() { return myGridIndex; }
+	inline const vec2i& GetGridIndex() const { return myGridIndex; }
 	__forceinline void AddTerrainElement(TerrainElement anElement) { myElements.push_back(anElement); }
+	__forceinline TerrainElement GetElement(const unsigned int anIndex) const { return *(myElements.begin() + anIndex); }
 	__forceinline bool IsBuilt() { return myIsBuilt; }
 	void OnFinishBuild();
 

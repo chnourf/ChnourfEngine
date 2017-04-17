@@ -127,6 +127,7 @@
     <ClCompile Include="Rendering\Cubemap.cpp" />
     <ClCompile Include="Rendering\Models\Mesh.cpp" />
     <ClCompile Include="Rendering\Models\Model.cpp" />
+    <ClCompile Include="Rendering\Models\TerrainCellModel.cpp" />
     <ClCompile Include="WorldGenerator\TerrainCell.cpp" />
     <ClCompile Include="WorldGenerator\TerrainCellBuilder.cpp" />
     <ClCompile Include="WorldGenerator\TerrainManager.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="Rendering\Light\PointLight.h" />
     <ClInclude Include="Rendering\Models\Mesh.h" />
     <ClInclude Include="Rendering\Models\Model.h" />
+    <ClInclude Include="Rendering\Models\TerrainCellModel.h" />
     <ClInclude Include="Rendering\TextureFormat.h" />
     <ClInclude Include="Rendering\VertexFormat.h" />
     <ClInclude Include="WorldGenerator\TerrainCell.h" />
@@ -168,6 +170,8 @@
     <None Include="Shaders\StandardBlinnReflection_Shader.glsl" />
     <None Include="Shaders\StandardBlinnTransparent_Shader.glsl" />
     <None Include="Shaders\StandardBlinn_Shader.glsl" />
+    <None Include="Shaders\Terrain_Pixel_Shader.glsl" />
+    <None Include="Shaders\Terrain_Vertex_Shader.glsl" />
     <None Include="Shaders\Vertex_Shader.glsl" />
     <None Include="Shaders\FBO_Vertex_Shader.glsl" />
   </ItemGroup>

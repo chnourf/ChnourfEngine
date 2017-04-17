@@ -2,6 +2,9 @@
 #include "../Core/Math.h"
 #include <string>
 
+#include "../Rendering/Models/TerrainCellModel.h"
+#include "../WorldGenerator/TerrainCell.h"
+
 using namespace Manager;
 using namespace Rendering;
 
@@ -83,6 +86,14 @@ void ModelManager::Update()
 	{
 		model.second->Update();
 	}
+}
+
+void ModelManager::AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution)
+{
+	Models::TerrainCellModel* terrain = new Models::TerrainCellModel(aCell, aCellSize, aResolution);
+	//terrain->SetProgram(->GetShader("terrainShader"));
+	auto key = "terrain" + std::to_string(aCell->GetGridIndex().x) + " " + std::to_string(aCell->GetGridIndex().y);
+	gameModelList[key] = terrain;
 }
 
 //should be done in a renderer

@@ -1,12 +1,16 @@
 #pragma once
 #include <algorithm>
+#include "../Managers/SceneManager.h"
+#include "../Managers/ModelManager.h"
 #include "TerrainManager.h"
 #include "TerrainCell.h"
+
+#include <iostream>
 
 namespace Manager
 {
 	TerrainManager::TerrainManager():
-		myDetectionRadius(1)
+		myDetectionRadius(5)
 	{
 		myCellBuilder = std::make_unique<TerrainCellBuilder> (myCellSize);
 	}
@@ -44,6 +48,9 @@ namespace Manager
 			if ((*it)->IsBuilt())
 			{
 				myActiveCells.push_back(*it);
+				// pass resolution as well
+				SceneManager::GetInstance()->GetModelManager()->AddTerrainCell(*it, myCellSize, myResolution);
+				std::cout << "adding a cell " << myActiveCells.size() << std::endl;
 				it = myCellsToLoad.erase(it);
 			}
 			else

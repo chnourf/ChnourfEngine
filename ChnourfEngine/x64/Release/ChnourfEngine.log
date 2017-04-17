@@ -1,11 +1,7 @@
-﻿  TerrainCellBuilder.cpp
-WorldGenerator\TerrainCellBuilder.cpp(31): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-WorldGenerator\TerrainCellBuilder.cpp(32): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-WorldGenerator\TerrainCellBuilder.cpp(49): warning C4244: 'initializing': conversion from 'time_t' to 'unsigned int', possible loss of data
+﻿  TerrainManager.cpp
+WorldGenerator\TerrainManager.cpp(31): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
   Generating code
-  1400 of 2803 functions (49.9%) were compiled, the rest were copied from previous compilation.
-    1138 functions were new in current compilation
-    121 functions had inline decision re-evaluated but remain unchanged
+  All 2720 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Finished generating code
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.exe
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.pdb (Full PDB)

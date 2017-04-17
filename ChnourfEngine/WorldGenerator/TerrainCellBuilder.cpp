@@ -42,7 +42,6 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 
 TerrainCellBuildingTask::~TerrainCellBuildingTask()
 {
-	std::cout << "tile created !" << std::endl;
 }
 
 TerrainCellBuilder::TerrainCellBuilder(int aCellSize):
@@ -60,7 +59,7 @@ void TerrainCellBuilder::BuildCellRequest(TerrainCell* aCell)
 	}
 	else
 	{
-		myLoadingQueue.push_back(aCell);
+		myLoadingQueue.push(aCell);
 	}
 }
 
@@ -80,9 +79,12 @@ void TerrainCellBuilder::Update()
 		}
 	}
 
-	//ugly
-	for (auto waitingTile : myLoadingQueue)
+	for (int i = 0; i < myMaximumThreadLoad - myLoadingTasks.size(); ++i)
 	{
-		BuildCellRequest(waitingTile);
+		if (!myLoadingQueue.empty())
+		{
+			myLoadingTasks.push_back(new TerrainCellBuildingTask(mySeed, myCellSize, myLoadingQueue.front()));
+			myLoadingQueue.pop();
+		}
 	}
 }
