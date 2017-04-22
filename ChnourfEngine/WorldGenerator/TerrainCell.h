@@ -12,11 +12,14 @@ typedef unsigned short ushort;
 
 struct TerrainElement
 {
-	TerrainElement(ushort anElevation):
-		myElevation(anElevation)
+	TerrainElement(float anElevation, const glm::vec3 aNormal):
+		myElevation(anElevation),
+		myNormal(aNormal)
 	{}
 
-	ushort myElevation;
+	float myElevation;
+	//maybe store as short
+	glm::vec3 myNormal;
 };
 
 class TerrainCell

@@ -206,6 +206,17 @@ namespace Rendering
 			}
 		}
 
+		void Model::DrawForShadowMap(const GLuint aShadowMapProgram)
+		{
+			GLuint transformLoc1 = glGetUniformLocation(aShadowMapProgram, "model");
+			glUniformMatrix4fv(transformLoc1, 1, GL_FALSE, glm::value_ptr(myTransform));
+
+			for (auto mesh : myMeshes)
+			{
+				mesh->DrawForShadowMap(aShadowMapProgram);
+			}
+		}
+
 		void Model::Update()
 		{
 			//this will be again overridden

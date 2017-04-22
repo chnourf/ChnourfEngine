@@ -166,7 +166,9 @@
     <None Include="packages.config" />
     <None Include="Shaders\Cubemap_Pixel_Shader.glsl" />
     <None Include="Shaders\Cubemap_Vertex_Shader.glsl" />
+    <None Include="Shaders\Empty_Fragment_Shader.glsl" />
     <None Include="Shaders\FBO_Pixel_Shader.glsl" />
+    <None Include="Shaders\Simple_Depth_Shader.glsl" />
     <None Include="Shaders\StandardBlinnReflection_Shader.glsl" />
     <None Include="Shaders\StandardBlinnTransparent_Shader.glsl" />
     <None Include="Shaders\StandardBlinn_Shader.glsl" />

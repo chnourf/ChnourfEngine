@@ -74,10 +74,17 @@ namespace Rendering
 		}
 		glActiveTexture(GL_TEXTURE0);
 
-		glActiveTexture(GL_TEXTURE0);
+		//glActiveTexture(GL_TEXTURE0);
 
 
 		// Draw mesh
+		glBindVertexArray(VAO);
+		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
+	}
+
+	void Mesh::DrawForShadowMap(const GLuint aShadowMapProgram)
+	{
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);

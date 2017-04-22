@@ -34,7 +34,7 @@ namespace Manager
 		bool IsCellLoading(const vec2i& aCellIndex);
 
 		const unsigned int myCellSize = 256; //256x256 square
-		const float myResolution = 0.05f; // 50 cm between each element
+		const float myResolution = .5f; // 50 cm between each element
 		int myDetectionRadius;
 	};
 }

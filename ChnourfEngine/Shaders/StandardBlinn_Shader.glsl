@@ -23,8 +23,6 @@ uniform Material material;
 uniform vec3 viewPos;
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
-//uniform sampler2D ourTexture1;
-//uniform sampler2D ourTexture2;
 
 void main()
 {
@@ -40,8 +38,10 @@ void main()
     
     // Specular
     vec3 viewDir = normalize(viewPos - fs_in.fragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+
+	vec3 halfwayDir = normalize(lightDir + viewDir);
+ 
+    float spec = pow(max(dot(fs_in.normal, halfwayDir), 0.0), material.shininess);
     vec3 specular = lightColor * (spec * vec3(texture(material.specular, fs_in.texcoord)));  
         
     vec3 result = ambient + diffuse + specular;

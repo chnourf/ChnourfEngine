@@ -1,7 +1,8 @@
-﻿  TerrainManager.cpp
-WorldGenerator\TerrainManager.cpp(31): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
+﻿  SceneManager.cpp
   Generating code
-  All 2720 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  35 of 2824 functions ( 1.2%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    9 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.exe
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.pdb (Full PDB)

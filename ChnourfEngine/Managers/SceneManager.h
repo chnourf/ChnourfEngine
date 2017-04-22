@@ -47,10 +47,13 @@ namespace Manager
 		std::unique_ptr<ShaderManager> myShaderManager;
 		std::unique_ptr<TerrainManager> myTerrainManager;
 		Camera myCurrentCamera;
-		DirectionalLight myPointLight;
+		DirectionalLight myDirectionalLight;
 		Cubemap mySkybox;
 
 		GLuint fbo; //to be moved, used for framebuffer render
+		GLuint shadowMapFBO;
+		GLuint shadowMapTexture;
+		unsigned int shadowMapResolution = 1024;
 		GLuint textureColorBuffer;
 		GLuint framebufferQuadVao;
 		GLuint framebufferQuadVbo;

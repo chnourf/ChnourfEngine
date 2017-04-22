@@ -1,12 +1,17 @@
 #version 330 core
 layout (location = 0) in vec3 in_position;
-out vec3 TexCoords;
-out float height;
+layout (location = 1) in vec3 in_normal;
+
+out VS_OUT
+{
+	vec2 texcoord;
+	vec3 normal;
+	vec3 fragPos;
+} vs_out;
 
 layout (std140) uniform ViewConstants
 {
 	mat4 projection;
-	//useless
 	mat4 view;
 };
 
@@ -14,8 +19,8 @@ uniform mat4 cubemapView;
 
 void main()
 {
-    vec4 pos =   projection * view * vec4(in_position, 1.0);  
-	height = in_position.y/20;
-	gl_Position = pos;
-    TexCoords = in_position;
+    gl_Position = projection * view * vec4(in_position, 1.0);  
+    vs_out.texcoord = in_position.xz;
+	vs_out.normal = in_normal;
+	vs_out.fragPos = in_position;
 }  

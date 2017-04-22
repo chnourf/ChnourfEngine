@@ -203,5 +203,11 @@
     <None Include="Shaders\Terrain_Vertex_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
+    <None Include="Shaders\Simple_Depth_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Empty_Fragment_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

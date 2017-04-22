@@ -13,6 +13,7 @@ public:
 
 
 	const glm::vec3& GetDirection() { return myDirection; }
+	void SetDirection(const glm::vec3& aDirection) { myDirection = aDirection; }
 
 private:
 	glm::vec3 myDirection;

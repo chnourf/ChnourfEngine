@@ -22,7 +22,7 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 		glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
 	}
 
-	glutSetOption(GLUT_MULTISAMPLE, 16);
+	glutSetOption(GLUT_MULTISAMPLE, 8);
 
 	glutInitDisplayMode(aFramebufferInfo.flags);
 	glutInitWindowPosition(aWindowInfo.positionX, aWindowInfo.positionY);
@@ -42,6 +42,8 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 	Init::Init_GLEW();
 
 	glEnable(GL_MULTISAMPLE);
+
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	glShadeModel(GL_SMOOTH);
 
@@ -108,7 +110,7 @@ void Init_GLUT::ReshapeCallback(int aWidth, int aHeight)
 		windowInformation.width = aWidth;
 		windowInformation.height = aHeight;
 
-		float ratio = 1.0* aWidth / aHeight;
+		float ratio = 1.0f * aWidth / aHeight;
 
 		// Use the Projection Matrix
 		glMatrixMode(GL_PROJECTION);

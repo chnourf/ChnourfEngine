@@ -10,7 +10,7 @@
 namespace Manager
 {
 	TerrainManager::TerrainManager():
-		myDetectionRadius(5)
+		myDetectionRadius(6)
 	{
 		myCellBuilder = std::make_unique<TerrainCellBuilder> (myCellSize);
 	}
@@ -48,7 +48,6 @@ namespace Manager
 			if ((*it)->IsBuilt())
 			{
 				myActiveCells.push_back(*it);
-				// pass resolution as well
 				SceneManager::GetInstance()->GetModelManager()->AddTerrainCell(*it, myCellSize, myResolution);
 				std::cout << "adding a cell " << myActiveCells.size() << std::endl;
 				it = myCellsToLoad.erase(it);
@@ -86,7 +85,6 @@ namespace Manager
 
 	void TerrainManager::LoadCell(const vec2i& aGridIndex)
 	{
-		// check that the cell is not already loading when we create another
 		auto cell = new TerrainCell(aGridIndex, myCellSize);
 		myCellsToLoad.push_back(cell);
 		myCellBuilder->BuildCellRequest(cell);

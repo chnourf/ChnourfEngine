@@ -6,6 +6,8 @@ uniform sampler2D screenTexture;
 const float offset = 1.0 / 300; 
 void main()
 { 
+	//float depthValue = texture(screenTexture, TexCoords).r;
+    //color = vec4(vec3(depthValue), 1.0);
     color = texture(screenTexture, TexCoords);
 
     // vec2 offsets[9] = vec2[](

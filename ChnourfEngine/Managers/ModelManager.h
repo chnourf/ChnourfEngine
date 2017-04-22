@@ -18,6 +18,7 @@ namespace Manager
 		void FillScene(const ShaderManager* aShaderManager);
 
 		void Draw(const glm::mat4& aCameraTransform, const ShaderManager* aShaderManager);
+		void DrawShadowMap(const GLuint aShadowMapProgram);
 		void Update();
 		void DeleteModel(const std::string& gameModelName);
 		const IGameObject& GetModel(const std::string& gameModelName) const;

@@ -1,5 +1,28 @@
-﻿  TerrainCellModel.cpp
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(63): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+﻿  TerrainManager.cpp
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terrainmanager.cpp(31): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
+  TerrainCellBuilder.cpp
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(95): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(96): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(98): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(100): warning C4244: '*=': conversion from 'double' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(108): warning C4244: '=': conversion from 'time_t' to 'unsigned int', possible loss of data
+  TerrainCellModel.cpp
+d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(134): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(146): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+  Model.cpp
+  Mesh.cpp
+d:\projets\chnourf_engine\chnourfengine\rendering\models\mesh.cpp(72): warning C4244: 'argument': conversion from 'GLuint' to 'GLfloat', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\rendering\models\mesh.cpp(82): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\rendering\models\mesh.cpp(89): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+  ShaderManager.cpp
+  SceneManager.cpp
+  ModelManager.cpp
+  InitGlut.cpp
+  Generating Code...
+  Compiling...
+  main.cpp
+  Camera.cpp
+  Generating Code...
   SOIL.lib(SOIL.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/LTCG' specification
 InitGlut.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification

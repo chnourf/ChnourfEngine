@@ -15,6 +15,7 @@ SceneManager::SceneManager()
 	myShaderManager->CreateProgram("cubemapShader", "Shaders\\Cubemap_Vertex_Shader.glsl", "Shaders\\Cubemap_Pixel_Shader.glsl");
 	myShaderManager->CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
 	myShaderManager->CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", "Shaders\\Terrain_Pixel_Shader.glsl");
+	myShaderManager->CreateProgram("shadowMapShader", "Shaders\\Simple_Depth_Shader.glsl", "Shaders\\Empty_Fragment_Shader.glsl");
 
 	// mandatory for UBO
 	for (auto shader : myShaderManager->GetShaders())
@@ -32,7 +33,7 @@ SceneManager::SceneManager()
 
 	myTerrainManager = std::make_unique<TerrainManager>();
 
-	myPointLight = DirectionalLight(glm::vec3(0.5f, -1.f, -0.5f), glm::vec3(0.6f, 0.8f, 0.8f));
+	myDirectionalLight = DirectionalLight(glm::vec3(0.5f, -1.f, -0.5f), glm::vec3(0.6f, 0.8f, 0.8f));
 
 	mySkybox.LoadTextures("Data\\Skybox");
 }
@@ -112,6 +113,24 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
+	// setting up Shadow Map
+	glGenFramebuffers(1, &shadowMapFBO);
+
+	glGenTextures(1, &shadowMapTexture);
+	glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapResolution, shadowMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMapTexture, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 	//myModelManager->FillScene(myShaderManager.get());
 }
 
@@ -124,17 +143,41 @@ void SceneManager::NotifyBeginFrame()
 
 void SceneManager::NotifyDisplayFrame()
 {
-	// First pass ----------------------------------------------------------------------------------------------------------------------
+	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
+	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
+	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(cameraTransform));
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	// Shadow Map Pass
+	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
+	auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
+	glUseProgram(shadowMapProgram);
+
+	GLfloat near_plane = 1.0f, far_plane = 1000.f;
+	glm::mat4 lightProjection = glm::ortho(-500.0f, 500.0f, -500.0f, 500.0f, near_plane, far_plane);
+	auto sunPositionForShadowMap = glm::vec3(500.f, 500.f, 100.f);
+	glm::mat4 lightView = glm::lookAt(sunPositionForShadowMap, sunPositionForShadowMap + myDirectionalLight.GetDirection(),	glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+	GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
+	glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+
+	myModelManager->DrawShadowMap(shadowMapProgram);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	// First color pass ----------------------------------------------------------------------------------------------------------------------
+	glViewport(0, 0, myWindowWidth, myWindowHeigth);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
-	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
-	glBufferSubData(
-		GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(cameraTransform));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
+	
+	myDirectionalLight.SetDirection(glm::rotateY(myDirectionalLight.GetDirection(), .01f));
 
 	// setting all uniform variables, could be optimized
 	for (auto shader : myShaderManager->GetShaders())
@@ -146,10 +189,10 @@ void SceneManager::NotifyDisplayFrame()
 		glUniform3f(viewPosLoc, myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z);
 
 		GLuint lightPos = glGetUniformLocation(programId, "lightDirection");
-		glUniform3f(lightPos, myPointLight.GetDirection().x, myPointLight.GetDirection().y, myPointLight.GetDirection().z);
+		glUniform3f(lightPos, myDirectionalLight.GetDirection().x, myDirectionalLight.GetDirection().y, myDirectionalLight.GetDirection().z);
 
 		GLuint lightCol = glGetUniformLocation(programId, "lightColor");
-		glUniform3f(lightCol, myPointLight.GetIntensity().r, myPointLight.GetIntensity().g, myPointLight.GetIntensity().b);
+		glUniform3f(lightCol, myDirectionalLight.GetIntensity().r, myDirectionalLight.GetIntensity().g, myDirectionalLight.GetIntensity().b);
 
 		glBindTexture(GL_TEXTURE_CUBE_MAP, mySkybox.GetTexture());
 	}
@@ -165,11 +208,13 @@ void SceneManager::NotifyDisplayFrame()
 	// Second pass -------------------------------------------------------------------------------------------------------------------------------------------
 	glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 	//clear should be done in InitGLUT
+	glDisable(GL_FRAMEBUFFER_SRGB);
 
 	glUseProgram(myShaderManager->GetShader("frameBufferShader"));
 	glBindVertexArray(framebufferQuadVao);
 	glDisable(GL_DEPTH_TEST);
 	glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
+	//glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
@@ -186,7 +231,7 @@ void SceneManager::NotifyReshape(int aWidth, int aHeight, int aPreviousWidth, in
 	myWindowHeigth = aHeight;
 
 	glm::mat4 projection;
-	projection = glm::perspective(45.0f, (float)myWindowWidth / (float)myWindowHeigth, 0.1f, 100.0f);
+	projection = glm::perspective(45.0f, (float)myWindowWidth / (float)myWindowHeigth, 0.1f, 3000.0f);
 	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -195,7 +240,7 @@ void SceneManager::NotifyReshape(int aWidth, int aHeight, int aPreviousWidth, in
 void SceneManager::KeyboardCallback(unsigned char key, int x, int y)
 {
 	assert(ourInstance);
-	auto cameraSpeed = 0.2f;
+	auto cameraSpeed = 2.f;
 	auto cameraRight = glm::normalize(glm::cross(ourInstance->myCurrentCamera.myCameraFront, ourInstance->myCurrentCamera.myCameraUp));
 	//to do : take elapsed time into account
 	switch (key)

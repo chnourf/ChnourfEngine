@@ -15,11 +15,12 @@ struct TerrainCellBuildingTask
 	~TerrainCellBuildingTask();
 
 	PerlinNoise myPerlin;
-	int myNoiseDepth = 6;
+	int myNoiseDepth;
 	unsigned int myCellSize;
 	std::future<void> myHandle;
 
 	void BuildCell(TerrainCell* aCell);
+	float SamplePerlinNoise(const float aX, const float aY);
 };
 
 class TerrainCellBuilder
@@ -33,8 +34,8 @@ public:
 
 private:
 	std::vector<TerrainCellBuildingTask*> myLoadingTasks;
-	int mySeed;
-	const int myMaximumThreadLoad = 4;
+	unsigned int mySeed;
+	const int myMaximumThreadLoad = 8;
 	std::queue<TerrainCell*> myLoadingQueue;
 	unsigned int myCellSize;
 };

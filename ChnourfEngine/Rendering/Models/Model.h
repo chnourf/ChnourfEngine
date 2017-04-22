@@ -42,6 +42,7 @@ namespace Rendering
 
 			void Create();
 			void Draw(const Manager::ShaderManager* aShaderManager) override;
+			void DrawForShadowMap(const GLuint aShadowMapProgram) override;
 			void Update() override;
 			void SetProgram(GLuint aShaderName) override;
 			void Destroy() override;

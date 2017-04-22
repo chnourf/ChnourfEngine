@@ -2,6 +2,7 @@
 #include "../Core/Math.h"
 #include <string>
 
+#include "SceneManager.h"
 #include "../Rendering/Models/TerrainCellModel.h"
 #include "../WorldGenerator/TerrainCell.h"
 
@@ -91,7 +92,7 @@ void ModelManager::Update()
 void ModelManager::AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution)
 {
 	Models::TerrainCellModel* terrain = new Models::TerrainCellModel(aCell, aCellSize, aResolution);
-	//terrain->SetProgram(->GetShader("terrainShader"));
+//	terrain->SetProgram(SceneManager::GetInstance()->GetShaderManager()->GetShader("terrainShader"));
 	auto key = "terrain" + std::to_string(aCell->GetGridIndex().x) + " " + std::to_string(aCell->GetGridIndex().y);
 	gameModelList[key] = terrain;
 }
@@ -102,5 +103,13 @@ void ModelManager::Draw(const glm::mat4& aCameraTransform,const ShaderManager* a
 	for (auto model : gameModelList)
 	{
 		model.second->Draw(aShaderManager);
+	}
+}
+
+void ModelManager::DrawShadowMap(const GLuint aShadowMapProgram)
+{
+	for (auto model : gameModelList)
+	{
+		model.second->DrawForShadowMap(aShadowMapProgram);
 	}
 }
