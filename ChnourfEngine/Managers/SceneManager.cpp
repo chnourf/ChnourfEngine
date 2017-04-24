@@ -123,6 +123,10 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	//GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
@@ -143,6 +147,8 @@ void SceneManager::NotifyBeginFrame()
 
 void SceneManager::NotifyDisplayFrame()
 {
+	//myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), .01f));
+
 	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
 	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(cameraTransform));
@@ -157,8 +163,8 @@ void SceneManager::NotifyDisplayFrame()
 	glUseProgram(shadowMapProgram);
 
 	GLfloat near_plane = 1.0f, far_plane = 1000.f;
-	glm::mat4 lightProjection = glm::ortho(-500.0f, 500.0f, -500.0f, 500.0f, near_plane, far_plane);
-	auto sunPositionForShadowMap = glm::vec3(500.f, 500.f, 100.f);
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+	auto sunPositionForShadowMap = glm::vec3(000.f, 100.f, 5.f);
 	glm::mat4 lightView = glm::lookAt(sunPositionForShadowMap, sunPositionForShadowMap + myDirectionalLight.GetDirection(),	glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 	GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
@@ -177,7 +183,6 @@ void SceneManager::NotifyDisplayFrame()
 
 	glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 	
-	myDirectionalLight.SetDirection(glm::rotateY(myDirectionalLight.GetDirection(), .01f));
 
 	// setting all uniform variables, could be optimized
 	for (auto shader : myShaderManager->GetShaders())
@@ -193,6 +198,19 @@ void SceneManager::NotifyDisplayFrame()
 
 		GLuint lightCol = glGetUniformLocation(programId, "lightColor");
 		glUniform3f(lightCol, myDirectionalLight.GetIntensity().r, myDirectionalLight.GetIntensity().g, myDirectionalLight.GetIntensity().b);
+
+
+		GLfloat near_plane = 1.0f, far_plane = 1000.f;
+		glm::mat4 lightProjection = glm::ortho(-500.0f, 500.0f, -500.0f, 500.0f, near_plane, far_plane);
+		auto sunPositionForShadowMap = glm::vec3(500.f, 500.f, 100.f);
+		glm::mat4 lightView = glm::lookAt(sunPositionForShadowMap, sunPositionForShadowMap + myDirectionalLight.GetDirection(), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+		GLuint lightSpaceMatrixLocation = glGetUniformLocation(programId, "lightSpaceMatrix");
+		glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+
+		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 2);
+		glActiveTexture(GL_TEXTURE2);
+
 
 		glBindTexture(GL_TEXTURE_CUBE_MAP, mySkybox.GetTexture());
 	}

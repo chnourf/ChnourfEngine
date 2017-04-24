@@ -10,9 +10,9 @@
 namespace Manager
 {
 	TerrainManager::TerrainManager():
-		myDetectionRadius(6)
+		myDetectionRadius(4)
 	{
-		myCellBuilder = std::make_unique<TerrainCellBuilder> (myCellSize);
+		myCellBuilder = std::make_unique<TerrainCellBuilder> (myCellSize, myResolution);
 	}
 
 	TerrainManager::~TerrainManager()

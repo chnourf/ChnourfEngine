@@ -3,13 +3,16 @@
 #include <time.h>
 #include <iostream>
 
-TerrainCellBuildingTask::TerrainCellBuildingTask(const int aSeed, const unsigned int aCellSize, TerrainCell* aCell):
+TerrainCellBuildingTask::TerrainCellBuildingTask(const int aSeed, const unsigned int aCellSize, float aCellResolution, TerrainCell* anEmptyCell):
 	myCellSize(aCellSize),
-	myNoiseDepth(6)
+	myNoiseDepth(6),
+	myCellResolution(aCellResolution)
 {
 	myPerlin = PerlinNoise(aSeed);
-	myHandle = std::async(std::launch::async, [this, aCell]() {BuildCell(aCell); });
+	myHandle = std::async(std::launch::async, [this, anEmptyCell]() {BuildCell(anEmptyCell); });
 }
+
+const float locMultiplier = 200.f; // noise result between 0 and this value
 
 void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 {
@@ -44,17 +47,17 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 			const float y = (float)i * delta + aCell->GetGridIndex().x;
 
 			const auto index = j + i * myCellSize;
-			const auto elementElevation = temporaryElements[index].myElevation;
 
 			const auto s01 = (j == 0) ? SamplePerlinNoise(x-delta, y) : temporaryElements[index - 1].myElevation;
 			const auto s21 = (j == myCellSize - 1) ? SamplePerlinNoise(x + delta, y) : temporaryElements[index + 1].myElevation;
 			const auto s10 = (i == 0) ? SamplePerlinNoise(x, y - delta) : temporaryElements[index - myCellSize].myElevation;
 			const auto s12 = (i == myCellSize - 1) ? SamplePerlinNoise(x, y + delta) : temporaryElements[index + myCellSize].myElevation;
-			const glm::vec3 va = glm::normalize(glm::vec3(2 * delta, s21 - s01, 0.0f));
-			const glm::vec3 vb = glm::normalize(glm::vec3(0.0f, s12 - s10, 2 * delta));
+			const glm::vec3 va = glm::normalize(glm::vec3(2 * delta, (s21 - s01) / (myCellSize * myCellResolution), 0.0f));
+			const glm::vec3 vb = glm::normalize(glm::vec3(0.0f, (s12 - s10) / (myCellSize * myCellResolution), 2 * delta));
 			const auto normal = glm::cross(vb, va);
 
 			temporaryElements[j + i * myCellSize].myNormal = normal;
+			temporaryElements[j + i * myCellSize].myElevation;
 		}
 	}
 
@@ -99,11 +102,12 @@ float TerrainCellBuildingTask::SamplePerlinNoise(const float x, const float y)
 	}
 	cellNoise *= (myPerlin.noise(x/4, y/4, 2) + 1) / 2;
 
-	return 200*cellNoise;
+	return locMultiplier *  cellNoise;
 }
 
-TerrainCellBuilder::TerrainCellBuilder(int aCellSize):
-	myCellSize(aCellSize)
+TerrainCellBuilder::TerrainCellBuilder(const int aCellSize, const float aResolution):
+	myCellSize(aCellSize),
+	myCellResolution(aResolution)
 {
 	mySeed = time(NULL);
 	srand(mySeed);
@@ -113,7 +117,7 @@ void TerrainCellBuilder::BuildCellRequest(TerrainCell* aCell)
 {
 	if (myLoadingTasks.size() < myMaximumThreadLoad)
 	{
-		myLoadingTasks.push_back(new TerrainCellBuildingTask(mySeed, myCellSize, aCell));
+		myLoadingTasks.push_back(new TerrainCellBuildingTask(mySeed, myCellSize, myCellResolution, aCell));
 	}
 	else
 	{
@@ -141,7 +145,7 @@ void TerrainCellBuilder::Update()
 	{
 		if (!myLoadingQueue.empty())
 		{
-			myLoadingTasks.push_back(new TerrainCellBuildingTask(mySeed, myCellSize, myLoadingQueue.front()));
+			myLoadingTasks.push_back(new TerrainCellBuildingTask(mySeed, myCellSize, myCellResolution, myLoadingQueue.front()));
 			myLoadingQueue.pop();
 		}
 	}

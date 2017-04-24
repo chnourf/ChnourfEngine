@@ -5,9 +5,9 @@ class DirectionalLight : public Light
 {
 public:
 	DirectionalLight() {};
-	DirectionalLight(const glm::vec3& aDirection, const glm::vec3& anIntensity) :
-		myDirection(aDirection)
+	DirectionalLight(const glm::vec3& aDirection, const glm::vec3& anIntensity)
 	{
+		myDirection = glm::normalize(aDirection);
 		myIntensity = anIntensity;
 	}
 
