@@ -98,7 +98,7 @@ float TerrainCellBuildingTask::SamplePerlinNoise(const float x, const float y)
 		float factor = pow(2, d);
 		float softNoise = myPerlin.noise(factor*x / 3, factor*y / 3, 0);
 		auto hardNoise = (1 - abs(myPerlin.noise(factor*x/2, factor*y/2, 0) * 2 - 1)) / ((d + 2) / 3);
-		cellNoise += 1 / factor*(lerpFactor*softNoise*0.5 + hardNoise*(1 - lerpFactor)*mountainHeight);
+		cellNoise += 1 / factor*(lerpFactor*softNoise*0.5f + hardNoise*(1 - lerpFactor)*mountainHeight);
 	}
 	cellNoise *= (myPerlin.noise(x/4, y/4, 2) + 1) / 2;
 

@@ -25,5 +25,5 @@ void main()
     vs_out.texcoord = in_position.xz;
 	vs_out.normal = in_normal;
 	vs_out.fragPos = in_position;
-	vs_out.fragPosLightSpace = lightSpaceMatrix * vec4(vs_out.fragPos, 1.0);
+	vs_out.fragPosLightSpace = lightSpaceMatrix * vec4(in_position, 1.0);
 }  

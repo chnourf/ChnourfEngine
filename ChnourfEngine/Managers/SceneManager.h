@@ -53,9 +53,11 @@ namespace Manager
 		GLuint fbo; //to be moved, used for framebuffer render
 		GLuint shadowMapFBO;
 		GLuint shadowMapTexture;
-		unsigned int shadowMapResolution = 1024;
+		unsigned int shadowMapResolution = 2048;
 		GLuint textureColorBuffer;
 		GLuint framebufferQuadVao;
 		GLuint framebufferQuadVbo;
+
+		glm::mat4 myLightSpaceMatrix;
 	};
 }

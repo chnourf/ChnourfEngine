@@ -19,21 +19,35 @@ namespace Rendering
 					const float x = (float) (((float)j / ((float)(aCellSize-1)) + aCell->GetGridIndex().x) * aCellSize * aResolution);
 					const float y = (float) (((float)i / ((float)(aCellSize-1)) + aCell->GetGridIndex().y) * aCellSize * aResolution);
 
-					TerrainVertex vertex = TerrainVertex(glm::vec3(x, aCell->GetElement(i + j*aCellSize).myElevation, y), aCell->GetElement(i + j*aCellSize).myNormal);
+					TerrainVertex vertex = TerrainVertex(glm::vec3(x, aCell->GetElement(i + j*aCellSize).myElevation-40, y), aCell->GetElement(i + j*aCellSize).myNormal);
 
 					// we need to deduce the normals here
 
 					vertices.push_back(vertex);
-
+					bool isEven = i % 2 == 0;
+					//alternance even odd
 					if (i < aCellSize-1 && j < aCellSize-1)
 					{
-						indices.push_back(i + j*aCellSize);
-						indices.push_back(i + ((j + 1) % aCellSize)*aCellSize);
-						indices.push_back((i + 1) % aCellSize + j*aCellSize);
+						if (isEven)
+						{
+							indices.push_back(i + j*aCellSize);
+							indices.push_back(i + ((j + 1) % aCellSize)*aCellSize);
+							indices.push_back((i + 1) % aCellSize + j*aCellSize);
 
-						indices.push_back((i + 1) % aCellSize + j*aCellSize);
-						indices.push_back(i + ((j + 1) % aCellSize)*aCellSize);
-						indices.push_back((i + 1) % aCellSize + ((j + 1) % aCellSize)*aCellSize);
+							indices.push_back((i + 1) % aCellSize + j*aCellSize);
+							indices.push_back(i + ((j + 1) % aCellSize)*aCellSize);
+							indices.push_back((i + 1) % aCellSize + ((j + 1) % aCellSize)*aCellSize);
+						}
+						else
+						{
+							indices.push_back(i + j*aCellSize);
+							indices.push_back((i+1) % aCellSize + ((j + 1) % aCellSize)*aCellSize);
+							indices.push_back((i + 1) % aCellSize + j*aCellSize);
+
+							indices.push_back(i + j*aCellSize);
+							indices.push_back(i + ((j + 1) % aCellSize)*aCellSize);
+							indices.push_back((i + 1) % aCellSize + ((j + 1) % aCellSize)*aCellSize);
+						}
 					}
 				}
 			}
@@ -87,6 +101,30 @@ namespace Rendering
 				modelManager->AddLoadedTexture(texture);  // Add to loaded textures
 			}
 
+			auto str3 = "Data/TerrainTest/terrain_n.jpg";
+
+			auto skip3 = false;
+			for (auto texture : loadedTextures)
+			{
+				if (std::strcmp(texture.myPath.C_Str(), str3) == 0)
+				{
+					textures.push_back(texture);
+					skip3 = true;
+					break;
+				}
+			}
+
+			if (!skip3)
+			{   // If texture hasn't been loaded already, load it
+				TextureFormat texture;
+				CreateTexture(texture.myId, str3);
+				texture.myPath = str3;
+				textures.push_back(texture);
+
+				modelManager->AddLoadedTexture(texture);  // Add to loaded textures
+			}
+
+
 			auto str2 = "Data/TerrainTest/rock_d.jpg";
 
 			auto skip2 = false;
@@ -125,11 +163,14 @@ namespace Rendering
 			// needs to be done before all glUniform
 			glUseProgram(myProgram);
 			glBindVertexArray(VAO);
-			glUniform1i(glGetUniformLocation(myProgram, "groundTexture"), 0);
+			glUniform1i(glGetUniformLocation(myProgram, "groundMaterial.diffuse"), 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, textures[0].myId);
-			glUniform1i(glGetUniformLocation(myProgram, "rockTexture"),1);
+			glUniform1i(glGetUniformLocation(myProgram, "rockMaterial.diffuse"),1);
 			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, textures[2].myId);
+			glUniform1i(glGetUniformLocation(myProgram, "normalMap"), 2);
+			glActiveTexture(GL_TEXTURE2);
 			glBindTexture(GL_TEXTURE_2D, textures[1].myId);
 			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
