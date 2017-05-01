@@ -1,8 +1,32 @@
-﻿  SceneManager.cpp
-  Generating code
-  33 of 2824 functions ( 1.2%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    11 functions had inline decision re-evaluated but remain unchanged
-  Finished generating code
-  ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.exe
-  ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.pdb (Full PDB)
+﻿La génération a démarré 01/05/2017 01:33:42.
+     1>Projet "C:\Users\Utilisateur\Documents\Visual Studio 2015\Projects\ChnourfEngine\ChnourfEngine\ChnourfEngine\ChnourfEngine.vcxproj" sur le nœud 2 (Build cible(s)).
+     1>ClCompile:
+         D:\Logiciel\Visual Studio\VC\bin\x86_amd64\CL.exe /c /I"C:\Users\Utilisateur\Documents\Visual Studio 2015\Projects\ChnourfEngine\ChnourfEngine\packages\glm.0.9.7.1\build\native\../..//build/native/include/" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Release\\" /Fd"x64\Release\vc140.pdb" /Gd /TP /errorReport:prompt Managers\SceneManager.cpp
+         SceneManager.cpp
+       Link:
+         D:\Logiciel\Visual Studio\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Utilisateur\Documents\Visual Studio 2015\Projects\ChnourfEngine\ChnourfEngine\x64\Release\ChnourfEngine.exe" /NOLOGO /LIBPATH:Dependencies\freeglut /LIBPATH:Dependencies\glew /LIBPATH:Dependencies\SOIL /LIBPATH:Dependencies\Assimp kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib opengl32.lib freeglut.lib glew32.lib SOIL.lib "assimp-vc140-mt.lib" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Utilisateur\Documents\Visual Studio 2015\Projects\ChnourfEngine\ChnourfEngine\x64\Release\ChnourfEngine.pdb" /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Utilisateur\Documents\Visual Studio 2015\Projects\ChnourfEngine\ChnourfEngine\x64\Release\ChnourfEngine.lib" /MACHINE:X64 x64\Release\InitGlut.obj
+         x64\Release\PerlinNoise.obj
+         x64\Release\main.obj
+         x64\Release\InputManager.obj
+         x64\Release\ModelManager.obj
+         x64\Release\SceneManager.obj
+         x64\Release\ShaderManager.obj
+         x64\Release\Camera.obj
+         x64\Release\Cubemap.obj
+         x64\Release\Mesh.obj
+         x64\Release\Model.obj
+         x64\Release\TerrainCellModel.obj
+         x64\Release\TerrainCell.obj
+         x64\Release\TerrainCellBuilder.obj
+         x64\Release\TerrainManager.obj
+         Génération de code en cours
+         3 of 2894 functions ( 0.1%) were compiled, the rest were copied from previous compilation.
+           0 functions were new in current compilation
+           0 functions had inline decision re-evaluated but remain unchanged
+         Fin de la génération du code
+         ChnourfEngine.vcxproj -> C:\Users\Utilisateur\Documents\Visual Studio 2015\Projects\ChnourfEngine\ChnourfEngine\x64\Release\ChnourfEngine.exe
+     1>Génération du projet "C:\Users\Utilisateur\Documents\Visual Studio 2015\Projects\ChnourfEngine\ChnourfEngine\ChnourfEngine\ChnourfEngine.vcxproj" terminée (Build cible(s)).
+
+La génération a réussi.
+
+Temps écoulé 00:00:06.30
