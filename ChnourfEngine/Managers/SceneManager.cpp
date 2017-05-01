@@ -34,7 +34,7 @@ SceneManager::SceneManager()
 
 	myTerrainManager = std::make_unique<TerrainManager>();
 
-	myDirectionalLight = DirectionalLight(glm::vec3(1.f, -1.f, 1.f), glm::vec3(0.8f, 1.f, 1.f));
+	myDirectionalLight = DirectionalLight(glm::vec3(1.f, -1.f, 1.f), glm::vec3(1.f, 1.f, 1.f));
 
 	mySkybox.LoadTextures("Data\\Skybox");
 }
@@ -152,7 +152,7 @@ void SceneManager::NotifyDisplayFrame()
 	//{
 	//	myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), (float)M_PI+0.1f));
 	//}
-	//myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), .003f));
+	myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), .003f));
 
 	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
 	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);

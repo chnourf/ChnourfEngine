@@ -9,6 +9,8 @@ void main()
 	//float depthValue = texture(screenTexture, TexCoords).r;
     //color = vec4(vec3(depthValue), 1.0);
     color = texture(screenTexture, TexCoords);
+	
+	//color *= 0.5 + 0.5*pow( 16.0*TexCoords.x*TexCoords.y*(1.0-TexCoords.x)*(1.0-TexCoords.y), 2.0 );
 
     // vec2 offsets[9] = vec2[](
         // vec2(-offset, offset),  // top-left
