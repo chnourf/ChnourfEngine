@@ -50,3 +50,9 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+*.obj
+
+\.vs/ChnourfEngine/v14/
+
+*.ipdb
