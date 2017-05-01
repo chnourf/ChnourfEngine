@@ -79,6 +79,15 @@ void main()
     vec3 specular = lightColor * spec * vec3(1.0,1.0,1.0);  
 
     vec3 result =  Shadow(fs_in.fragPosLightSpace) * (diffuse + 0.3 * specular) + ambient;
+
+	//fog
+	float fogDensity = 0.002;
+	float fogAmount = (1.0 - exp( -distance(viewPos, fs_in.fragPos)*fogDensity))*clamp(exp(-fs_in.fragPos.y * fogDensity * 0.1), 0.0, 1.0);;
+	float sunAmount = max( dot( -viewDir,lightDir ), 0.0 );
+    vec3  fogColor  = mix(vec3(0.5 ,0.6, 0.7), lightColor, pow(sunAmount,2.0));
+    result = mix( result, fogColor, fogAmount );
+
+
     out_color = vec4(result, 1.0f);
 }
   
