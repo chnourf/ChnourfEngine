@@ -1,5 +1,5 @@
 #pragma once
-
+#include "glm\glm.hpp"
 
 
 template <class T> struct Vector2
@@ -23,6 +23,12 @@ template <class T> struct Vector3
 		z(aZ)
 	{}
 
+	Vector3(const glm::vec3& aVec3):
+		x(aVec3.x),
+		y(aVec3.y),
+		z(aVec3.z)
+	{}
+
 	T x;
 	T y;
 	T z;
@@ -32,6 +38,18 @@ template <class T>
 bool operator==(const Vector2<T>& l, const Vector2<T>& r)
 {
 	return l.x == r.x && l.y == r.y;
+}
+
+template <class T>
+Vector3<T> operator+(const Vector3<T>& l, const Vector3<T>& r)
+{
+	return Vector3<T>(l.x + r.x, l.y + r.y, l.z + r.z);
+}
+
+template <class T>
+Vector3<T> operator-(const Vector3<T>& l, const Vector3<T>& r)
+{
+	return Vector3<T>(l.x - r.x, l.y - r.y, l.z - r.z);
 }
 
 typedef Vector2<float>  vec2f;

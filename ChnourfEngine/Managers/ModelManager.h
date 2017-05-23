@@ -7,6 +7,8 @@ using namespace Rendering;
 
 class TerrainCell;
 
+class Camera;
+
 namespace Manager
 {
 	class ModelManager
@@ -22,6 +24,16 @@ namespace Manager
 		void Update();
 		void DeleteModel(const std::string& gameModelName);
 		const IGameObject& GetModel(const std::string& gameModelName) const;
+
+		inline void ResetCulling()
+		{
+			for (auto model : gameModelList)
+			{
+				model.second->isVisible = true;
+			}
+		}
+
+		void CullScene(const Camera& aCamera);
 
 		void AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution);
 

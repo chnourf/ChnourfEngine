@@ -28,13 +28,12 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 	//computing elevation
 	for (unsigned int i = 0; i < myCellSize; ++i) {     // y
 		for (unsigned int j = 0; j < myCellSize; ++j) {  // x
-			const float x = (float)j / ((float)myCellSize-1) + aCell->GetGridIndex().y;
-			const float y = (float)i / ((float)myCellSize-1) + aCell->GetGridIndex().x;
+			const float x = ((float)j / ((float)myCellSize-1) + aCell->GetGridIndex().y) * myCellSize * myCellResolution;
+			const float y = ((float)i / ((float)myCellSize-1) + aCell->GetGridIndex().x) * myCellSize * myCellResolution;
 
 			const auto cellNoise = SamplePerlinNoise(x, y);
 
-			//ushort elevation = (ushort)(cellNoise* 0xffff);
-			temporaryElements.push_back(TerrainElement((float)cellNoise, glm::vec3()));
+			temporaryElements.push_back(TerrainElement(cellNoise, glm::vec3()));
 		}
 	}
 
@@ -43,21 +42,20 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 		for (unsigned int j = 0; j < myCellSize; ++j) {  // x
 
 			auto delta = 1.f / ((float)myCellSize - 1);
-			const float x = (float)j * delta + aCell->GetGridIndex().y;
-			const float y = (float)i * delta + aCell->GetGridIndex().x;
+			const float x = ((float)j * delta + aCell->GetGridIndex().y) * myCellSize * myCellResolution;
+			const float y = ((float)i * delta + aCell->GetGridIndex().x) * myCellSize * myCellResolution;
 
 			const auto index = j + i * myCellSize;
 
-			const auto s01 = (j == 0) ? SamplePerlinNoise(x-delta, y) : temporaryElements[index - 1].myElevation;
-			const auto s21 = (j == myCellSize - 1) ? SamplePerlinNoise(x + delta, y) : temporaryElements[index + 1].myElevation;
-			const auto s10 = (i == 0) ? SamplePerlinNoise(x, y - delta) : temporaryElements[index - myCellSize].myElevation;
-			const auto s12 = (i == myCellSize - 1) ? SamplePerlinNoise(x, y + delta) : temporaryElements[index + myCellSize].myElevation;
+			const auto s01 = (j == 0) ? SamplePerlinNoise(x - delta * myCellSize * myCellResolution, y) : temporaryElements[index - 1].myElevation;
+			const auto s21 = (j == myCellSize - 1) ? SamplePerlinNoise(x + delta * myCellSize * myCellResolution, y) : temporaryElements[index + 1].myElevation;
+			const auto s10 = (i == 0) ? SamplePerlinNoise(x, y - delta * myCellSize * myCellResolution) : temporaryElements[index - myCellSize].myElevation;
+			const auto s12 = (i == myCellSize - 1) ? SamplePerlinNoise(x, y + delta * myCellSize * myCellResolution) : temporaryElements[index + myCellSize].myElevation;
 			const glm::vec3 va = glm::normalize(glm::vec3(2 * delta, (s21 - s01) / (myCellSize * myCellResolution), 0.0f));
 			const glm::vec3 vb = glm::normalize(glm::vec3(0.0f, (s12 - s10) / (myCellSize * myCellResolution), 2 * delta));
 			const auto normal = glm::cross(vb, va);
 
 			temporaryElements[j + i * myCellSize].myNormal = normal;
-			temporaryElements[j + i * myCellSize].myElevation;
 		}
 	}
 
@@ -73,6 +71,8 @@ TerrainCellBuildingTask::~TerrainCellBuildingTask()
 {
 }
 
+const float scale = 1.f;
+
 float TerrainCellBuildingTask::SamplePerlinNoise(const float x, const float y)
 {
 	auto cellNoise = 0.f;
@@ -85,24 +85,25 @@ float TerrainCellBuildingTask::SamplePerlinNoise(const float x, const float y)
 	//}
 
 	//sigmoid function, perhaps not the better choice
-	auto lerpFactor = exp(-pow((myPerlin.noise(x / 16, y / 16, 0) - 0.6), 2) / 0.004);
-	auto lerpNoise = 1 / (1 + exp(-15 * (myPerlin.noise( x / 8, y /8, -18) - 0.5)));
+	auto lerpFactor = exp(-pow((myPerlin.noise(x * scale / 2048, y * scale / 2048, 0) - 0.6), 2) / 0.004);
+	auto lerpNoise = 1 / (1 + exp(-15 * (myPerlin.noise( x * scale / 1024, y * scale /1024, -18) - 0.5)));
 	lerpFactor *= lerpNoise;
 	lerpFactor = 1 - lerpFactor;
 
-	auto mountainHeight = 1;
+	auto mountainHeight = 1.f;
+	auto plainHeight = 0.5f;
 
 	// Typical Perlin noise
 	for (int d = 1; d <= myNoiseDepth; d++)
 	{
 		float factor = pow(2, d);
-		float softNoise = myPerlin.noise(factor*x / 3, factor*y / 3, 0);
-		auto hardNoise = (1 - abs(myPerlin.noise(factor*x/2, factor*y/2, 0) * 2 - 1)) / ((d + 2) / 3);
-		cellNoise += 1 / factor*(lerpFactor*softNoise*0.5f + hardNoise*(1 - lerpFactor)*mountainHeight);
+		float softNoise = myPerlin.noise(factor * x * scale / 384, factor * y * scale / 384, 0);
+		auto hardNoise = (1 - abs(myPerlin.noise(factor * x * scale / 256, factor * y * scale / 256, 0) * 2 - 1)) / ((d + 2) / 3);
+		cellNoise += 1 / factor*(lerpFactor * softNoise * plainHeight + hardNoise * (1 - lerpFactor) * mountainHeight);
 	}
-	cellNoise *= (myPerlin.noise(x/4, y/4, 2) + 1) / 2;
+	cellNoise *= (myPerlin.noise(x*scale /512, y*scale /512, 2) + 1) / 2;
 
-	return locMultiplier *  cellNoise;
+	return locMultiplier * cellNoise;
 }
 
 TerrainCellBuilder::TerrainCellBuilder(const int aCellSize, const float aResolution):

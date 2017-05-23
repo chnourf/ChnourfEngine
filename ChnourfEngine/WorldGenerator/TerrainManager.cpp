@@ -9,10 +9,10 @@
 
 namespace Manager
 {
-	TerrainManager::TerrainManager():
-		myDetectionRadius(5)
+	TerrainManager::TerrainManager()
 	{
 		myCellBuilder = std::make_unique<TerrainCellBuilder> (myCellSize, myResolution);
+		assert(myCellSize <= 257); // otherwise the indices cannot be stored on a short
 	}
 
 	TerrainManager::~TerrainManager()
@@ -35,6 +35,13 @@ namespace Manager
 			for (int y = positionOnGrid.y - myDetectionRadius; y < positionOnGrid.y + myDetectionRadius; y++)
 			{
 				auto cell = vec2i(x, y);
+
+				// detection circle
+				if (pow(x - positionOnGrid.x, 2) + pow(y - positionOnGrid.y, 2) > pow(myDetectionRadius, 2))
+				{
+					continue;
+				}
+				
 				if (!IsCellLoaded(cell) && !IsCellLoading(cell))
 				{
 					LoadCell(vec2i(x, y));

@@ -2,22 +2,22 @@
 
 #include "../IGameObject.h"
 #include "../TextureFormat.h"
+#include "../../Core/Vector.h"
 #include "glm\detail\type_vec3.hpp"
 
 class TerrainCell;
 
 struct TerrainVertex
 {
-	glm::vec3 position;
-	glm::vec3 normal;
+	float elevation;
+	unsigned int normal;
 
 	TerrainVertex()
-	{
-	}
+	{}
 
-	TerrainVertex(const glm::vec3& aPos, const glm::vec3& aNormal)
+	TerrainVertex(const float anElevation, const unsigned int aNormal)
 	{
-		position = aPos;
+		elevation = anElevation;
 		normal = aNormal;
 	}
 };
@@ -40,13 +40,23 @@ namespace Rendering
 
 		private:
 			void CreateTexture(GLuint& aTextureID, const std::string& aPath);
+			void AddTexture(const std::string& aPath);
+			void CreateAndGenerateBuffers(GLuint& aVao, GLuint& aVbo, GLuint& aEbo, int aLod);
+			void AddFace(int aLod, unsigned int a, unsigned int b, unsigned int c);
 
-			// right now this is very costly (for a 256x256 tile we store around 3.14MB !)
+			static const int myMaxLOD = 3;
+			static const int myNumLOD = myMaxLOD + 1;
+			static std::vector<GLuint> ourIndices[myNumLOD];
+
 			std::vector<TerrainVertex> vertices;
-			std::vector<GLuint> indices;
 			std::vector<TextureFormat> textures;
-			GLuint VAO, VBO, EBO;
+			GLuint VAOs[myNumLOD];
+			GLuint VBOs[myNumLOD];
+			GLuint EBOs[myNumLOD];
 			GLuint myProgram;
+			vec2i myTileIndex;
+
+			unsigned int myCurrentLOD = 0;
 		};
 	}
 }

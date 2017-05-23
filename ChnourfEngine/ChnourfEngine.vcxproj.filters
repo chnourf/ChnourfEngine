@@ -170,6 +170,9 @@
     <ClInclude Include="Rendering\Models\TerrainCellModel.h">
       <Filter>Fichiers sources\Rendering\Models</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Intersection.h">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Vertex_Shader.glsl">
@@ -207,6 +210,9 @@
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
     <None Include="Shaders\Empty_Fragment_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Skybox_Pixel_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
   </ItemGroup>

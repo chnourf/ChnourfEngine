@@ -3,39 +3,32 @@ in vec2 TexCoords;
 out vec4 color;
 
 uniform sampler2D screenTexture;
-const float offset = 1.0 / 300; 
+
+const float A = 0.22;
+const float B = 0.30;
+const float C = 0.10;
+const float D = 0.20;
+const float E = 0.01;
+const float F = 0.30;
+
 void main()
-{ 
-	//float depthValue = texture(screenTexture, TexCoords).r;
-    //color = vec4(vec3(depthValue), 1.0);
-    color = texture(screenTexture, TexCoords);
+{
+    vec3 hdrColor = texture(screenTexture, TexCoords, 0).rgb;
+	
+	//Exposure
+	hdrColor = hdrColor * 4.0;
+	
+	// Reinhardt tonemapping
+	//hdrColor = hdrColor/(1+hdrColor);
+	//hdrColor = pow(hdrColor, vec3(1.0/2.2));
+	
+	// Filmic tonemapping, gamma included
+	//vec3 x = max(vec3(0), hdrColor - vec3(0.004));
+    //hdrColor = (x*(6.2*x + 0.5)) / (x*(6.2*x + 1.7) + 0.06);
 
-    // vec2 offsets[9] = vec2[](
-        // vec2(-offset, offset),  // top-left
-        // vec2(0.0f,    offset),  // top-center
-        // vec2(offset,  offset),  // top-right
-        // vec2(-offset, 0.0f),    // center-left
-        // vec2(0.0f,    0.0f),    // center-center
-        // vec2(offset,  0.0f),    // center-right
-        // vec2(-offset, -offset), // bottom-left
-        // vec2(0.0f,    -offset), // bottom-center
-        // vec2(offset,  -offset)  // bottom-right    
-    // );
+	// Custom Filmic Tonemapping
+    hdrColor = ((hdrColor * (A*hdrColor + C*B) + D*E)/(hdrColor * (A*hdrColor + B) + D*F)) - E/F;
+	//hdrColor = pow(hdrColor, vec3(2.2));
 
-    // float kernel[9] = float[](
-        // -1, -1, -1,
-        // -1,  9, -1,
-        // -1, -1, -1
-    // );
-    
-    // vec3 sampleTex[9];
-    // for(int i = 0; i < 9; i++)
-    // {
-        // sampleTex[i] = vec3(texture(screenTexture, TexCoords.st + offsets[i]));
-    // }
-    // vec3 col = vec3(0.0);
-    // for(int i = 0; i < 9; i++)
-        // col += sampleTex[i] * kernel[i];
-    
-    // color = vec4(col, 1.0);
+    color = vec4(hdrColor, 1);
 }

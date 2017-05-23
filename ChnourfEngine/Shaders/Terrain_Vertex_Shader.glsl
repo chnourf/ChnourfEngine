@@ -1,6 +1,7 @@
 #version 330 core
-layout (location = 0) in vec3 in_position;
-layout (location = 1) in vec3 in_normal;
+
+layout (location = 0) in float in_elevation;
+layout (location = 1) in int in_normal;
 
 out VS_OUT
 {
@@ -18,12 +19,27 @@ layout (std140) uniform ViewConstants
 
 uniform mat4 cubemapView;
 uniform mat4 lightSpaceMatrix;
+uniform int powCurrentLOD;
+
+const float resolution = 0.5f;
+const int  cellSize = 257;
+uniform ivec2 tileIndex;
 
 void main()
 {
-    gl_Position = projection * view * vec4(in_position, 1.0);  
-    vs_out.texcoord = in_position.xz;
-	vs_out.normal = in_normal;
-	vs_out.fragPos = in_position;
-	vs_out.fragPosLightSpace = lightSpaceMatrix * vec4(in_position, 1.0);
+	float x = ((gl_VertexID % cellSize) * 1/(float(cellSize) - powCurrentLOD) + tileIndex.x) * cellSize * resolution;
+	float z = ((gl_VertexID / cellSize) * 1/(float(cellSize) - powCurrentLOD) + tileIndex.y) * cellSize * resolution;
+
+	vec3 position = vec3(x, in_elevation, z);
+    gl_Position = projection * view * vec4(position, 1.0); 
+	
+    vs_out.texcoord = position.xz;
+	
+	int normX = ((in_normal >> 16) & 0xff) - 128;
+	int normY = ((in_normal >> 8) & 0xff) - 128;
+	int normZ = ((in_normal) & 0xff) - 128;
+	
+	vs_out.normal = normalize(vec3(normX, normY, normZ));
+	vs_out.fragPos = position;
+	vs_out.fragPosLightSpace = lightSpaceMatrix * vec4(position, 1.0);
 }  

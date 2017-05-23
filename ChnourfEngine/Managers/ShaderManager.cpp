@@ -9,6 +9,25 @@ using namespace Manager;
 
 ShaderManager::ShaderManager() {}
 
+void ShaderManager::Initialize()
+{
+	CreateProgram("transparentShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnTransparent_Shader.glsl");
+	CreateProgram("colorShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinn_Shader.glsl");
+	CreateProgram("frameBufferShader", "Shaders\\FBO_Vertex_Shader.glsl", "Shaders\\FBO_Pixel_Shader.glsl");
+	CreateProgram("cubemapShader", "Shaders\\Cubemap_Vertex_Shader.glsl", "Shaders\\Cubemap_Pixel_Shader.glsl");
+	CreateProgram("skyboxShader", "Shaders\\Cubemap_Vertex_Shader.glsl", "Shaders\\Skybox_Pixel_Shader.glsl");
+	CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
+	CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", "Shaders\\Terrain_Pixel_Shader.glsl");
+	CreateProgram("shadowMapShader", "Shaders\\Simple_Depth_Shader.glsl", "Shaders\\Empty_Fragment_Shader.glsl");
+
+	// mandatory for UBO
+	for (auto shader : GetShaders())
+	{
+		GLuint uniformBlockIndex = glGetUniformBlockIndex(shader.myId, "ViewConstants");
+		glUniformBlockBinding(shader.myId, uniformBlockIndex, 0);
+	}
+}
+
 ShaderManager::~ShaderManager()
 {
 	for (auto program : myPrograms)
@@ -64,14 +83,10 @@ GLuint ShaderManager::CreateShader(GLenum aShaderType, std::string aSource, cons
 	return shader;
 }
 
-void ShaderManager::CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename)
+void ShaderManager::CreateProgramFromSource(const std::string& aShaderName, const std::string& aVertexShaderSource, const std::string& aFragmentShaderSource)
 {
-	//read the shader files and save the code
-	std::string vertex_shader_code = ReadShader(aVertexShaderFilename);
-	std::string fragment_shader_code = ReadShader(aFragmentShaderFilename);
-
-	GLuint vertex_shader = CreateShader(GL_VERTEX_SHADER, vertex_shader_code, "vertex shader");
-	GLuint fragment_shader = CreateShader(GL_FRAGMENT_SHADER, fragment_shader_code, "fragment shader");
+	GLuint vertex_shader = CreateShader(GL_VERTEX_SHADER, aVertexShaderSource, "vertex shader");
+	GLuint fragment_shader = CreateShader(GL_FRAGMENT_SHADER, aFragmentShaderSource, "fragment shader");
 
 	int link_result = 0;
 	//create the program handle, attatch the shaders and link it
@@ -84,7 +99,6 @@ void ShaderManager::CreateProgram(const std::string& aShaderName, const std::str
 	//check for link errors
 	if (link_result == GL_FALSE)
 	{
-
 		int info_log_length = 0;
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &info_log_length);
 		std::vector<char> program_log(info_log_length);
@@ -96,6 +110,32 @@ void ShaderManager::CreateProgram(const std::string& aShaderName, const std::str
 	glDeleteShader(fragment_shader);
 
 	myPrograms.push_back(Program(aShaderName, program));
+}
+
+void ShaderManager::CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename)
+{
+	//read the shader files and save the code
+	std::string vertex_shader_code = ReadShader(aVertexShaderFilename);
+	std::string fragment_shader_code = ReadShader(aFragmentShaderFilename);
+
+	CreateProgramFromSource(aShaderName, vertex_shader_code, fragment_shader_code);
+}
+
+void ShaderManager::CreateProgram(const std::string& aShaderName, const std::vector<std::string>& aVertexShaderFilename, const std::vector<std::string>& aFragmentShaderFilename)
+{
+	//read the shader files and save the code
+	std::string vertex_shader_code;
+	std::string fragment_shader_code;
+	for (auto vertexShader : aVertexShaderFilename)
+	{
+		vertex_shader_code += ReadShader(vertexShader);
+	}
+	for (auto fragmentShader : aFragmentShaderFilename)
+	{
+		fragment_shader_code += ReadShader(fragmentShader);
+	}
+
+	CreateProgramFromSource(aShaderName, vertex_shader_code, fragment_shader_code);
 }
 
 const GLuint ShaderManager::GetShader(const std::string& aShaderName) const

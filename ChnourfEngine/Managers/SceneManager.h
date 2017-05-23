@@ -29,6 +29,7 @@ namespace Manager
 		void NotifyDisplayFrame() override;
 		void NotifyEndFrame() override;
 		void NotifyReshape(int aWidth, int aHeight, int aPrevious_width, int aPrevious_height) override;
+		glm::vec3 GetCamPos() const { return myCurrentCamera.myCameraPos; }
 
 		inline ModelManager* GetModelManager() { return myModelManager.get(); }
 
@@ -57,6 +58,8 @@ namespace Manager
 		GLuint textureColorBuffer;
 		GLuint framebufferQuadVao;
 		GLuint framebufferQuadVbo;
+
+		GLuint myNoiseTexture;
 
 		glm::mat4 myLightSpaceMatrix;
 	};

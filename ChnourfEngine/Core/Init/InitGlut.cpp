@@ -43,8 +43,6 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 
 	glEnable(GL_MULTISAMPLE);
 
-	glEnable(GL_FRAMEBUFFER_SRGB);
-
 	glShadeModel(GL_SMOOTH);
 
 	glEnable(GL_DEPTH_TEST);
@@ -122,7 +120,7 @@ void Init_GLUT::ReshapeCallback(int aWidth, int aHeight)
 		glViewport(0, 0, aWidth, aHeight);
 
 		// Set the correct perspective.
-		gluPerspective(45, ratio, 1, 1000);
+		//gluPerspective(45, ratio, 1, 1000);
 
 		// Get Back to the Modelview
 		glMatrixMode(GL_MODELVIEW);

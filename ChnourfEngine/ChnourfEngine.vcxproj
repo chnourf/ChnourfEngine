@@ -139,6 +139,7 @@
     <ClInclude Include="Core\Init\InitGlew.h" />
     <ClInclude Include="Core\Init\InitGlut.h" />
     <ClInclude Include="Core\Init\WindowInfo.h" />
+    <ClInclude Include="Core\Intersection.h" />
     <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\PerlinNoise.h" />
     <ClInclude Include="Core\Singleton.h" />
@@ -169,6 +170,7 @@
     <None Include="Shaders\Empty_Fragment_Shader.glsl" />
     <None Include="Shaders\FBO_Pixel_Shader.glsl" />
     <None Include="Shaders\Simple_Depth_Shader.glsl" />
+    <None Include="Shaders\Skybox_Pixel_Shader.glsl" />
     <None Include="Shaders\StandardBlinnReflection_Shader.glsl" />
     <None Include="Shaders\StandardBlinnTransparent_Shader.glsl" />
     <None Include="Shaders\StandardBlinn_Shader.glsl" />

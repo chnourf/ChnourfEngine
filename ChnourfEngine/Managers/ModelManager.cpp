@@ -2,6 +2,8 @@
 #include "../Core/Math.h"
 #include <string>
 
+#include "../Core/Intersection.h"
+
 #include "SceneManager.h"
 #include "../Rendering/Models/TerrainCellModel.h"
 #include "../WorldGenerator/TerrainCell.h"
@@ -89,6 +91,22 @@ void ModelManager::Update()
 	}
 }
 
+void ModelManager::CullScene(const Camera& aCamera)
+{
+	for (auto model : gameModelList)
+	{
+		//auto test = model.second->GetPosition() + vec3f(model.second->GetAABB().GetRadius() * aCamera.myCameraFront) - vec3f(aCamera.myCameraPos);
+		//if ((test.x + aCamera.myCameraFront.x + test.y + aCamera.myCameraFront.y + test.z + aCamera.myCameraFront.z) < 0)
+		//{
+		//	model.second->isVisible = false;
+		//}
+		if (!AABBvsFrustum(model.second->GetAABB(), aCamera.GetFrustum()))
+		{
+			model.second->isVisible = false;
+		}
+	}
+}
+
 void ModelManager::AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution)
 {
 	Models::TerrainCellModel* terrain = new Models::TerrainCellModel(aCell, aCellSize, aResolution);
@@ -102,7 +120,10 @@ void ModelManager::Draw(const glm::mat4& aCameraTransform,const ShaderManager* a
 {
 	for (auto model : gameModelList)
 	{
-		model.second->Draw(aShaderManager);
+		if (model.second->isVisible)
+		{
+			model.second->Draw(aShaderManager);
+		}
 	}
 }
 
@@ -110,6 +131,9 @@ void ModelManager::DrawShadowMap(const GLuint aShadowMapProgram)
 {
 	for (auto model : gameModelList)
 	{
-		model.second->DrawForShadowMap(aShadowMapProgram);
+		if (model.second->isVisible)
+		{
+			model.second->DrawForShadowMap(aShadowMapProgram);
+		}
 	}
 }

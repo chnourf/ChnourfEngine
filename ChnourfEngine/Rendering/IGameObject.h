@@ -5,6 +5,7 @@
 #include "../Dependencies/freeglut/freeglut.h"
 #include "../Dependencies/SOIL/SOIL.h"
 #include "VertexFormat.h"
+#include "../Core/Intersection.h"
 
 namespace Manager
 {
@@ -23,6 +24,15 @@ namespace Rendering
 		virtual void Update() = 0;
 		virtual void SetProgram(GLuint aShaderName) = 0;
 		virtual void Destroy() = 0;
+
+		const AABB& GetAABB() const { return myAABB; }
+		const vec3f& GetPosition() const { return myPosition; }
+
+		bool isVisible = true;
+
+	protected:
+		AABB myAABB;
+		vec3f myPosition;
 	};
 
 	inline IGameObject::~IGameObject()
