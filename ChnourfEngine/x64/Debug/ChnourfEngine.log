@@ -1,4 +1,16 @@
-﻿  ModelManager.cpp
+﻿  TerrainCellBuilder.cpp
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(63): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(91): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(132): warning C4244: '+=': conversion from 'float' to 'glm::uint', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(136): warning C4244: '+=': conversion from 'float' to 'glm::uint', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(155): warning C4244: '+=': conversion from 'float' to 'glm::uint', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(184): warning C4018: '>': signed/unsigned mismatch
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(191): warning C4244: 'initializing': conversion from 'glm::uint' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(191): warning C4244: '=': conversion from 'float' to 'glm::uint', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(363): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(370): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(373): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(387): warning C4244: '=': conversion from 'time_t' to 'unsigned int', possible loss of data
   SOIL.lib(SOIL.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/LTCG' specification
 InitGlut.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification

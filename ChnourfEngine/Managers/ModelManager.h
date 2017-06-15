@@ -1,7 +1,8 @@
 #pragma once
-#include <map>
 #include "ShaderManager.h"
 #include "../Rendering/Models/Model.h"
+
+#include <future>
 
 using namespace Rendering;
 
@@ -22,14 +23,13 @@ namespace Manager
 		void Draw(const glm::mat4& aCameraTransform, const ShaderManager* aShaderManager);
 		void DrawShadowMap(const GLuint aShadowMapProgram);
 		void Update();
-		void DeleteModel(const std::string& gameModelName);
-		const IGameObject& GetModel(const std::string& gameModelName) const;
+		const IGameObject& GetModel(const UID& anUID) const;
 
 		inline void ResetCulling()
 		{
 			for (auto model : gameModelList)
 			{
-				model.second->isVisible = true;
+				model->isVisible = true;
 			}
 		}
 
@@ -44,7 +44,9 @@ namespace Manager
 		}
 
 	private:
-		std::map<std::string, IGameObject*> gameModelList; //store all the objects, to be optimised
+		std::vector<IGameObject*> gameModelList; //store all the objects, to be optimised
 		std::vector<TextureFormat> myLoadedTextures;
+
+		std::vector<std::future<void>> myCullingTasks;
 	};
 }

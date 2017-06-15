@@ -20,9 +20,8 @@ layout (std140) uniform ViewConstants
 uniform mat4 cubemapView;
 uniform mat4 lightSpaceMatrix;
 uniform int powCurrentLOD;
-
-const float resolution = 0.5f;
-const int  cellSize = 257;
+uniform int cellSize;
+uniform float resolution;
 uniform ivec2 tileIndex;
 
 void main()

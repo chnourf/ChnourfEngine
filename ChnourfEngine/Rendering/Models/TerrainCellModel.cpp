@@ -44,8 +44,8 @@ namespace Rendering
 
 		TerrainCellModel::TerrainCellModel(const TerrainCell* aCell, unsigned int aCellSize, float aResolution)
 		{
-			vec3f aMin = vec3f((float) aCell->GetGridIndex().x*aCellSize*aResolution, -500.f, (float) aCell->GetGridIndex().y*aCellSize*aResolution);
-			vec3f aMax = vec3f((float) (aCell->GetGridIndex().x+1)*aCellSize*aResolution, 500.f, (float) (aCell->GetGridIndex().y+1)*aCellSize*aResolution);
+			vec3f aMin = vec3f((float) aCell->GetGridIndex().x*aCellSize*aResolution, aCell->GetMinHeight(), (float) aCell->GetGridIndex().y*aCellSize*aResolution);
+			vec3f aMax = vec3f((float) (aCell->GetGridIndex().x+1)*aCellSize*aResolution, aCell->GetMaxHeight(), (float) (aCell->GetGridIndex().y+1)*aCellSize*aResolution);
 
 			myAABB = AABB(aMin, aMax);
 
@@ -74,7 +74,7 @@ namespace Rendering
 					unsigned char z = element.myNormal.z * 128 + 128;
 					unsigned int normal = (x << 16) | (y << 8) | z;
 
-					TerrainVertex vertex = TerrainVertex(element.myElevation - 40, normal);
+					TerrainVertex vertex = TerrainVertex(element.myElevation, normal);
 					vertices.push_back(vertex);
 				}
 			}
@@ -315,15 +315,15 @@ namespace Rendering
 			const vec2i positionOnGrid = vec2i(camPos.x / (128), camPos.z / (128));
 			// ugly
 			auto squareDist = (myTileIndex.x - positionOnGrid.x) * (myTileIndex.x - positionOnGrid.x) + (myTileIndex.y - positionOnGrid.y) * (myTileIndex.y - positionOnGrid.y);
-			if (squareDist <= 4)
+			if (squareDist <= 9)
 			{
 				myCurrentLOD = 0;
 			}
-			else if (squareDist <= 9)
+			else if (squareDist <= 16)
 			{
 				myCurrentLOD = 1;
 			}
-			else if (squareDist <= 16)
+			else if (squareDist <= 25)
 			{
 				myCurrentLOD = 2;
 			}

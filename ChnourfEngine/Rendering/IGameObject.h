@@ -6,6 +6,7 @@
 #include "../Dependencies/SOIL/SOIL.h"
 #include "VertexFormat.h"
 #include "../Core/Intersection.h"
+#include "../Core/UID.h"
 
 namespace Manager
 {
@@ -31,6 +32,7 @@ namespace Rendering
 		bool isVisible = true;
 
 	protected:
+		UID myUID;
 		AABB myAABB;
 		vec3f myPosition;
 	};

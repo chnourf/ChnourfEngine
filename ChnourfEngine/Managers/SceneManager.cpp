@@ -21,9 +21,7 @@ SceneManager::SceneManager()
 
 	myModelManager = std::make_unique<ModelManager>();
 
-	myTerrainManager = std::make_unique<TerrainManager>();
-
-	myDirectionalLight = DirectionalLight(glm::vec3(1.f, 0.2f, 1.f), glm::vec3(3.f, 3.f, 2.8f));
+	myDirectionalLight = DirectionalLight(glm::vec3(1.f, -1.f, 1.f), glm::vec3(3.f, 3.f, 2.8f));
 }
 
 SceneManager::~SceneManager()
@@ -141,7 +139,7 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 void SceneManager::NotifyBeginFrame()
 {
 	myCurrentCamera.Update();
-	myTerrainManager->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));
+	TerrainManager::GetInstance()->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));
 	myModelManager->Update();
 }
 
@@ -163,12 +161,12 @@ void SceneManager::NotifyDisplayFrame()
 		myModelManager->ResetCulling();
 	}
 
-	float multiplier = 1.f;
-	if (abs(myDirectionalLight.GetDirection().y) > 0.15f)
-	{
-		multiplier = 10.f;
-	}
-	myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), multiplier * .0003f));
+	//float multiplier = 1.f;
+	//if (abs(myDirectionalLight.GetDirection().y) > 0.15f)
+	//{
+	//	multiplier = 10.f;
+	//}
+	//myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), multiplier * .0003f));
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
 	glm::vec3 eye_position = glm::vec3(0.0f, 1.f-13.f/6400.f, 0.0f);
 
@@ -239,6 +237,16 @@ void SceneManager::NotifyDisplayFrame()
 
 		//glBindTexture(GL_TEXTURE_CUBE_MAP, mySkybox.GetTexture());
 	}
+
+	// for Terrain
+	auto terrainShaderID = myShaderManager->GetShader("terrainShader");
+	glUseProgram(terrainShaderID);
+
+	GLuint cellSize = glGetUniformLocation(terrainShaderID, "cellSize");
+	glUniform1i(cellSize, TerrainManager::GetInstance()->GetCellSize());
+
+	GLuint cellResolution = glGetUniformLocation(terrainShaderID, "resolution");
+	glUniform1f(cellResolution, TerrainManager::GetInstance()->GetResolution());
 	
 	myModelManager->Draw(cameraTransform, myShaderManager.get());
 

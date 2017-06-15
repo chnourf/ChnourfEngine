@@ -118,6 +118,7 @@
   <ItemGroup>
     <ClCompile Include="Core\Init\InitGlut.cpp" />
     <ClCompile Include="Core\PerlinNoise.cpp" />
+    <ClCompile Include="Core\UID.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
     <ClCompile Include="Managers\ModelManager.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\PerlinNoise.h" />
     <ClInclude Include="Core\Singleton.h" />
+    <ClInclude Include="Core\UID.h" />
     <ClInclude Include="Core\Vector.h" />
     <ClInclude Include="Managers\InputManager.h" />
     <ClInclude Include="Managers\ModelManager.h" />

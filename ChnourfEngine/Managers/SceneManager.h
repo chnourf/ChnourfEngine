@@ -46,7 +46,6 @@ namespace Manager
 
 		std::unique_ptr<ModelManager> myModelManager;
 		std::unique_ptr<ShaderManager> myShaderManager;
-		std::unique_ptr<TerrainManager> myTerrainManager;
 		Camera myCurrentCamera;
 		DirectionalLight myDirectionalLight;
 		Cubemap mySkybox;

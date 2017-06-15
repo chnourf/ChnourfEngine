@@ -95,7 +95,7 @@ void main()
 	textureColor = vec4(1.2*iColor,1.0);
 	
 	//snow
-	float h = smoothstep(55.0,80.0,fs_in.fragPos.y + 25.0*fbm(0.01*fs_in.fragPos.xz/250) );
+	float h = smoothstep(200.0,280.0,fs_in.fragPos.y + 25.0*fbm(0.01*fs_in.fragPos.xz/250) );
 	float e = smoothstep(1.0-0.5*h,1.0-0.1*h,norm.y);
 	float o = 0.3 + 0.7*smoothstep(0.0,0.1,norm.x+h*h);
 	textureColor = mix(textureColor, texture(snowMaterial.diffuse, fs_in.texcoord), e*h*o);

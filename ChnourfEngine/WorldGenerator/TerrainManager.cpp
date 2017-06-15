@@ -6,13 +6,48 @@
 #include "TerrainCell.h"
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 namespace Manager
 {
-	TerrainManager::TerrainManager()
+	TerrainManager::TerrainManager() :
+		myCellSize(0),
+		myResolution(0),
+		myDetectionRadius(0)
 	{
+		std::ifstream file("Data/TerrainGenerator/Presets.txt");
+		if (file)
+		{
+			std::stringstream ss;
+
+			ss << file.rdbuf();
+
+			std::string field;
+			float value;
+
+			while (ss >> field >> value)
+			{
+				if (strcmp(field.c_str(), "DetectionRadius") == 0)
+				{
+					myDetectionRadius = value;
+				}
+				else if (strcmp(field.c_str(), "CellSize") == 0)
+				{
+					myCellSize = value;
+				}
+				else if (strcmp(field.c_str(), "CellResolution") == 0)
+				{
+					myResolution = value;
+				}
+			}
+		}
+
+		file.close();
+
+		auto mustBeAPowerOf2 = myCellSize - 1;
+		assert(((mustBeAPowerOf2 != 0) && ((mustBeAPowerOf2 & (~mustBeAPowerOf2 + 1)) == mustBeAPowerOf2)));
 		myCellBuilder = std::make_unique<TerrainCellBuilder> (myCellSize, myResolution);
-		assert(myCellSize <= 257); // otherwise the indices cannot be stored on a short
 	}
 
 	TerrainManager::~TerrainManager()
@@ -27,12 +62,16 @@ namespace Manager
 	{
 		myCellBuilder->Update();
 
-		//careful with the position sampled in CellBuilder, are they the same ? Where is (0,0) ?
 		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myCellSize*myResolution), aPlayerPosition.z / (myCellSize*myResolution));
 
-		for (int x = positionOnGrid.x - myDetectionRadius; x < positionOnGrid.x + myDetectionRadius; x++)
+		// detection square
+		const int minX = positionOnGrid.x - myDetectionRadius;
+		const int maxX = positionOnGrid.x + myDetectionRadius;
+		const int minY = positionOnGrid.y - myDetectionRadius;
+		const int maxY = positionOnGrid.y + myDetectionRadius;
+		for (int x = minX; x < maxX; x++)
 		{
-			for (int y = positionOnGrid.y - myDetectionRadius; y < positionOnGrid.y + myDetectionRadius; y++)
+			for (int y = minY; y < maxY; y++)
 			{
 				auto cell = vec2i(x, y);
 
@@ -92,7 +131,7 @@ namespace Manager
 
 	void TerrainManager::LoadCell(const vec2i& aGridIndex)
 	{
-		auto cell = new TerrainCell(aGridIndex, myCellSize);
+		auto cell = new TerrainCell(aGridIndex, myCellSize, myResolution);
 		myCellsToLoad.push_back(cell);
 		myCellBuilder->BuildCellRequest(cell);
 	}

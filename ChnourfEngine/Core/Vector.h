@@ -5,7 +5,13 @@
 template <class T> struct Vector2
 {
 	Vector2(){}
+
 	Vector2(const T& anX, const T& anY) :
+		x(anX),
+		y(anY)
+	{}
+
+	Vector2(const T& anX):
 		x(anX),
 		y(anY)
 	{}
@@ -27,6 +33,12 @@ template <class T> struct Vector3
 		x(aVec3.x),
 		y(aVec3.y),
 		z(aVec3.z)
+	{}
+
+	Vector3(const T& anX):
+		x(anX),
+		y(anX),
+		z(anX)
 	{}
 
 	T x;

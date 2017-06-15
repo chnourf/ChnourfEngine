@@ -11,9 +11,10 @@
 using namespace Manager;
 using namespace Rendering;
 
+const unsigned int locCullThreads = 4;
+
 ModelManager::ModelManager()
 {
-
 }
 
 void ModelManager::FillScene(const ShaderManager* aShaderManager)
@@ -41,7 +42,7 @@ void ModelManager::FillScene(const ShaderManager* aShaderManager)
 		grass->SetProgram(aShaderManager->GetShader("transparentShader"));
 		grass->Create();
 		auto key = "grass" + std::to_string(i);
-		gameModelList[key] = grass;
+		gameModelList.push_back(grass);
 	}
 
 	glm::mat4 modelTrans;
@@ -51,7 +52,7 @@ void ModelManager::FillScene(const ShaderManager* aShaderManager)
 	batman->SetProgram(aShaderManager->GetShader("colorShader"));
 	batman->Create();
 	auto Nanosuitkey = "batman";
-	gameModelList[Nanosuitkey] = batman;
+	//gameModelList[Nanosuitkey] = batman;
 
 	glm::mat4 terrainTrans;
 	terrainTrans = glm::scale(terrainTrans, glm::vec3(10.f));
@@ -59,51 +60,52 @@ void ModelManager::FillScene(const ShaderManager* aShaderManager)
 	terrainTest->SetProgram(aShaderManager->GetShader("colorShader"));
 	terrainTest->Create();
 	auto terrainKey = "terrain";
-	gameModelList[terrainKey] = terrainTest;
+	//gameModelList[terrainKey] = terrainTest;
 }
 
 ModelManager::~ModelManager()
 {
 	for (auto model : gameModelList)
 	{
-		delete model.second;
+		delete model;
 	}
 	gameModelList.clear();
 }
 
-void ModelManager::DeleteModel(const std::string& gameModelName)
+const IGameObject& ModelManager::GetModel(const UID& anUID) const
 {
-	IGameObject* model = gameModelList[gameModelName];
-	model->Destroy();
-	gameModelList.erase(gameModelName);
-}
-
-const IGameObject& ModelManager::GetModel(const std::string& gameModelName) const
-{
-	return (*gameModelList.at(gameModelName));
+	// TO CHANGE
+	return (*gameModelList.at(0));
 }
 
 void ModelManager::Update()
 {
 	for (auto model : gameModelList)
 	{
-		model.second->Update();
+		model->Update();
 	}
 }
 
 void ModelManager::CullScene(const Camera& aCamera)
 {
-	for (auto model : gameModelList)
+	// to optimize with quad tree
+	
+	myCullingTasks.clear();
+
+	for (unsigned int i = 0; i < locCullThreads; ++i)
 	{
-		//auto test = model.second->GetPosition() + vec3f(model.second->GetAABB().GetRadius() * aCamera.myCameraFront) - vec3f(aCamera.myCameraPos);
-		//if ((test.x + aCamera.myCameraFront.x + test.y + aCamera.myCameraFront.y + test.z + aCamera.myCameraFront.z) < 0)
-		//{
-		//	model.second->isVisible = false;
-		//}
-		if (!AABBvsFrustum(model.second->GetAABB(), aCamera.GetFrustum()))
-		{
-			model.second->isVisible = false;
-		}
+		const auto frustum = aCamera.GetFrustum();
+
+		myCullingTasks.push_back(std::async(std::launch::async, [this, frustum, i]() {
+			const unsigned int stepSize = gameModelList.size() / locCullThreads;
+			const auto lastIndex = (i == locCullThreads - 1) ? gameModelList.size() : (i + 1) * stepSize;
+			for (auto it = gameModelList.begin() + i * stepSize; it < gameModelList.begin() + lastIndex; ++it)
+			{
+				if (!AABBvsFrustum((*it)->GetAABB(), frustum))
+				{
+					(*it)->isVisible = false;
+				}
+			} }));
 	}
 }
 
@@ -111,18 +113,21 @@ void ModelManager::AddTerrainCell(const TerrainCell* aCell, int aCellSize, float
 {
 	Models::TerrainCellModel* terrain = new Models::TerrainCellModel(aCell, aCellSize, aResolution);
 //	terrain->SetProgram(SceneManager::GetInstance()->GetShaderManager()->GetShader("terrainShader"));
-	auto key = "terrain" + std::to_string(aCell->GetGridIndex().x) + " " + std::to_string(aCell->GetGridIndex().y);
-	gameModelList[key] = terrain;
+	gameModelList.push_back(terrain);
 }
 
-//should be done in a renderer
 void ModelManager::Draw(const glm::mat4& aCameraTransform,const ShaderManager* aShaderManager)
 {
+	for (auto& handle : myCullingTasks)
+	{
+		handle.wait();
+	}
+
 	for (auto model : gameModelList)
 	{
-		if (model.second->isVisible)
+		if (model->isVisible)
 		{
-			model.second->Draw(aShaderManager);
+			model->Draw(aShaderManager);
 		}
 	}
 }
@@ -131,9 +136,9 @@ void ModelManager::DrawShadowMap(const GLuint aShadowMapProgram)
 {
 	for (auto model : gameModelList)
 	{
-		if (model.second->isVisible)
+		if (model->isVisible)
 		{
-			model.second->DrawForShadowMap(aShadowMapProgram);
+			model->DrawForShadowMap(aShadowMapProgram);
 		}
 	}
 }

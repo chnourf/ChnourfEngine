@@ -4,20 +4,23 @@
 #include <glm\glm.hpp>
 #include "TerrainCellBuilder.h"
 
+#include "../Core/Singleton.h"
 #include "../Core/Vector.h"
 
 class TerrainCell;
 
-
 namespace Manager
 {
-	class TerrainManager
+	class TerrainManager : public Singleton<TerrainManager>
 	{
 	public:
 		TerrainManager();
 		~TerrainManager();
 
 		void Update(const vec3f& aPlayerPosition);
+
+		inline unsigned int GetCellSize() { return myCellSize; }
+		inline float GetResolution() { return myResolution; }
 
 	private:
 		std::vector<TerrainCell*> myActiveCells;
@@ -33,8 +36,8 @@ namespace Manager
 		bool IsCellLoaded(const vec2i& aCellIndex);
 		bool IsCellLoading(const vec2i& aCellIndex);
 
-		const unsigned int myCellSize = 257;
-		const float myResolution = .5f; // 50 cm between each element
-		int myDetectionRadius = 8;
+		int myCellSize;
+		float myResolution;
+		unsigned int myDetectionRadius;
 	};
 }

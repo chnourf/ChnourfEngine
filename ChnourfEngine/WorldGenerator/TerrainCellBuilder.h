@@ -8,6 +8,18 @@
 #include <future>
 
 class TerrainCell;
+struct TerrainElement;
+
+struct ErosionParams
+{
+	float Kq; // soil carry capacity
+	float Kevap; // evaporation speed
+	float Kerosion; // erosion speed
+	float Kdepos; // deposition speed
+	float Ki; // inertia
+	float minSlope;
+	float g; // gravity
+};
 
 struct TerrainCellBuildingTask
 {
@@ -16,6 +28,7 @@ struct TerrainCellBuildingTask
 
 	PerlinNoise myPerlin;
 	int myNoiseDepth;
+	unsigned int mySeed;
 
 	unsigned int myCellSize;
 	float myCellResolution;
@@ -23,7 +36,8 @@ struct TerrainCellBuildingTask
 	std::future<void> myHandle;
 
 	void BuildCell(TerrainCell* aCell);
-	float SamplePerlinNoise(const float aX, const float aY);
+	float SamplePerlinNoise(float aX, float aY);
+	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const ErosionParams& params);
 };
 
 class TerrainCellBuilder
@@ -38,7 +52,7 @@ public:
 private:
 	std::vector<TerrainCellBuildingTask*> myLoadingTasks;
 	unsigned int mySeed;
-	const int myMaximumThreadLoad = 8;
+	const int myMaximumThreadLoad = 4;
 	std::queue<TerrainCell*> myLoadingQueue;
 
 	unsigned int myCellSize;
