@@ -1,7 +1,6 @@
 #include "TerrainCellBuilder.h"
 #include"TerrainCell.h"
 #include <time.h>
-#include <random>
 #include <iostream>
 #include "../Core/Vector.h"
 
@@ -16,14 +15,13 @@ TerrainCellBuildingTask::TerrainCellBuildingTask(const int aSeed, const unsigned
 	myCellResolution(aCellResolution)
 {
 	myPerlin = PerlinNoise(aSeed);
+	myRandomEngine.seed(aSeed);
 	myHandle = std::async(std::launch::async, [this, anEmptyCell]() {BuildCell(anEmptyCell); });
 }
 
 void TerrainCellBuildingTask::ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const ErosionParams& params)
 {
-	std::default_random_engine engine;
 	std::uniform_int_distribution<int> distribution(0, myCellSize - 2);
-	engine.seed(mySeed);
 
 	float Kq = params.Kq, Kevap = params.Kevap, Kerosion = params.Kerosion, Kdepos = params.Kdepos, Kinertia = params.Ki,
 		minSlope = params.minSlope, Kgravity = params.g;
@@ -58,8 +56,8 @@ void TerrainCellBuildingTask::ComputeErosion(std::vector<TerrainElement>& elevat
 
 	for (unsigned int iter = 0; iter < iterations; ++iter)
 	{
-		int xi = distribution(engine);
-		int zi = distribution(engine);
+		int xi = distribution(myRandomEngine);
+		int zi = distribution(myRandomEngine);
 
 		float xp = xi, zp = zi;
 		float xf = 0, zf = 0;
@@ -307,6 +305,16 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 		aCell->AddTerrainElement(element);
 	}
 
+	// adding grass RESERVE MEMORY FIRST
+	for (unsigned int i = 0; i < 10; ++i)
+	{
+		std::uniform_real_distribution<float> distribution(0.f, (float) (myCellSize - 1));
+		float xf = distribution(myRandomEngine);
+		float zf = distribution(myRandomEngine);
+		auto grassPos = aCell->VerticalRaycast(vec2f(xf, zf));
+		aCell->AddGrassPosition(grassPos);
+	}
+
 	aCell->OnFinishBuild();
 }
 
@@ -320,7 +328,7 @@ float TerrainCellBuildingTask::SamplePerlinNoise(float x, float y)
 
 	auto lerpFactor = glm::smoothstep(0.3, 0.6, myPerlin.noise(x * scale / 1024.f, y * scale / 1024.f));
 
-	const auto mountainHeight = 2.f * (0.7f + 0.3f * myPerlin.noise(x * scale / 512.f, y * scale / 512.f));
+	const auto mountainHeight = 2.f * (0.5f + 0.5f * myPerlin.noise(x * scale / 256.f, y * scale / 256.f));
 	const auto plainHeight = 1.f;
 
 	// warping the mountains to mask the 8 axis of the perlin noise

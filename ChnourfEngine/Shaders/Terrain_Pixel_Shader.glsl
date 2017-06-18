@@ -88,16 +88,17 @@ void main()
 	
 	
 	// test
+	vec3 normTest = fs_in.normal + vec3(0.2*fbm(fs_in.texcoord/2.0));
 	float r = texture( noise, (7.0/250)*fs_in.fragPos.xz/256.0 ).x;
 	vec3 iColor = (r*0.25+0.75)*mix( vec3(0.08,0.05,0.03), vec3(0.10,0.09,0.08), texture(noise,0.00007*vec2(fs_in.fragPos.x,fs_in.fragPos.y*48.0)/250).x );
-	iColor = mix( iColor, 0.80*vec3(0.45,.30,0.15)*(0.50+0.50*r),smoothstep(0.70,0.9,norm.y) );
-    iColor = mix( iColor, 0.65*vec3(0.30,.30,0.10)*(0.25+0.75*r),smoothstep(0.95,1.0,norm.y) );
+	iColor = mix( iColor, 0.80*vec3(0.45,.30,0.15)*(0.50+0.50*r),smoothstep(0.70,0.9,normTest.y) );
+    iColor = mix( iColor, 0.65*vec3(0.30,.30,0.10)*(0.25+0.75*r),smoothstep(0.95,1.0,normTest.y) );
 	textureColor = vec4(1.2*iColor,1.0);
 	
 	//snow
 	float h = smoothstep(200.0,280.0,fs_in.fragPos.y + 25.0*fbm(0.01*fs_in.fragPos.xz/250) );
-	float e = smoothstep(1.0-0.5*h,1.0-0.1*h,norm.y);
-	float o = 0.3 + 0.7*smoothstep(0.0,0.1,norm.x+h*h);
+	float e = smoothstep(1.0-0.5*h,1.0-0.1*h,normTest.y);
+	float o = 0.3 + 0.7*smoothstep(0.0,0.1,normTest.x+h*h);
 	textureColor = mix(textureColor, texture(snowMaterial.diffuse, fs_in.texcoord), e*h*o);
     vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
 

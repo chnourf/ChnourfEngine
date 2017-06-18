@@ -25,7 +25,10 @@ public:
 	__forceinline void AddTerrainElement(TerrainElement anElement) { myElements.push_back(anElement); }
 	__forceinline TerrainElement GetElement(const unsigned int anIndex) const { return *(myElements.begin() + anIndex); }
 	__forceinline bool IsBuilt() { return myIsBuilt; }
+	__forceinline void AddGrassPosition(vec3f aPos) { myGrassSpots.push_back(aPos); }
 	void OnFinishBuild();
+
+	std::vector<vec3f> GetGrassSpots() const { return myGrassSpots; }
 
 	__forceinline float GetMinHeight() const { return myMinHeight; }
 	__forceinline float GetMaxHeight() const { return myMaxHeight; }
@@ -33,12 +36,13 @@ public:
 	__forceinline void SetMinHeight(float aHeight) { myMinHeight = aHeight; }
 	__forceinline void SetMaxHeight(float aHeight)  { myMaxHeight = aHeight; }
 
-	vec3f VerticalRaycast(const vec2f& aPosition);
+	vec3f VerticalRaycast(const vec2f& aPositionInTheCell); // if you use a global position, convert it first !
 
 private:
 	vec2i myGridIndex;
 	bool myIsBuilt;
 	std::vector<TerrainElement> myElements;
+	std::vector<vec3f> myGrassSpots;
 	int myMoisture;
 	int myTemperature;
 	int myBiome;

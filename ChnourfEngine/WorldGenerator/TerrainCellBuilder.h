@@ -4,6 +4,7 @@
 #include "../Core/PerlinNoise.h"
 
 #include <queue>
+#include <random>
 #include <vector>
 #include <future>
 
@@ -28,7 +29,7 @@ struct TerrainCellBuildingTask
 
 	PerlinNoise myPerlin;
 	int myNoiseDepth;
-	unsigned int mySeed;
+	std::default_random_engine myRandomEngine;
 
 	unsigned int myCellSize;
 	float myCellResolution;

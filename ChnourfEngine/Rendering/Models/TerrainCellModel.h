@@ -48,6 +48,8 @@ namespace Rendering
 			static const int myNumLOD = myMaxLOD + 1;
 			static std::vector<GLuint> ourIndices[myNumLOD];
 
+			std::vector<glm::vec3> myGrassPositions;
+
 			std::vector<TerrainVertex> vertices;
 			std::vector<TextureFormat> textures;
 			GLuint VAOs[myNumLOD];

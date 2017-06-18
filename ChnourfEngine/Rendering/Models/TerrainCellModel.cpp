@@ -233,6 +233,13 @@ namespace Rendering
 			AddTexture("Data/TerrainTest/terrain_n.jpg");
 			AddTexture("Data/TerrainTest/rock_d.jpg");
 			AddTexture("Data/TerrainTest/snow_d.jpg");
+
+			auto& grassPos = aCell->GetGrassSpots();
+			myGrassPositions.reserve(grassPos.size());
+			for (auto grass : grassPos)
+			{
+				myGrassPositions.push_back(glm::vec3(grass.x, grass.y, grass.z));
+			}
 		}
 
 		void TerrainCellModel::AddTexture(const std::string& aString)
