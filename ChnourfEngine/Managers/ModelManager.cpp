@@ -17,8 +17,6 @@ ModelManager::ModelManager()
 {
 }
 
-int locUgly = 0;
-
 void ModelManager::FillScene(const ShaderManager* aShaderManager)
 {
 	glm::vec3 grassPositions[] = {
@@ -115,28 +113,11 @@ void ModelManager::AddTerrainCell(const TerrainCell* aCell, int aCellSize, float
 {
 	Models::TerrainCellModel* terrain = new Models::TerrainCellModel(aCell, aCellSize, aResolution);
 //	terrain->SetProgram(SceneManager::GetInstance()->GetShaderManager()->GetShader("terrainShader"));
-	gameModelList.push_back(terrain);
-
-	auto& grassPos = aCell->GetGrassSpots();
-	for (auto grass : grassPos)
-	{
-		glm::mat4 grassModelTrans;
-		grassModelTrans = glm::scale(grassModelTrans, glm::vec3(3.f));
-		grassModelTrans = glm::translate(grassModelTrans, glm::vec3(grass.x, grass.y, grass.z));
-
-		// instancing would be useful here
-		Models::Model* grass = new Models::Model("Data/Grass/grassPlanes.obj", grassModelTrans);
-		grass->SetProgram(locUgly);
-		grass->Create();
-		gameModelList.push_back(grass);
-	}
-	
+	gameModelList.push_back(terrain);	
 }
 
 void ModelManager::Draw(const glm::mat4& aCameraTransform,const ShaderManager* aShaderManager)
 {
-	locUgly = aShaderManager->GetShader("transparentShader");
-
 	for (auto& handle : myCullingTasks)
 	{
 		handle.wait();

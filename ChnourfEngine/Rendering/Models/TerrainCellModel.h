@@ -49,6 +49,10 @@ namespace Rendering
 			static std::vector<GLuint> ourIndices[myNumLOD];
 
 			std::vector<glm::vec3> myGrassPositions;
+			GLuint myGrassVAO;
+			GLuint myGrassVBO;
+			GLuint myGrassEBO;
+			GLuint myGrassProgram;
 
 			std::vector<TerrainVertex> vertices;
 			std::vector<TextureFormat> textures;
@@ -56,6 +60,7 @@ namespace Rendering
 			GLuint VBOs[myNumLOD];
 			GLuint EBOs[myNumLOD];
 			GLuint myProgram;
+
 			vec2i myTileIndex;
 
 			unsigned int myCurrentLOD = 0;

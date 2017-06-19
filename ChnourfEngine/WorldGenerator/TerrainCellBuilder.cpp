@@ -306,7 +306,7 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 	}
 
 	// adding grass RESERVE MEMORY FIRST
-	for (unsigned int i = 0; i < 10; ++i)
+	for (unsigned int i = 0; i < 100; ++i)
 	{
 		std::uniform_real_distribution<float> distribution(0.f, (float) (myCellSize - 1));
 		float xf = distribution(myRandomEngine);

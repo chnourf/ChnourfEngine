@@ -238,7 +238,7 @@ namespace Rendering
 			myGrassPositions.reserve(grassPos.size());
 			for (auto grass : grassPos)
 			{
-				myGrassPositions.push_back(glm::vec3(grass.x, grass.y, grass.z));
+				myGrassPositions.push_back(glm::vec3((grass.x + aCell->GetGridIndex().x * aCellSize) * aResolution, grass.y, (grass.z + aCell->GetGridIndex().y * aCellSize) * aResolution));
 			}
 		}
 
@@ -281,9 +281,6 @@ namespace Rendering
 		{
 			myProgram = aShaderManager->GetShader("terrainShader");
 			glUseProgram(myProgram);
-
-			GLuint powCurrentLOD = glGetUniformLocation(myProgram, "powCurrentLOD");
-			glUniform1i(powCurrentLOD, 1);// pow(2, myCurrentLOD));
 
 			GLuint tileIndex = glGetUniformLocation(myProgram, "tileIndex");
 			glUniform2i(tileIndex, myTileIndex.x, myTileIndex.y);
