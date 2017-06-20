@@ -238,7 +238,8 @@ namespace Rendering
 			myGrassPositions.reserve(grassPos.size());
 			for (auto grass : grassPos)
 			{
-				myGrassPositions.push_back(glm::vec3((grass.x + aCell->GetGridIndex().x * aCellSize) * aResolution, grass.y, (grass.z + aCell->GetGridIndex().y * aCellSize) * aResolution));
+				// WHY SWITCH Z AND X ? DUNNO
+				myGrassPositions.push_back(glm::vec3((grass.z + aCell->GetGridIndex().x * aCellSize) * aResolution, grass.y, (grass.x + aCell->GetGridIndex().y * aCellSize) * aResolution));
 			}
 
 			glGenVertexArrays(1, &myGrassVAO);
@@ -250,7 +251,7 @@ namespace Rendering
 
 			// Vertex Positions
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -318,9 +319,12 @@ namespace Rendering
 
 			if (myCurrentLOD <= 1) // maybe a better parameter ?
 			{
+				glDisable(GL_CULL_FACE);
+				glUseProgram(aShaderManager->GetShader("grassShader"));
 				glBindVertexArray(myGrassVAO);
 				glDrawArrays(GL_POINTS, 0, (GLsizei)(myGrassPositions.size()));
 				glBindVertexArray(0);
+				glEnable(GL_CULL_FACE);
 			}
 		}
 

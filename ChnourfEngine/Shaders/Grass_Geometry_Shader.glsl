@@ -9,6 +9,11 @@ out GS_OUT
 	vec3 fragPos;
 } gs_out;
 
+in VS_OUT
+{
+	vec3 position;
+} vs_in[];
+
 layout (std140) uniform ViewConstants
 {
 	mat4 projection;
@@ -17,17 +22,29 @@ layout (std140) uniform ViewConstants
 
 void main()
 {
-    gl_Position = gl_in[0].gl_Position + vec4(-0.5, 0.0, 0.0, 0.0); 
+	gs_out.texcoord = vec2(0.0);
+	gs_out.normal = vec3(0.0,1.0,0.0);
+	gs_out.fragPos = vs_in[0].position;
+
+    gl_Position = gl_in[0].gl_Position + projection*view*vec4(-1., 0.0, 0.0, 0.0); 
     EmitVertex();
 
-    gl_Position = projection*view*gl_in[0].gl_Position + vec4( 0.5, 0.0, 0.0, 0.0);
+    gl_Position = gl_in[0].gl_Position + projection*view*vec4( 1., 0.0, 0.0, 0.0);
     EmitVertex();
 	
-	gl_Position = projection*view*gl_in[0].gl_Position + vec4( 0.0, 0.5, 0.0, 0.0);
+	gl_Position = gl_in[0].gl_Position + projection*view*vec4( 0.0, 2., 0.0, 0.0);
     EmitVertex();
 	
 	EndPrimitive();
+		
+	gl_Position = gl_in[0].gl_Position + projection*view*vec4(0.0, 0.0, -1.0, 0.0); 
+    EmitVertex();
+
+    gl_Position = gl_in[0].gl_Position + projection*view*vec4(0.0 , 0.0, 1.0, 0.0);
+    EmitVertex();
 	
-	gs_out.texcoord = vec2(0.0);
-	gs_out.normal = vec3(0.0,1.0,0.0);
+	gl_Position = gl_in[0].gl_Position + projection*view*vec4( 0.0, 2., 0.0, 0.0);
+    EmitVertex();
+	
+	EndPrimitive();
 }

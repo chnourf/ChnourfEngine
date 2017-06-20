@@ -7,7 +7,13 @@ layout (std140) uniform ViewConstants
 	mat4 view;
 };
 
+out VS_OUT
+{
+	vec3 position;
+} vs_out;
+
 void main()
 {
   gl_Position = projection*view*vec4(in_position, 1.0);
+  vs_out.position = in_position;
 }

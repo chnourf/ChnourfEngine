@@ -20,7 +20,7 @@ void ShaderManager::Initialize()
 	CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", "Shaders\\Terrain_Pixel_Shader.glsl");
 	CreateProgram("shadowMapShader", "Shaders\\Simple_Depth_Shader.glsl", "Shaders\\Empty_Fragment_Shader.glsl");
 	std::string grassGeometryShader = std::string("Shaders\\Grass_Geometry_Shader.glsl");
-	CreateProgram("grassShader", "Shaders\\Grass_Vertex_Shader.glsl", "Shaders\\StandardBlinnTransparent_Shader.glsl", &grassGeometryShader);
+	CreateProgram("grassShader", "Shaders\\Grass_Vertex_Shader.glsl", "Shaders\\Grass_Fragment_Shader.glsl", &grassGeometryShader);
 
 	// mandatory for UBO
 	for (auto shader : GetShaders())

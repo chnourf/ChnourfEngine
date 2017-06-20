@@ -139,7 +139,7 @@ void TerrainCellBuildingTask::ComputeErosion(std::vector<TerrainElement>& elevat
 			// compute transport capacity
 			float dh = h - nh;
 
-			speed += Kgravity * dh;
+			speed += Kgravity * std::min(dh, 1.f);
 
 			float q = std::max(dh, minSlope)*speed*water*Kq;
 
@@ -306,7 +306,7 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 	}
 
 	// adding grass RESERVE MEMORY FIRST
-	for (unsigned int i = 0; i < 100; ++i)
+	for (unsigned int i = 0; i < 1000; ++i)
 	{
 		std::uniform_real_distribution<float> distribution(0.f, (float) (myCellSize - 1));
 		float xf = distribution(myRandomEngine);
