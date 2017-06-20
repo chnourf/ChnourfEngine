@@ -51,7 +51,6 @@ namespace Rendering
 			std::vector<glm::vec3> myGrassPositions;
 			GLuint myGrassVAO;
 			GLuint myGrassVBO;
-			GLuint myGrassEBO;
 			GLuint myGrassProgram;
 
 			std::vector<TerrainVertex> vertices;

@@ -19,6 +19,8 @@ void ShaderManager::Initialize()
 	CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
 	CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", "Shaders\\Terrain_Pixel_Shader.glsl");
 	CreateProgram("shadowMapShader", "Shaders\\Simple_Depth_Shader.glsl", "Shaders\\Empty_Fragment_Shader.glsl");
+	std::string grassGeometryShader = std::string("Shaders\\Grass_Geometry_Shader.glsl");
+	CreateProgram("grassShader", "Shaders\\Grass_Vertex_Shader.glsl", "Shaders\\StandardBlinnTransparent_Shader.glsl", &grassGeometryShader);
 
 	// mandatory for UBO
 	for (auto shader : GetShaders())
@@ -83,16 +85,25 @@ GLuint ShaderManager::CreateShader(GLenum aShaderType, std::string aSource, cons
 	return shader;
 }
 
-void ShaderManager::CreateProgramFromSource(const std::string& aShaderName, const std::string& aVertexShaderSource, const std::string& aFragmentShaderSource)
+void ShaderManager::CreateProgramFromSource(const std::string& aShaderName, const std::string& aVertexShaderSource, const std::string& aFragmentShaderSource, const std::string* aGeometryShaderSource)
 {
 	GLuint vertex_shader = CreateShader(GL_VERTEX_SHADER, aVertexShaderSource, "vertex shader");
 	GLuint fragment_shader = CreateShader(GL_FRAGMENT_SHADER, aFragmentShaderSource, "fragment shader");
+	GLuint geometry_shader;
+	if (aGeometryShaderSource)
+	{
+		geometry_shader = CreateShader(GL_GEOMETRY_SHADER, *aGeometryShaderSource, "geometry shader");
+	}
 
 	int link_result = 0;
 	//create the program handle, attatch the shaders and link it
 	GLuint program = glCreateProgram();
 	glAttachShader(program, vertex_shader);
 	glAttachShader(program, fragment_shader);
+	if (aGeometryShaderSource)
+	{
+		glAttachShader(program, geometry_shader);
+	}
 
 	glLinkProgram(program);
 	glGetProgramiv(program, GL_LINK_STATUS, &link_result);
@@ -108,17 +119,28 @@ void ShaderManager::CreateProgramFromSource(const std::string& aShaderName, cons
 
 	glDeleteShader(vertex_shader);
 	glDeleteShader(fragment_shader);
+	if (aGeometryShaderSource)
+	{
+		glDeleteShader(geometry_shader);
+	}
 
 	myPrograms.push_back(Program(aShaderName, program));
 }
 
-void ShaderManager::CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename)
+void ShaderManager::CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename, const std::string* aGeometryShaderFilename)
 {
 	//read the shader files and save the code
 	std::string vertex_shader_code = ReadShader(aVertexShaderFilename);
 	std::string fragment_shader_code = ReadShader(aFragmentShaderFilename);
-
-	CreateProgramFromSource(aShaderName, vertex_shader_code, fragment_shader_code);
+	if (aGeometryShaderFilename)
+	{
+		std::string geometry_shader_code = ReadShader(*aGeometryShaderFilename);
+		CreateProgramFromSource(aShaderName, vertex_shader_code, fragment_shader_code, &geometry_shader_code);
+	}
+	else
+	{
+		CreateProgramFromSource(aShaderName, vertex_shader_code, fragment_shader_code);
+	}
 }
 
 void ShaderManager::CreateProgram(const std::string& aShaderName, const std::vector<std::string>& aVertexShaderFilename, const std::vector<std::string>& aFragmentShaderFilename)

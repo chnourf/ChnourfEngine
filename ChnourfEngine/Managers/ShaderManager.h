@@ -28,7 +28,7 @@ namespace Manager
 		ShaderManager();
 		~ShaderManager();
 
-		void CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename);
+		void CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::string& aFragmentShaderFilename, const std::string* aGeometryShaderFilename = nullptr);
 		void CreateProgram(const std::string& aShaderName, const std::vector<std::string>& aVertexShaderFilename, const std::vector<std::string>& aFragmentShaderFilename);
 		void Initialize();
 		const GLuint GetShader (const std::string& aShaderName) const;
@@ -37,7 +37,7 @@ namespace Manager
 
 	private:
 		std::string ReadShader(const std::string& aFilename);
-		void CreateProgramFromSource(const std::string& aShaderName, const std::string& aVertexShaderSource, const std::string& aFragmentShaderSource);
+		void CreateProgramFromSource(const std::string& aShaderName, const std::string& aVertexShaderSource, const std::string& aFragmentShaderSource, const std::string* aGeometryShaderSource = nullptr);
 		GLuint CreateShader(GLenum aShaderType, std::string aSource, const std::string& aShaderName);
 
 		std::vector<Program> myPrograms;

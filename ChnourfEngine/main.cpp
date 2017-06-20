@@ -7,7 +7,7 @@ using namespace Init;
 
 int main(int argc, char **argv)
 {
-	WindowInfo window(std::string("Chnourf Engine"), 400, 200, 1600, 900, true);
+	WindowInfo window(std::string("Chnourf Engine"), 400, 200, 720, 480, true);
 
 	ContextInfo context(4, 5, true);
 	FramebufferInfo frameBufferInfo(true, true, true, true);

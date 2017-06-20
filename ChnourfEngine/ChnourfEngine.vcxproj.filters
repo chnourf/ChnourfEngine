@@ -221,5 +221,11 @@
     <None Include="Shaders\Skybox_Pixel_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
+    <None Include="Shaders\Grass_Geometry_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
+    <None Include="Shaders\Grass_Vertex_Shader.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

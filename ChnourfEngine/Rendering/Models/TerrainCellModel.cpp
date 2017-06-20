@@ -240,6 +240,21 @@ namespace Rendering
 			{
 				myGrassPositions.push_back(glm::vec3((grass.x + aCell->GetGridIndex().x * aCellSize) * aResolution, grass.y, (grass.z + aCell->GetGridIndex().y * aCellSize) * aResolution));
 			}
+
+			glGenVertexArrays(1, &myGrassVAO);
+			glGenBuffers(1, &myGrassVBO);
+
+			glBindVertexArray(myGrassVAO);
+			glBindBuffer(GL_ARRAY_BUFFER, myGrassVBO);
+			glBufferData(GL_ARRAY_BUFFER, myGrassPositions.size() * sizeof(glm::vec3), &myGrassPositions[0], GL_STATIC_DRAW);
+
+			// Vertex Positions
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (GLvoid*)0);
+
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 
 		void TerrainCellModel::AddTexture(const std::string& aString)
@@ -300,6 +315,13 @@ namespace Rendering
 			glBindVertexArray(VAOs[myCurrentLOD]);
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
+
+			if (myCurrentLOD <= 1) // maybe a better parameter ?
+			{
+				glBindVertexArray(myGrassVAO);
+				glDrawArrays(GL_POINTS, 0, (GLsizei)(myGrassPositions.size()));
+				glBindVertexArray(0);
+			}
 		}
 
 		void TerrainCellModel::DrawForShadowMap(const GLuint aShadowMapProgram)
