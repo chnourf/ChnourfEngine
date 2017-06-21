@@ -41,6 +41,7 @@ namespace Rendering
 		private:
 			void CreateTexture(GLuint& aTextureID, const std::string& aPath);
 			void AddTexture(const std::string& aPath);
+			void DrawGrass(const Manager::ShaderManager* aShaderManager);
 			void CreateAndGenerateBuffers(GLuint& aVao, GLuint& aVbo, GLuint& aEbo, int aLod);
 			void AddFace(int aLod, unsigned int a, unsigned int b, unsigned int c);
 

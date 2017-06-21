@@ -305,14 +305,26 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 		aCell->AddTerrainElement(element);
 	}
 
-	// adding grass RESERVE MEMORY FIRST
-	for (unsigned int i = 0; i < 1000; ++i)
-	{
-		std::uniform_real_distribution<float> distribution(0.f, (float) (myCellSize - 1));
-		float xf = distribution(myRandomEngine);
-		float zf = distribution(myRandomEngine);
-		auto grassPos = aCell->VerticalRaycast(vec2f(xf, zf));
-		aCell->AddGrassPosition(grassPos);
+	// adding grass
+	for (unsigned int i = 0; i < myCellSize; ++i) {     // y
+		for (unsigned int j = 0; j < myCellSize; ++j) {  // x
+
+			if (temporaryElements[j + i * myCellSize].myNormal.y < 0.8f)
+			{
+				continue;
+			}
+
+			if (temporaryElements[j + i * myCellSize].myElevation > 250.f)
+			{
+				continue;
+			}
+
+			std::uniform_real_distribution<float> distribution(-.5f, .5f);
+			float xf = glm::clamp((float)j + distribution(myRandomEngine), 0.f, (float)myCellSize - 1.001f);
+			float zf = glm::clamp((float)i + distribution(myRandomEngine), 0.f, (float)myCellSize - 1.001f);
+			auto grassPos = aCell->VerticalRaycast(vec2f(xf, zf));
+			aCell->AddGrassPosition(grassPos);
+		}
 	}
 
 	aCell->OnFinishBuild();

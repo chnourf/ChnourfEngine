@@ -161,12 +161,12 @@ void SceneManager::NotifyDisplayFrame()
 		myModelManager->ResetCulling();
 	}
 
-	//float multiplier = 1.f;
-	//if (abs(myDirectionalLight.GetDirection().y) > 0.15f)
-	//{
-	//	multiplier = 10.f;
-	//}
-	//myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), multiplier * .0003f));
+	float multiplier = 1.f;
+	if (abs(myDirectionalLight.GetDirection().y) > 0.15f)
+	{
+		multiplier = 10.f;
+	}
+	myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), multiplier * .0003f));
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
 	glm::vec3 eye_position = glm::vec3(0.0f, 1.f-13.f/6400.f, 0.0f);
 
@@ -227,12 +227,12 @@ void SceneManager::NotifyDisplayFrame()
 		GLuint lightSpaceMatrixLocation = glGetUniformLocation(programId, "lightSpaceMatrix");
 		glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
 
-		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 5);
-		glActiveTexture(GL_TEXTURE5);
+		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 6);
+		glActiveTexture(GL_TEXTURE6);
 		glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 
-		glUniform1i(glGetUniformLocation(programId, "noise"), 4);
-		glActiveTexture(GL_TEXTURE4);
+		glUniform1i(glGetUniformLocation(programId, "noise"), 5);
+		glActiveTexture(GL_TEXTURE5);
 		glBindTexture(GL_TEXTURE_2D, myNoiseTexture);
 
 		//glBindTexture(GL_TEXTURE_CUBE_MAP, mySkybox.GetTexture());

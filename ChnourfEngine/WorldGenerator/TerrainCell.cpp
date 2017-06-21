@@ -8,7 +8,7 @@ TerrainCell::TerrainCell(const vec2i& aGridIndex, int aCellSize, float aResoluti
 	myResolution(aResolution)
 {
 	myElements.reserve((aCellSize)*(aCellSize));
-	myGrassSpots.reserve(100); // to be changed
+	myGrassSpots.reserve((aCellSize) * (aCellSize)); // to be changed
 }
 
 vec3f TerrainCell::VerticalRaycast(const vec2f& aPositionInTheCell)

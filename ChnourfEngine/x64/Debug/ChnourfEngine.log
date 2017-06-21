@@ -1,56 +1,43 @@
-﻿  main.cpp
-  TerrainManager.cpp
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terrainmanager.cpp(33): warning C4244: '=': conversion from 'float' to 'unsigned int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terrainmanager.cpp(37): warning C4244: '=': conversion from 'float' to 'int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terrainmanager.cpp(65): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
-  TerrainCellBuilder.cpp
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(62): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(90): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(130): warning C4018: '>': signed/unsigned mismatch
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(134): warning C4018: '>': signed/unsigned mismatch
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(152): warning C4018: '>': signed/unsigned mismatch
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(169): warning C4018: '>': signed/unsigned mismatch
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(177): warning C4018: '>': signed/unsigned mismatch
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(354): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(361): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(364): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincellbuilder.cpp(378): warning C4244: '=': conversion from 'time_t' to 'unsigned int', possible loss of data
+﻿  TerrainCellBuilder.cpp
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(62): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(90): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(130): warning C4018: '>': signed/unsigned mismatch
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(134): warning C4018: '>': signed/unsigned mismatch
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(152): warning C4018: '>': signed/unsigned mismatch
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(169): warning C4018: '>': signed/unsigned mismatch
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(177): warning C4018: '>': signed/unsigned mismatch
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(356): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(363): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(366): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincellbuilder.cpp(380): warning C4244: '=': conversion from 'time_t' to 'unsigned int', possible loss of data
   TerrainCell.cpp
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincell.cpp(18): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincell.cpp(18): warning C4244: 'initializing': conversion from 'double' to 'const float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincell.cpp(19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincell.cpp(19): warning C4244: 'initializing': conversion from 'double' to 'const float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincell.cpp(21): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincell.cpp(21): warning C4244: 'initializing': conversion from 'float' to 'const int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincell.cpp(22): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\worldgenerator\terraincell.cpp(22): warning C4244: 'initializing': conversion from 'float' to 'const int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincell.cpp(19): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincell.cpp(19): warning C4244: 'initializing': conversion from 'double' to 'const float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincell.cpp(20): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincell.cpp(20): warning C4244: 'initializing': conversion from 'double' to 'const float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincell.cpp(22): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincell.cpp(22): warning C4244: 'initializing': conversion from 'float' to 'const int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincell.cpp(23): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\worldgenerator\terraincell.cpp(23): warning C4244: 'initializing': conversion from 'float' to 'const int', possible loss of data
   TerrainCellModel.cpp
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(52): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(61): warning C4244: 'argument': conversion from 'double' to 'unsigned __int64', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(72): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(73): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(74): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(119): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(119): warning C4244: 'initializing': conversion from 'double' to 'const int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(168): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(185): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\terraincellmodel.cpp(315): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(52): warning C4244: 'argument': conversion from 'double' to 'const float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(61): warning C4244: 'argument': conversion from 'double' to 'unsigned __int64', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(72): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(73): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(74): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(119): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(119): warning C4244: 'initializing': conversion from 'double' to 'const int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(168): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(185): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\rendering\models\terraincellmodel.cpp(362): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
   SceneManager.cpp
-d:\projets\chnourf_engine\chnourfengine\managers\scenemanager.cpp(148): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\managers\scenemanager.cpp(149): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\managers\scenemanager.cpp(150): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\managers\scenemanager.cpp(152): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-  Generating Code...
-  Compiling...
-  Model.cpp
-  Mesh.cpp
-d:\projets\chnourf_engine\chnourfengine\rendering\models\mesh.cpp(72): warning C4244: 'argument': conversion from 'GLuint' to 'GLfloat', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\mesh.cpp(82): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\rendering\models\mesh.cpp(89): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-  Camera.cpp
+e:\projets\engine\chnourfengine\chnourfengine\managers\scenemanager.cpp(148): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\managers\scenemanager.cpp(149): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\managers\scenemanager.cpp(150): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\managers\scenemanager.cpp(152): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
   ModelManager.cpp
-d:\projets\chnourf_engine\chnourfengine\managers\modelmanager.cpp(100): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\managers\modelmanager.cpp(100): warning C4267: 'initializing': conversion from 'size_t' to 'const unsigned int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\managers\modelmanager.cpp(100): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+e:\projets\engine\chnourfengine\chnourfengine\managers\modelmanager.cpp(100): warning C4267: 'initializing': conversion from 'size_t' to 'const unsigned int', possible loss of data
   Generating Code...
   SOIL.lib(SOIL.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/LTCG' specification
@@ -58,5 +45,5 @@ InitGlut.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' sp
 LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Generating code
   Finished generating code
-  ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Debug\ChnourfEngine.exe
-  ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Debug\ChnourfEngine.pdb (Partial PDB)
+  ChnourfEngine.vcxproj -> E:\Projets\Engine\ChnourfEngine\x64\Debug\ChnourfEngine.exe
+  ChnourfEngine.vcxproj -> E:\Projets\Engine\ChnourfEngine\x64\Debug\ChnourfEngine.pdb (Partial PDB)

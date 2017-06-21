@@ -112,7 +112,6 @@ void ModelManager::CullScene(const Camera& aCamera)
 void ModelManager::AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution)
 {
 	Models::TerrainCellModel* terrain = new Models::TerrainCellModel(aCell, aCellSize, aResolution);
-//	terrain->SetProgram(SceneManager::GetInstance()->GetShaderManager()->GetShader("terrainShader"));
 	gameModelList.push_back(terrain);	
 }
 

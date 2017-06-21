@@ -233,13 +233,14 @@ namespace Rendering
 			AddTexture("Data/TerrainTest/terrain_n.jpg");
 			AddTexture("Data/TerrainTest/rock_d.jpg");
 			AddTexture("Data/TerrainTest/snow_d.jpg");
+			AddTexture("Data/Grass/grass.png");
 
 			auto& grassPos = aCell->GetGrassSpots();
 			myGrassPositions.reserve(grassPos.size());
 			for (auto grass : grassPos)
 			{
 				// WHY SWITCH Z AND X ? DUNNO
-				myGrassPositions.push_back(glm::vec3((grass.z + aCell->GetGridIndex().x * aCellSize) * aResolution, grass.y, (grass.x + aCell->GetGridIndex().y * aCellSize) * aResolution));
+				myGrassPositions.push_back(glm::vec3((grass.z + aCell->GetGridIndex().x * (float)aCellSize) * aResolution, grass.y, (grass.x + aCell->GetGridIndex().y * (float)aCellSize) * aResolution));
 			}
 
 			glGenVertexArrays(1, &myGrassVAO);
@@ -319,13 +320,29 @@ namespace Rendering
 
 			if (myCurrentLOD <= 1) // maybe a better parameter ?
 			{
-				glDisable(GL_CULL_FACE);
-				glUseProgram(aShaderManager->GetShader("grassShader"));
-				glBindVertexArray(myGrassVAO);
-				glDrawArrays(GL_POINTS, 0, (GLsizei)(myGrassPositions.size()));
-				glBindVertexArray(0);
-				glEnable(GL_CULL_FACE);
+				DrawGrass(aShaderManager);
 			}
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+		float locElapsedTime = 0.f;
+
+		void TerrainCellModel::DrawGrass(const Manager::ShaderManager* aShaderManager)
+		{
+			++locElapsedTime;
+			glDisable(GL_CULL_FACE);
+			auto grassProgram = aShaderManager->GetShader("grassShader");
+			glUseProgram(grassProgram);
+			GLuint elapsedTime = glGetUniformLocation(grassProgram, "elapsedTime");
+			glUniform1f(elapsedTime, locElapsedTime);
+			glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 4);
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, textures[4].myId);
+			glBindVertexArray(myGrassVAO);
+			glDrawArrays(GL_POINTS, 0, (GLsizei)(myGrassPositions.size()));
+			glBindVertexArray(0);
+			glEnable(GL_CULL_FACE);
 		}
 
 		void TerrainCellModel::DrawForShadowMap(const GLuint aShadowMapProgram)
