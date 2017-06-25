@@ -32,9 +32,9 @@ void main()
     // Diffuse 
     vec3 norm = normalize(fs_in.normal);
     vec3 lightDir = normalize(-lightDirection);
-    float diff = 1.0;// max(abs(dot(abs(norm), lightDir)), 0.0);
+    float diff = max((dot(norm, lightDir)), 0.0);
 	vec4 diffuseTextColor = texture(grassMaterial.diffuse, fs_in.texcoord);
-	if (diffuseTextColor.a < 0.2 || length(fs_in.fragPos - viewPos) > 250)
+	if (diffuseTextColor.a <=  (0.05 + 0.95 * length(fs_in.fragPos - viewPos) / 200))
 	{
 		discard;
 	}
@@ -61,6 +61,6 @@ void main()
     vec3  fogColor  = mix(vec3(0.5 ,0.6, 0.7), lightColor, pow(sunAmount,2.0) * 0.5);
     result = mix( result, fogColor, fogAmount );
 
-    out_color = vec4(result, diffuseTextColor.a);
+    out_color = vec4(result, 1.0);
 
 }

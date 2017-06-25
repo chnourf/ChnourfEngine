@@ -4,6 +4,9 @@
 #include "../../Managers/SceneManager.h"
 #include "../../Managers/ShaderManager.h"
 
+#include "../../WorldGenerator/TerrainManager.h"
+
+
 namespace Rendering
 {
 	namespace Models
@@ -235,21 +238,6 @@ namespace Rendering
 			AddTexture("Data/TerrainTest/snow_d.jpg");
 			AddTexture("Data/Grass/grass.png");
 
-			auto& grassPos = aCell->GetGrassSpots();
-			myGrassPositions.reserve(grassPos.size());
-			for (auto grass : grassPos)
-			{
-				// WHY SWITCH Z AND X ? DUNNO
-				myGrassPositions.push_back(glm::vec3((grass.z + aCell->GetGridIndex().x * (float)aCellSize) * aResolution, grass.y, (grass.x + aCell->GetGridIndex().y * (float)aCellSize) * aResolution));
-			}
-
-			glGenVertexArrays(1, &myGrassVAO);
-			glGenBuffers(1, &myGrassVBO);
-
-			glBindVertexArray(myGrassVAO);
-			glBindBuffer(GL_ARRAY_BUFFER, myGrassVBO);
-			glBufferData(GL_ARRAY_BUFFER, myGrassPositions.size() * sizeof(glm::vec3), &myGrassPositions[0], GL_STATIC_DRAW);
-
 			// Vertex Positions
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
@@ -334,13 +322,26 @@ namespace Rendering
 			glDisable(GL_CULL_FACE);
 			auto grassProgram = aShaderManager->GetShader("grassShader");
 			glUseProgram(grassProgram);
+
+			// we calculated those uniforms before
+			GLuint tileIndex = glGetUniformLocation(grassProgram, "tileIndex");
+			glUniform2i(tileIndex, myTileIndex.x, myTileIndex.y);
+
+			const auto cellSize = Manager::TerrainManager::GetInstance()->GetCellSize();
+			GLuint cellSizeID = glGetUniformLocation(grassProgram, "cellSize");
+			auto t = Manager::TerrainManager::GetInstance();
+			glUniform1i(cellSizeID, cellSize);
+
+			GLuint cellResolution = glGetUniformLocation(grassProgram, "resolution");
+			glUniform1f(cellResolution, Manager::TerrainManager::GetInstance()->GetResolution());
+
 			GLuint elapsedTime = glGetUniformLocation(grassProgram, "elapsedTime");
 			glUniform1f(elapsedTime, locElapsedTime);
 			glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 4);
 			glActiveTexture(GL_TEXTURE4);
 			glBindTexture(GL_TEXTURE_2D, textures[4].myId);
-			glBindVertexArray(myGrassVAO);
-			glDrawArrays(GL_POINTS, 0, (GLsizei)(myGrassPositions.size()));
+			glBindVertexArray(VAOs[0]);
+			glDrawArrays(GL_POINTS, 0, cellSize * cellSize);
 			glBindVertexArray(0);
 			glEnable(GL_CULL_FACE);
 		}

@@ -1,4 +1,4 @@
-#version 330 core
+//#version 330 core
 in vec3 TexCoords;
 
 out vec4 color;
@@ -6,23 +6,9 @@ uniform vec3 viewPos;
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
 
-uniform sampler2D noise;
-
 #define SC (250.0)
 
-const mat2 m2 = mat2(0.8,-0.6,0.6,0.8);
-
 const vec3 Kr = vec3(5.5e-6, 13.0e-6, 22.4e-6);
-
-float fbm( vec2 p )
-{
-    float f = 0.0;
-    f += 0.5000*texture( noise, p/256.0 ).x; p = m2*p*2.02;
-    f += 0.2500*texture( noise, p/256.0 ).x; p = m2*p*2.03;
-    f += 0.1250*texture( noise, p/256.0 ).x; p = m2*p*2.01;
-    f += 0.0625*texture( noise, p/256.0 ).x;
-    return f/0.9375;
-}
 
 float phase(float alpha, float g){
     float a = 3.0*(1.0-g*g);

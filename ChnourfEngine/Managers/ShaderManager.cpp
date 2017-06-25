@@ -15,12 +15,27 @@ void ShaderManager::Initialize()
 	CreateProgram("colorShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinn_Shader.glsl");
 	CreateProgram("frameBufferShader", "Shaders\\FBO_Vertex_Shader.glsl", "Shaders\\FBO_Pixel_Shader.glsl");
 	CreateProgram("cubemapShader", "Shaders\\Cubemap_Vertex_Shader.glsl", "Shaders\\Cubemap_Pixel_Shader.glsl");
-	CreateProgram("skyboxShader", "Shaders\\Cubemap_Vertex_Shader.glsl", "Shaders\\Skybox_Pixel_Shader.glsl");
-	CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
-	CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", "Shaders\\Terrain_Pixel_Shader.glsl");
 	CreateProgram("shadowMapShader", "Shaders\\Simple_Depth_Shader.glsl", "Shaders\\Empty_Fragment_Shader.glsl");
-	std::string grassGeometryShader = std::string("Shaders\\Grass_Geometry_Shader.glsl");
-	CreateProgram("grassShader", "Shaders\\Grass_Vertex_Shader.glsl", "Shaders\\Grass_Fragment_Shader.glsl", &grassGeometryShader);
+
+	std::vector<std::string> skyboxPixelShader;
+	skyboxPixelShader.push_back("Shaders\\Environment.h");
+	skyboxPixelShader.push_back("Shaders\\Skybox_Pixel_Shader.glsl");
+	CreateProgram("skyboxShader", "Shaders\\Cubemap_Vertex_Shader.glsl", skyboxPixelShader);
+
+	CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
+
+
+	std::vector<std::string> terrainPixelShader;
+	terrainPixelShader.push_back("Shaders\\Environment.h");
+	terrainPixelShader.push_back("Shaders\\Terrain_Pixel_Shader.glsl");
+	CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", terrainPixelShader);
+
+	std::vector<std::string> grassGeometryShader;
+	grassGeometryShader.push_back("Shaders\\Environment.h");
+	grassGeometryShader.push_back("Shaders\\Grass_Geometry_Shader.glsl");
+	std::vector<std::string> grassFragmentShader;
+	grassFragmentShader.push_back("Shaders\\Grass_Fragment_Shader.glsl");
+	CreateProgram("grassShader", "Shaders\\Grass_Vertex_Shader.glsl", grassFragmentShader, &grassGeometryShader);
 
 	// mandatory for UBO
 	for (auto shader : GetShaders())
@@ -143,21 +158,40 @@ void ShaderManager::CreateProgram(const std::string& aShaderName, const std::str
 	}
 }
 
-void ShaderManager::CreateProgram(const std::string& aShaderName, const std::vector<std::string>& aVertexShaderFilename, const std::vector<std::string>& aFragmentShaderFilename)
+void ShaderManager::CreateProgram(const std::string& aShaderName, const std::string& aVertexShaderFilename, const std::vector<std::string>& aFragmentShaderFilename, const std::vector<std::string>* aGeometryShaderFilename)
 {
 	//read the shader files and save the code
 	std::string vertex_shader_code;
 	std::string fragment_shader_code;
-	for (auto vertexShader : aVertexShaderFilename)
-	{
-		vertex_shader_code += ReadShader(vertexShader);
-	}
+
+	vertex_shader_code = ReadShader(aVertexShaderFilename);
+
 	for (auto fragmentShader : aFragmentShaderFilename)
 	{
-		fragment_shader_code += ReadShader(fragmentShader);
+		auto currentCode = ReadShader(fragmentShader);
+		currentCode.erase(std::remove_if(currentCode.begin(), currentCode.end(), [](char x) {return x == 0; }), currentCode.end());
+		fragment_shader_code += currentCode;
 	}
 
-	CreateProgramFromSource(aShaderName, vertex_shader_code, fragment_shader_code);
+	fragment_shader_code += '\0';
+
+	std::string* geometry_shader_code = nullptr;
+	std::string temp_geometry_shader_code;
+
+	if (aGeometryShaderFilename)
+	{
+		for (auto geometrytShader : *aGeometryShaderFilename)
+		{
+			auto currentCode = ReadShader(geometrytShader);
+			currentCode.erase(std::remove_if(currentCode.begin(), currentCode.end(), [](char x) {return x == 0; }), currentCode.end());
+			temp_geometry_shader_code += currentCode;
+		}
+
+		temp_geometry_shader_code += '\0';
+		geometry_shader_code = &temp_geometry_shader_code;
+	}
+
+	CreateProgramFromSource(aShaderName, vertex_shader_code, fragment_shader_code, geometry_shader_code);
 }
 
 const GLuint ShaderManager::GetShader(const std::string& aShaderName) const

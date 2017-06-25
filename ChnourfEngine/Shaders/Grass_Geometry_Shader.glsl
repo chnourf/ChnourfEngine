@@ -1,4 +1,4 @@
-#version 450 core //lower this version if your card does not support GLSL 4.5
+//#version 450 core //lower this version if your card does not support GLSL 4.5
 layout (points) in;
 layout (triangle_strip, max_vertices = 10) out;
 
@@ -12,6 +12,7 @@ out GS_OUT
 in VS_OUT
 {
 	vec3 position;
+	vec3 normal;
 } vs_in[];
 
 layout (std140) uniform ViewConstants
@@ -21,20 +22,6 @@ layout (std140) uniform ViewConstants
 };
 
 uniform float elapsedTime;
-
-uniform sampler2D noise;
-
-const mat2 m2 = mat2(0.8,-0.6,0.6,0.8);
-
-float fbm( vec2 p )
-{
-    float f = 0.0;
-    f += 0.5000*texture( noise, p/256.0 ).x; p = m2*p*2.02;
-    f += 0.2500*texture( noise, p/256.0 ).x; p = m2*p*2.03;
-    f += 0.1250*texture( noise, p/256.0 ).x; p = m2*p*2.01;
-    f += 0.0625*texture( noise, p/256.0 ).x;
-    return f/0.9375;
-}
 
 mat4 rotationMatrix(vec3 axis, float angle)
 {
@@ -52,62 +39,56 @@ mat4 rotationMatrix(vec3 axis, float angle)
 void main()
 {
 	gs_out.fragPos = vs_in[0].position;
+	gs_out.normal = vs_in[0].normal;
 
-	
-	
 	float grassHeight = fbm(vec2(vs_in[0].position.x*10, vs_in[0].position.z*10));
-	float modif = cos(elapsedTime/300.0 + grassHeight*10)*0.1*grassHeight;
-	mat4 rot = rotationMatrix(vec3(0.0, 1.0, 0.0), 3.0*fbm(vec2(vs_in[0].position.x*100, vs_in[0].position.z*100)));
+	float modifTime = elapsedTime/3000.f + 0.5* grassHeight;
+	float modif = cos(modifTime)*cos(3*modifTime)*cos(5*modifTime)*cos(7*modifTime)*sin(25*modifTime)*0.3*grassHeight;
+	//mat4 rot = rotationMatrix(vec3(0.0, 1.0, 0.0), 3.0*fbm(vec2(vs_in[0].position.x*100, vs_in[0].position.z*100)));
+	
+	// there has to be a better way to do that, acos is evil
+	mat4 terrainRot = rotationMatrix(cross(vec3(0.0, 1.0, 0.0), vs_in[0].normal), acos(dot(vec3(0.0, 1.0, 0.0), vs_in[0].normal)));
+	mat4 rot = terrainRot * rotationMatrix(vs_in[0].normal, 3.0*fbm(vec2(vs_in[0].position.x*100, vs_in[0].position.z*100)));
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4(-0.25, 0.0, 0.0, 0.0);
-	gs_out.normal = vec3(0.0,0.0,1.0);
 	gs_out.texcoord = vec2(.99, .99);
 	EmitVertex();
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4( 0.25, 0.0, 0.0, 0.0);
-	gs_out.normal = vec3(0.0,0.0,1.0);
 	gs_out.texcoord = vec2(0.01, .99);
 	EmitVertex();
 	
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4( 0.25 + modif, grassHeight, 0.0, 0.0);
-	gs_out.normal = vec3(0.0,0.0,1.0);
 	gs_out.texcoord = vec2(0.01, 0.01);
 	EmitVertex();
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4(-0.25 + modif, grassHeight, 0.0, 0.0);
-	gs_out.normal = vec3(0.0,0.0,1.0);
 	gs_out.texcoord = vec2(.99, 0.01);
 	EmitVertex();
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4(-0.25 , 0.0, 0.0, 0.0);
-	gs_out.normal = vec3(0.0,0.0,1.0);
 	gs_out.texcoord = vec2(.99, .99);
 	EmitVertex();
 	
 	EndPrimitive();
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4(0.0, 0.0, -0.25, 0.0); 
-	gs_out.normal = vec3(1.0,0.0,0.0);
 	gs_out.texcoord = vec2(.99, .99);
 	EmitVertex();
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4( 0.0, 0.0, 0.25, 0.0);
-	gs_out.normal = vec3(1.0,0.0,0.0);
 	gs_out.texcoord = vec2(0.01, .99);
 	EmitVertex();
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4( 0.0 + modif, grassHeight, 0.25, 0.0);
-	gs_out.normal = vec3(1.0,0.0,0.0);
 	gs_out.texcoord = vec2(0.01, 0.01);
 	EmitVertex();
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4(0.0 + modif, grassHeight, -0.25, 0.0);
-	gs_out.normal = vec3(1.0,0.0,0.0);	
 	gs_out.texcoord = vec2(.99, 0.01);
 	EmitVertex();
 
 	gl_Position = gl_in[0].gl_Position + projection*view*rot*vec4(0.0 , 0.0, -0.25, 0.0);
-	gs_out.normal = vec3(1.0,0.0,0.0);
 	gs_out.texcoord = vec2(.99, .99);
 	EmitVertex();
 
