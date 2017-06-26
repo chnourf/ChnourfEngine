@@ -87,6 +87,9 @@
     <ClCompile Include="Core\UID.cpp">
       <Filter>Fichiers sources\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Grass.cpp">
+      <Filter>Fichiers sources\Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Managers\ShaderManager.h">
@@ -178,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="Core\UID.h">
       <Filter>Fichiers sources\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Grass.h">
+      <Filter>Fichiers sources\Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

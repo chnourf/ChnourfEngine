@@ -41,18 +41,12 @@ namespace Rendering
 		private:
 			void CreateTexture(GLuint& aTextureID, const std::string& aPath);
 			void AddTexture(const std::string& aPath);
-			void DrawGrass(const Manager::ShaderManager* aShaderManager);
 			void CreateAndGenerateBuffers(GLuint& aVao, GLuint& aVbo, GLuint& aEbo, int aLod);
 			void AddFace(int aLod, unsigned int a, unsigned int b, unsigned int c);
 
 			static const int myMaxLOD = 3;
 			static const int myNumLOD = myMaxLOD + 1;
 			static std::vector<GLuint> ourIndices[myNumLOD];
-
-			std::vector<glm::vec3> myGrassPositions;
-			GLuint myGrassVAO;
-			GLuint myGrassVBO;
-			GLuint myGrassProgram;
 
 			std::vector<TerrainVertex> vertices;
 			std::vector<TextureFormat> textures;
@@ -61,7 +55,8 @@ namespace Rendering
 			GLuint EBOs[myNumLOD];
 			GLuint myProgram;
 
-			vec2i myTileIndex;
+			const TerrainCell* myTerrainCell;
+			Grass* myGrass;
 
 			unsigned int myCurrentLOD = 0;
 		};

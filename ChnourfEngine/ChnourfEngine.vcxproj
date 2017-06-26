@@ -126,6 +126,7 @@
     <ClCompile Include="Managers\ShaderManager.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\Cubemap.cpp" />
+    <ClCompile Include="Rendering\Grass.cpp" />
     <ClCompile Include="Rendering\Models\Mesh.cpp" />
     <ClCompile Include="Rendering\Models\Model.cpp" />
     <ClCompile Include="Rendering\Models\TerrainCellModel.cpp" />
@@ -152,6 +153,7 @@
     <ClInclude Include="Managers\ShaderManager.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\Cubemap.h" />
+    <ClInclude Include="Rendering\Grass.h" />
     <ClInclude Include="Rendering\IGameObject.h" />
     <ClInclude Include="Rendering\Light\DirectionalLight.h" />
     <ClInclude Include="Rendering\Light\Light.h" />

@@ -1,6 +1,7 @@
 #include "TerrainCellModel.h"
 #include "../../WorldGenerator/TerrainCell.h"
 #include "../../Managers/ModelManager.h"
+#include "../Grass.h"
 #include "../../Managers/SceneManager.h"
 #include "../../Managers/ShaderManager.h"
 
@@ -47,12 +48,13 @@ namespace Rendering
 
 		TerrainCellModel::TerrainCellModel(const TerrainCell* aCell, unsigned int aCellSize, float aResolution)
 		{
-			vec3f aMin = vec3f((float) aCell->GetGridIndex().x*aCellSize*aResolution, aCell->GetMinHeight(), (float) aCell->GetGridIndex().y*aCellSize*aResolution);
-			vec3f aMax = vec3f((float) (aCell->GetGridIndex().x+1)*aCellSize*aResolution, aCell->GetMaxHeight(), (float) (aCell->GetGridIndex().y+1)*aCellSize*aResolution);
+			myTerrainCell = aCell;
+
+			vec3f aMin = vec3f((float)myTerrainCell->GetGridIndex().x*aCellSize*aResolution, myTerrainCell->GetMinHeight(), (float)myTerrainCell->GetGridIndex().y*aCellSize*aResolution);
+			vec3f aMax = vec3f((float) (myTerrainCell->GetGridIndex().x+1)*aCellSize*aResolution, myTerrainCell->GetMaxHeight(), (float) (myTerrainCell->GetGridIndex().y+1)*aCellSize*aResolution);
 
 			myAABB = AABB(aMin, aMax);
-
-			myPosition = vec3f((aCell->GetGridIndex().x + 0.5)*aCellSize*aResolution, 0.f, (aCell->GetGridIndex().y + 0.5)*aCellSize*aResolution);
+			myPosition = vec3f((myTerrainCell->GetGridIndex().x + 0.5)*aCellSize*aResolution, 0.f, (myTerrainCell->GetGridIndex().y + 0.5)*aCellSize*aResolution);
 
 			vertices.reserve(aCellSize*aCellSize);
 			
@@ -62,15 +64,12 @@ namespace Rendering
 				{
 					//calculations to be remade
 					ourIndices[i].reserve(7 * ((aCellSize - 1) / pow(2, i))*((aCellSize - 1) / pow(2, i)));
-					//ourIndices[i].reserve(6 * ((aCellSize-1) / pow(2, i))*((aCellSize - 1) / pow(2, i)));
 				}
 			}
 			
-			myTileIndex = aCell->GetGridIndex();
-
 			for (unsigned short i = 0; i < aCellSize; ++i) {
 				for (unsigned short j = 0; j < aCellSize; ++j) {
-					auto& element = aCell->GetElement(i + j*aCellSize);
+					auto& element = myTerrainCell->GetElement(i + j*aCellSize);
 
 					unsigned char x = element.myNormal.x * 128 + 128;
 					unsigned char y = element.myNormal.y * 128 + 128;
@@ -238,13 +237,7 @@ namespace Rendering
 			AddTexture("Data/TerrainTest/snow_d.jpg");
 			AddTexture("Data/Grass/grass.png");
 
-			// Vertex Positions
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-
-			glBindVertexArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			myGrass = new Grass(aCellSize, aResolution, myTerrainCell->GetGridIndex().x);
 		}
 
 		void TerrainCellModel::AddTexture(const std::string& aString)
@@ -287,8 +280,9 @@ namespace Rendering
 			myProgram = aShaderManager->GetShader("terrainShader");
 			glUseProgram(myProgram);
 
-			GLuint tileIndex = glGetUniformLocation(myProgram, "tileIndex");
-			glUniform2i(tileIndex, myTileIndex.x, myTileIndex.y);
+			GLuint tileIndexID = glGetUniformLocation(myProgram, "tileIndex");
+			auto& tileIndex = myTerrainCell->GetGridIndex();
+			glUniform2i(tileIndexID, tileIndex.x, tileIndex.y);
 			glUniform1i(glGetUniformLocation(myProgram, "groundMaterial.diffuse"), 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, textures[0].myId);
@@ -308,47 +302,20 @@ namespace Rendering
 
 			if (myCurrentLOD <= 1) // maybe a better parameter ?
 			{
-				DrawGrass(aShaderManager);
+				myGrass->GenerateGrass(myTerrainCell);
+				myGrass->Draw(aShaderManager);
+			}
+			else
+			{
+				myGrass->Reset();
 			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
-		float locElapsedTime = 0.f;
-
-		void TerrainCellModel::DrawGrass(const Manager::ShaderManager* aShaderManager)
-		{
-			++locElapsedTime;
-			glDisable(GL_CULL_FACE);
-			auto grassProgram = aShaderManager->GetShader("grassShader");
-			glUseProgram(grassProgram);
-
-			// we calculated those uniforms before
-			GLuint tileIndex = glGetUniformLocation(grassProgram, "tileIndex");
-			glUniform2i(tileIndex, myTileIndex.x, myTileIndex.y);
-
-			const auto cellSize = Manager::TerrainManager::GetInstance()->GetCellSize();
-			GLuint cellSizeID = glGetUniformLocation(grassProgram, "cellSize");
-			auto t = Manager::TerrainManager::GetInstance();
-			glUniform1i(cellSizeID, cellSize);
-
-			GLuint cellResolution = glGetUniformLocation(grassProgram, "resolution");
-			glUniform1f(cellResolution, Manager::TerrainManager::GetInstance()->GetResolution());
-
-			GLuint elapsedTime = glGetUniformLocation(grassProgram, "elapsedTime");
-			glUniform1f(elapsedTime, locElapsedTime);
-			glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 4);
-			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_2D, textures[4].myId);
-			glBindVertexArray(VAOs[0]);
-			glDrawArrays(GL_POINTS, 0, cellSize * cellSize);
-			glBindVertexArray(0);
-			glEnable(GL_CULL_FACE);
-		}
-
 		void TerrainCellModel::DrawForShadowMap(const GLuint aShadowMapProgram)
 		{
-			// irrelevant for terrain but needed in shader. To optimise
+			// irrelevant for terrain but needed in shader. To optimize
 			GLuint transformLoc1 = glGetUniformLocation(myProgram, "model");
 			glUniformMatrix4fv(transformLoc1, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
 
@@ -362,7 +329,8 @@ namespace Rendering
 			auto camPos = Manager::SceneManager::GetInstance()->GetCamPos();
 			const vec2i positionOnGrid = vec2i(camPos.x / (128), camPos.z / (128));
 			// ugly
-			auto squareDist = (myTileIndex.x - positionOnGrid.x) * (myTileIndex.x - positionOnGrid.x) + (myTileIndex.y - positionOnGrid.y) * (myTileIndex.y - positionOnGrid.y);
+			auto& tileIndex = myTerrainCell->GetGridIndex();
+			auto squareDist = (tileIndex.x - positionOnGrid.x) * (tileIndex.x - positionOnGrid.x) + (tileIndex.y - positionOnGrid.y) * (tileIndex.y - positionOnGrid.y);
 			if (squareDist <= 9)
 			{
 				myCurrentLOD = 0;

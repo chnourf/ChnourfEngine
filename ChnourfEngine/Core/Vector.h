@@ -41,6 +41,18 @@ template <class T> struct Vector3
 		z(anX)
 	{}
 
+	inline void Normalize()
+	{
+		T squareNorm = x*x + y*y + z*z;
+		if (squareNorm > 0)
+		{
+			const T invNorm = T(1) / (T)sqrt(squareNorm);
+			x *= invNorm;
+			y *= invNorm;
+			z *= invNorm;
+		}
+	}
+
 	T x;
 	T y;
 	T z;

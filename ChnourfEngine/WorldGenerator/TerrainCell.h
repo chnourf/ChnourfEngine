@@ -33,7 +33,8 @@ public:
 	__forceinline void SetMinHeight(float aHeight) { myMinHeight = aHeight; }
 	__forceinline void SetMaxHeight(float aHeight)  { myMaxHeight = aHeight; }
 
-	vec3f VerticalRaycast(const vec2f& aPositionInTheCell); // if you use a global position, convert it first !
+	float GetY(float aX, float aZ) const;
+	vec3f GetNormal(float aX, float aZ) const;
 
 private:
 	vec2i myGridIndex;
