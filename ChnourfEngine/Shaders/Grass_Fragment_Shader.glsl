@@ -3,7 +3,7 @@
  
 out vec4 out_color;
  
-in GS_OUT
+in VS_OUT
 {
 	vec2 texcoord;
 	vec3 normal;

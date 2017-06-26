@@ -145,6 +145,7 @@
     <ClInclude Include="Core\Math.h" />
     <ClInclude Include="Core\PerlinNoise.h" />
     <ClInclude Include="Core\Singleton.h" />
+    <ClInclude Include="Core\Time.h" />
     <ClInclude Include="Core\UID.h" />
     <ClInclude Include="Core\Vector.h" />
     <ClInclude Include="Managers\InputManager.h" />
@@ -174,7 +175,6 @@
     <None Include="Shaders\Empty_Fragment_Shader.glsl" />
     <None Include="Shaders\FBO_Pixel_Shader.glsl" />
     <None Include="Shaders\Grass_Fragment_Shader.glsl" />
-    <None Include="Shaders\Grass_Geometry_Shader.glsl" />
     <None Include="Shaders\Grass_Vertex_Shader.glsl" />
     <None Include="Shaders\Simple_Depth_Shader.glsl" />
     <None Include="Shaders\Skybox_Pixel_Shader.glsl" />

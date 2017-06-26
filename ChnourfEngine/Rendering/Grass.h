@@ -11,10 +11,10 @@ struct GrassInstance
 	float x, y, z;
 	char nx8, ny8, nz8;
 	char unused;
-	//char atlasIndex8;
-	//char direction8;
-	//char scale8;
-	//char colorLerp8;
+	char atlasIndex8;
+	char direction8;
+	char scale8;
+    char colorLerp8;
 };
 
 class Grass
@@ -22,7 +22,7 @@ class Grass
 public:
 	Grass(unsigned int aCellSize, float aResolution, int aSeed);
 
-	void Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex);
+	void Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture);
 	void GenerateGrass(const TerrainCell* aCell);
 	void Reset();
 
@@ -36,5 +36,6 @@ private:
 
 	GLuint myVAO;
 	GLuint myVBO;
+	GLuint myInstanceVBO;
 	GLuint myProgram;
 };

@@ -185,6 +185,9 @@
     <ClInclude Include="Rendering\Grass.h">
       <Filter>Fichiers sources\Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Time.h">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Vertex_Shader.glsl">
@@ -225,9 +228,6 @@
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
     <None Include="Shaders\Skybox_Pixel_Shader.glsl">
-      <Filter>Fichiers sources\Shaders</Filter>
-    </None>
-    <None Include="Shaders\Grass_Geometry_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
     <None Include="Shaders\Grass_Vertex_Shader.glsl">

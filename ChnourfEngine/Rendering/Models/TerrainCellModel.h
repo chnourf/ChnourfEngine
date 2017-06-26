@@ -6,6 +6,7 @@
 #include "glm\detail\type_vec3.hpp"
 
 class TerrainCell;
+class Grass;
 
 struct TerrainVertex
 {

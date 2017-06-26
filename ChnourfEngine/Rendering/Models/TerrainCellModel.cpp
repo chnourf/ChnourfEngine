@@ -303,7 +303,7 @@ namespace Rendering
 			if (myCurrentLOD <= 1) // maybe a better parameter ?
 			{
 				myGrass->GenerateGrass(myTerrainCell);
-				myGrass->Draw(aShaderManager);
+				myGrass->Draw(aShaderManager, myTerrainCell->GetGridIndex(), textures[4].myId);
 			}
 			else
 			{

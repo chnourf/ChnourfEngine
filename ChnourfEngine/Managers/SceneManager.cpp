@@ -5,6 +5,8 @@
 #include "../WorldGenerator/TerrainManager.h"
 #include "../Core/Vector.h"
 #include "../Core/Intersection.h"
+#include "../Core/Time.h"
+#include <ctime>
 
 using namespace Manager;
 
@@ -136,8 +138,12 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 	//myModelManager->FillScene(myShaderManager.get());
 }
 
+std::time_t start = time(0);
+
 void SceneManager::NotifyBeginFrame()
 {
+	Time::currentTime = difftime(time(0), start);
+
 	myCurrentCamera.Update();
 	TerrainManager::GetInstance()->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));
 	myModelManager->Update();
