@@ -138,11 +138,12 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 	//myModelManager->FillScene(myShaderManager.get());
 }
 
-std::time_t start = time(0);
+//std::time_t start = time(0);
 
 void SceneManager::NotifyBeginFrame()
 {
-	Time::currentTime = difftime(time(0), start);
+	//auto test = difftime(time(0), start);
+	//Time::currentTime = test;
 
 	myCurrentCamera.Update();
 	TerrainManager::GetInstance()->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));

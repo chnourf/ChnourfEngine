@@ -1,3 +1,3 @@
-DetectionRadius 1
+DetectionRadius 5
 CellSize 257
 CellResolution 0.5

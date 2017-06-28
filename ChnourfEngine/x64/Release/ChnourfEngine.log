@@ -1,16 +1,16 @@
 ﻿  Grass.cpp
-Rendering\Grass.cpp(30): warning C4244: 'initializing': conversion from 'float' to 'unsigned int', possible loss of data
-Rendering\Grass.cpp(30): warning C4244: 'initializing': conversion from 'float' to 'const unsigned int', possible loss of data
-Rendering\Grass.cpp(56): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(57): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(58): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
+Rendering\Grass.cpp(35): warning C4244: 'initializing': conversion from 'float' to 'unsigned int', possible loss of data
+Rendering\Grass.cpp(35): warning C4244: 'initializing': conversion from 'float' to 'const unsigned int', possible loss of data
+Rendering\Grass.cpp(62): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
+Rendering\Grass.cpp(63): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
 Rendering\Grass.cpp(64): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(67): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(138): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
+Rendering\Grass.cpp(70): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
+Rendering\Grass.cpp(73): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
+Rendering\Grass.cpp(149): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
   Generating code
-  44 of 3268 functions ( 1.3%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    12 functions had inline decision re-evaluated but remain unchanged
+  51 of 3264 functions ( 1.6%) were compiled, the rest were copied from previous compilation.
+    3 functions were new in current compilation
+    14 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.exe
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.pdb (Full PDB)
