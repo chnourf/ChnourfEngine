@@ -46,6 +46,6 @@ vec3 Fog(vec3 aColor, vec3 aPos, vec3 viewDir, vec3 lightDir)
 	float fogAmount = (1.0 - exp(-distance(viewPos, aPos)*fogDensity))*clamp(exp(-aPos.y * fogDensity * 1), 0.0, 1.0);;
 	float sunAmount = max(dot(-viewDir, lightDir), 0.0)* max(dot(-viewDir, lightDir), 0.0);
 	// length(lightColor) is costly
-	vec3  fogColor = mix(vec3(0.5, 0.6, 0.7) * (0.1 + 0.3*length(lightColor)), lightColor, sunAmount * sunAmount * 0.5);
+	vec3  fogColor = mix(vec3(0.5, 0.6, 0.7) * (0.3 + 0.1*length(lightColor)), lightColor, sunAmount * sunAmount * 0.5);
 	return mix(aColor, fogColor, fogAmount);
 }

@@ -28,7 +28,7 @@ void main()
 
 	float param = in_position.x + in_position.z;
 	float Arg = elapsedTime * 0.001 + param * 0.25 + fract(param);
-    vec3 Wind = vec3(1.0, 0.0, 1.0);
+    vec3 Wind = vec3(.3, 0.0, .3);
 	float oscillation = Wind.z + 0.2 * sin(Wind.z * 6 * Arg) * (1.5 - Wind.z);
 	oscillation *= in_quad_position.y + 0.5;
 	vec3 vWaveDistortion = (vec3(Wind.x, -0.17, Wind.y) * Wind.z + (fract(in_position.x) - fract(in_position.y)) * vec3(0.05, 0.0, 0.05)) * oscillation;

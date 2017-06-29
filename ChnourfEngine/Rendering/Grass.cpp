@@ -13,7 +13,7 @@ Grass::Grass(unsigned int aCellSize, float aResolution, int aSeed):
 	mySeed(aSeed),
 	myIsGenerated(false)
 {
-	myDensityPerSqMeter = 4;
+	myDensityPerSqMeter = 3;
 }
 
 void Grass::GenerateGrass(const TerrainCell* aCell)
@@ -35,6 +35,7 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 
 	auto upperLimit = (float)(myCellSize - 1) * myResolution;
 
+	const auto multiplier = (myDensityPerSqMeter*myResolution);
 	for (unsigned i = 0; i < numberOfInstancesPerSide; ++i)
 	{
 		for (unsigned j = 0; j < numberOfInstancesPerSide; ++j)
@@ -42,15 +43,15 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 			float x = tileIndex.x * cellSizeInMeters + glm::clamp((float)j / (float)myDensityPerSqMeter + offset * distribution(myRandomEngine), 0.f, upperLimit);
 			float z = tileIndex.y * cellSizeInMeters + glm::clamp((float)i / (float)myDensityPerSqMeter + offset * distribution(myRandomEngine), 0.f, upperLimit);
 
-			float y = aCell->GetElement(j/2 * myCellSize + i/2).myElevation;
-			//float y = aCell->GetY(x, z);
+			//float y = aCell->GetElement(floor(j/ multiplier + 0.5f) * myCellSize + floor(i/ multiplier + 0.5f)).myElevation;
+			float y = aCell->GetY(x, z);
 
 			GrassInstance grassInstance;
 			grassInstance.x = x;
 			grassInstance.y = y;
 			grassInstance.z = z;
 
-			auto norm = aCell->GetElement(j / 2 * myCellSize + i / 2).myNormal;// aCell->GetNormal(x, z);
+			auto norm = aCell->GetElement(floor(j / multiplier + 0.5f) * myCellSize + floor(i / multiplier + 0.5f)).myNormal;// aCell->GetNormal(x, z);
 
 			if (norm.y < 0.8f)
 			{

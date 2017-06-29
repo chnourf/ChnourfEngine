@@ -300,9 +300,8 @@ namespace Rendering
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
-			if (myCurrentLOD <= 1) // maybe a better parameter ?
+			if (myCurrentLOD < 1) // maybe a better parameter ?
 			{
-				myGrass->GenerateGrass(myTerrainCell);
 				myGrass->Draw(aShaderManager, myTerrainCell->GetGridIndex(), textures[4].myId);
 			}
 			else
@@ -333,6 +332,7 @@ namespace Rendering
 			auto squareDist = (tileIndex.x - positionOnGrid.x) * (tileIndex.x - positionOnGrid.x) + (tileIndex.y - positionOnGrid.y) * (tileIndex.y - positionOnGrid.y);
 			if (squareDist <= 9)
 			{
+				myGrass->GenerateGrass(myTerrainCell);
 				myCurrentLOD = 0;
 			}
 			else if (squareDist <= 16)

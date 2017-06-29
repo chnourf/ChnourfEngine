@@ -166,10 +166,10 @@ void SceneManager::NotifyDisplayFrame()
 		myModelManager->ResetCulling();
 	}
 
-	float multiplier = 50.f;
+	float multiplier = 30.f;
 	if (abs(myDirectionalLight.GetDirection().y) > 0.15f)
 	{
-		multiplier = 50.f;
+		multiplier = 30.f;
 	}
 	myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), multiplier * .0003f));
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
