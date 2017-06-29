@@ -25,12 +25,15 @@ void ShaderManager::Initialize()
 	CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
 
 
-	std::vector<std::string> terrainPixelShader;
-	terrainPixelShader.push_back("Shaders\\Environment.h");
-	terrainPixelShader.push_back("Shaders\\Terrain_Pixel_Shader.glsl");
-	CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", terrainPixelShader);
+	std::vector<std::string> terrainFragmentShader;
+	terrainFragmentShader.push_back("Shaders\\Environment.h");
+	terrainFragmentShader.push_back("Shaders\\Terrain_Pixel_Shader.glsl");
+	CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", terrainFragmentShader);
 
-	CreateProgram("grassShader", "Shaders\\Grass_Vertex_Shader.glsl", "Shaders\\Grass_Fragment_Shader.glsl");
+	std::vector<std::string> grassFragmentShader;
+	grassFragmentShader.push_back("Shaders\\Environment.h");
+	grassFragmentShader.push_back("Shaders\\Grass_Fragment_Shader.glsl");
+	CreateProgram("grassShader", "Shaders\\Grass_Vertex_Shader.glsl", grassFragmentShader);
 
 	// mandatory for UBO
 	for (auto shader : GetShaders())

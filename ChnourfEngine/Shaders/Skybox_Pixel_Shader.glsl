@@ -2,9 +2,6 @@
 in vec3 TexCoords;
 
 out vec4 color;
-uniform vec3 viewPos;
-uniform vec3 lightDirection;
-uniform vec3 lightColor;
 
 #define SC (250.0)
 
@@ -64,7 +61,7 @@ void main()
 	float step_length = eye_depth/float(step_count);
 	float eye_extinction = horizon_extinction(eye_position, rd, eye_height-0.05);
 
-	vec3 rayleigh_collected = vec3(0.0, 0.0, 0.0);
+	vec3 rayleigh_collected = vec3(0.01, 0.01, 0.01);
 	vec3 mie_collected = vec3(0.0, 0.0, 0.0);
 	for(int i=0; i<step_count; i++)
 	{
@@ -81,12 +78,14 @@ void main()
 	rayleigh_collected = (rayleigh_collected * eye_extinction * eye_depth * Kr * 1/22e-6)/float(step_count);
 	mie_collected = (mie_collected * eye_extinction * eye_depth)/float(step_count);
 
-	vec3 res = vec3(spot*normalize(rayleigh_collected) + mie_factor*mie_collected + rayleigh_factor*rayleigh_collected);
+	vec3 res = vec3(spot * normalize(rayleigh_collected) + mie_factor * mie_collected + rayleigh_factor * rayleigh_collected);
 
 	// clouds
 	vec2 sc = viewPos.xz + rd.xz*(SC*1000.0-viewPos.y)/rd.y;
 	res = mix( res, length(res)*vec3(2.0,1.9,2.0), 0.5*smoothstep(0.7,0.8,fbm(0.0005*sc/SC)) );
 
+
+	res = Fog( res, TexCoords.xyz * 10000.0, normalize(TexCoords.xyz), -normalizedToLightDirection );
     res = res + vec3(0.0, 0.03, 0.05); //night color
 	color = vec4(res, 1.0f);
 }

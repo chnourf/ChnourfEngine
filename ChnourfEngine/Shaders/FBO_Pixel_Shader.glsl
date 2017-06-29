@@ -3,6 +3,7 @@ in vec2 TexCoords;
 out vec4 color;
 
 uniform sampler2D screenTexture;
+uniform float exposure;
 
 const float A = 0.22;
 const float B = 0.30;
@@ -16,7 +17,7 @@ void main()
     vec3 hdrColor = texture(screenTexture, TexCoords, 0).rgb;
 	
 	//Exposure
-	hdrColor = hdrColor * 4.0;
+	hdrColor = hdrColor * exposure;
 	
 	// Reinhardt tonemapping
 	//hdrColor = hdrColor/(1+hdrColor);

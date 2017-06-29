@@ -27,6 +27,8 @@ public:
 	void Reset();
 
 private:
+	void OnGrassGenerationComplete();
+
 	std::vector<GrassInstance> myGrassData;
 	unsigned int myDensityPerSqMeter;
 	unsigned int myCellSize;
@@ -38,4 +40,6 @@ private:
 	GLuint myVBO;
 	GLuint myInstanceVBO;
 	GLuint myProgram;
+
+	bool myIsGenerated;
 };

@@ -5,22 +5,20 @@
 #include "../Core/Math.h"
 #include "../Core/Time.h"
 
-
-
-#include <chrono>
-
+#include <ctime>
 
 Grass::Grass(unsigned int aCellSize, float aResolution, int aSeed):
 	myCellSize(aCellSize),
 	myResolution(aResolution),
-	mySeed(aSeed)
+	mySeed(aSeed),
+	myIsGenerated(false)
 {
 	myDensityPerSqMeter = 4;
 }
 
 void Grass::GenerateGrass(const TerrainCell* aCell)
 {
-	if (myGrassData.size() > 0)
+	if (myIsGenerated)
 	{
 		return;
 	}
@@ -59,6 +57,11 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 				continue;
 			}
 
+			if (y + distribution(myRandomEngine) * 20 > 200)
+			{
+				continue;
+			}
+
 			grassInstance.nx8 = norm.x * 128 + 128;
 			grassInstance.ny8 = norm.y * 128 + 128;
 			grassInstance.nz8 = norm.z * 128 + 128;
@@ -76,6 +79,43 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 		}
 	}
 
+	OnGrassGenerationComplete();
+}
+
+std::clock_t start = std::clock();
+
+void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture)
+{
+	if (myGrassData.size() == 0)
+	{
+		return;
+	}
+
+	glDisable(GL_CULL_FACE);
+	auto grassProgram = aShaderManager->GetShader("grassShader");
+	glUseProgram(grassProgram);
+
+	GLuint elapsedTime = glGetUniformLocation(grassProgram, "elapsedTime");
+
+	glUniform1f(elapsedTime, (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000)); // TEMPORARY
+	glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 4);
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, aGrassTexture);
+	glBindVertexArray(myVAO);
+	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, myGrassData.size());
+	glBindVertexArray(0);
+	glEnable(GL_CULL_FACE);
+}
+
+void Grass::Reset()
+{
+	myIsGenerated = false;
+	myGrassData.erase(myGrassData.begin(), myGrassData.end());
+	glDeleteBuffers(1, &myVBO);
+}
+
+void Grass::OnGrassGenerationComplete()
+{
 	glGenBuffers(1, &myInstanceVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, myInstanceVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GrassInstance) * myGrassData.size(), &myGrassData[0], GL_STATIC_DRAW);
@@ -83,13 +123,13 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 
 	float quadVertices[] = {
 		// positions
-		-0.5f,  0.5f,
-		0.5f, -0.5f,
-		-0.5f, -0.5f,
+		-0.5f,  1.f,
+		0.5f, 0.f,
+		-0.5f, 0.f,
 
-		-0.5f,  0.5f,
-		0.5f, -0.5f,
-		0.5f,  0.5f,
+		-0.5f,  1.f,
+		0.5f, 0.f,
+		0.5f,  1.f,
 	};
 
 	glGenVertexArrays(1, &myVAO);
@@ -122,37 +162,6 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
 
-void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture)
-{
-	if (myGrassData.size() == 0)
-	{
-		return;
-	}
-
-	glDisable(GL_CULL_FACE);
-	auto grassProgram = aShaderManager->GetShader("grassShader");
-	glUseProgram(grassProgram);
-
-	GLuint elapsedTime = glGetUniformLocation(grassProgram, "elapsedTime");
-
-	std::chrono::milliseconds ms = std::chrono::duration_cast< std::chrono::milliseconds >(
-		std::chrono::system_clock::now().time_since_epoch()
-		);
-
-	glUniform1f(elapsedTime, (float) ms.count()); // TEMPORARY
-	glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 4);
-	glActiveTexture(GL_TEXTURE4);
-	glBindTexture(GL_TEXTURE_2D, aGrassTexture);
-	glBindVertexArray(myVAO);
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, myGrassData.size());
-	glBindVertexArray(0);
-	glEnable(GL_CULL_FACE);
-}
-
-void Grass::Reset()
-{
-	myGrassData.erase(myGrassData.begin(), myGrassData.end());
-	glDeleteBuffers(1, &myVBO);
+	myIsGenerated = true;
 }

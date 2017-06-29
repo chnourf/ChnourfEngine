@@ -138,13 +138,11 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 	//myModelManager->FillScene(myShaderManager.get());
 }
 
-//std::time_t start = time(0);
-
+//std::clock_t start = std::clock();
 void SceneManager::NotifyBeginFrame()
 {
-	//auto test = difftime(time(0), start);
-	//Time::currentTime = test;
-
+	//auto elapsedTime = (std::clock() - start) / (double)(CLOCKS_PER_SEC);
+	//Time::currentTime = elapsedTime;
 	myCurrentCamera.Update();
 	TerrainManager::GetInstance()->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));
 	myModelManager->Update();
@@ -168,17 +166,17 @@ void SceneManager::NotifyDisplayFrame()
 		myModelManager->ResetCulling();
 	}
 
-	float multiplier = 1.f;
+	float multiplier = 50.f;
 	if (abs(myDirectionalLight.GetDirection().y) > 0.15f)
 	{
-		multiplier = 10.f;
+		multiplier = 50.f;
 	}
 	myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), multiplier * .0003f));
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
 	glm::vec3 eye_position = glm::vec3(0.0f, 1.f-13.f/6400.f, 0.0f);
 
 	float eye_depth = atmospheric_depth(eye_position, -glm::normalize(myDirectionalLight.GetDirection()));
-	glm::vec3 sunColor = myDirectionalLight.GetDirection().y > 0.1f ? glm::vec3(0.f) : (3.f*glm::normalize(exp(-eye_depth*Kr*6e6f)));
+	glm::vec3 sunColor = myDirectionalLight.GetDirection().y > 0.0f ? glm::vec3(0.f) : (3.f*(exp(-eye_depth*Kr*6e6f)));
 	myDirectionalLight.SetIntensity(sunColor);
 
 	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
@@ -268,7 +266,10 @@ void SceneManager::NotifyDisplayFrame()
 	//clear should be done in InitGLUT
 	glDisable(GL_FRAMEBUFFER_SRGB);
 
-	glUseProgram(myShaderManager->GetShader("frameBufferShader"));
+	auto postEffectProgram = myShaderManager->GetShader("frameBufferShader");
+	glUseProgram(postEffectProgram);
+	GLint exposureID = glGetUniformLocation(postEffectProgram, "exposure");
+	glUniform1f(exposureID, glm::smoothstep(-0.1f, 0.1f,myDirectionalLight.GetDirection().y)*4 + 4);
 	glBindVertexArray(framebufferQuadVao);
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_DEPTH_TEST);

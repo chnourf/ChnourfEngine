@@ -118,6 +118,7 @@
   <ItemGroup>
     <ClCompile Include="Core\Init\InitGlut.cpp" />
     <ClCompile Include="Core\PerlinNoise.cpp" />
+    <ClCompile Include="Core\Time.cpp" />
     <ClCompile Include="Core\UID.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
@@ -164,6 +165,7 @@
     <ClInclude Include="Rendering\Models\TerrainCellModel.h" />
     <ClInclude Include="Rendering\TextureFormat.h" />
     <ClInclude Include="Rendering\VertexFormat.h" />
+    <ClInclude Include="Shaders\Environment.h" />
     <ClInclude Include="WorldGenerator\TerrainCell.h" />
     <ClInclude Include="WorldGenerator\TerrainCellBuilder.h" />
     <ClInclude Include="WorldGenerator\TerrainManager.h" />

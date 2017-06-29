@@ -17,10 +17,6 @@ struct Material {
 
 out vec4 out_color;
 
-uniform vec3 viewPos;
-uniform vec3 lightDirection;
-uniform vec3 lightColor;
-
 uniform Material groundMaterial;
 uniform Material rockMaterial;
 uniform Material snowMaterial;
@@ -76,11 +72,7 @@ void main()
     vec3 result =  Shadow(fs_in.fragPosLightSpace) * (diffuse + 0.1 * specular) + ambient;
 	
 	//fog
-	float fogDensity = 0.001;
-	float fogAmount = (1.0 - exp( -distance(viewPos, fs_in.fragPos)*fogDensity))*clamp(exp(-fs_in.fragPos.y * fogDensity * 1), 0.0, 1.0);;
-	float sunAmount = max( dot( -viewDir,lightDir ), 0.0 )* max( dot( -viewDir,lightDir ), 0.0 );
-    vec3  fogColor  = mix(vec3(0.5 ,0.6, 0.7), lightColor, pow(sunAmount,2.0) * 0.5);
-    result = mix( result, fogColor, fogAmount );
+	result = Fog( result, fs_in.fragPos, viewDir, lightDir );
 
 
     out_color = vec4(result, 1.0f);

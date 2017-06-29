@@ -90,6 +90,9 @@
     <ClCompile Include="Rendering\Grass.cpp">
       <Filter>Fichiers sources\Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Time.cpp">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Managers\ShaderManager.h">
@@ -187,6 +190,9 @@
     </ClInclude>
     <ClInclude Include="Core\Time.h">
       <Filter>Fichiers sources\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Shaders\Environment.h">
+      <Filter>Fichiers sources\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
