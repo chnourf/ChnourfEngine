@@ -13,6 +13,7 @@ Grass::Grass(unsigned int aCellSize, float aResolution, int aSeed):
 	mySeed(aSeed),
 	myIsGenerated(false)
 {
+	myGeneratingTask = std::future<void>();
 	myDensityPerSqMeter = 3;
 }
 
@@ -22,6 +23,8 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 	{
 		return;
 	}
+
+	myIsGenerating = true;
 
 	// resetting engine
 	myRandomEngine.seed(mySeed);
@@ -51,7 +54,7 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 			grassInstance.y = y;
 			grassInstance.z = z;
 
-			auto norm = aCell->GetElement(floor(j / multiplier + 0.5f) * myCellSize + floor(i / multiplier + 0.5f)).myNormal;// aCell->GetNormal(x, z);
+			auto norm = aCell->GetElement(floor(j / multiplier) * myCellSize + floor(i / multiplier)).myNormal;// aCell->GetNormal(x, z);
 
 			if (norm.y < 0.8f)
 			{
@@ -79,8 +82,28 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 			myGrassData.push_back(grassInstance);
 		}
 	}
+}
 
-	OnGrassGenerationComplete();
+void Grass::Update(bool aMustGenerate, const TerrainCell* aCell)
+{
+	if (aMustGenerate)
+	{
+		if (!myIsGenerated)
+		{
+			if (!myIsGenerating)
+			{
+				myGeneratingTask = std::async(std::launch::async, [this, aCell]() { GenerateGrass(aCell); });
+			}
+			else if (myGeneratingTask.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+			{
+				OnGrassGenerationComplete();
+			}
+		}
+	}
+	else
+	{
+		Reset();
+	}
 }
 
 std::clock_t start = std::clock();
@@ -111,6 +134,7 @@ void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTil
 void Grass::Reset()
 {
 	myIsGenerated = false;
+	myIsGenerating = false;
 	myGrassData.erase(myGrassData.begin(), myGrassData.end());
 	glDeleteBuffers(1, &myVBO);
 }
@@ -165,4 +189,5 @@ void Grass::OnGrassGenerationComplete()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	myIsGenerated = true;
+	myIsGenerating = false;
 }

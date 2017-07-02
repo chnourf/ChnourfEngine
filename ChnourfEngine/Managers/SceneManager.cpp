@@ -167,16 +167,17 @@ void SceneManager::NotifyDisplayFrame()
 	}
 
 	float multiplier = 30.f;
-	if (abs(myDirectionalLight.GetDirection().y) > 0.15f)
+	auto& lightDir = myDirectionalLight.GetDirection();
+	if (abs(lightDir.y) > 0.15f)
 	{
 		multiplier = 30.f;
 	}
-	myDirectionalLight.SetDirection(glm::rotateX(myDirectionalLight.GetDirection(), multiplier * .0003f));
+	myDirectionalLight.SetDirection(glm::rotateX(lightDir, multiplier * .0003f));
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
 	glm::vec3 eye_position = glm::vec3(0.0f, 1.f-13.f/6400.f, 0.0f);
 
-	float eye_depth = atmospheric_depth(eye_position, -glm::normalize(myDirectionalLight.GetDirection()));
-	glm::vec3 sunColor = myDirectionalLight.GetDirection().y > 0.0f ? glm::vec3(0.f) : (3.f*(exp(-eye_depth*Kr*6e6f)));
+	float eye_depth = atmospheric_depth(eye_position, -glm::normalize(lightDir));
+	glm::vec3 sunColor = lightDir.y > 0.0f ? glm::vec3(0.f, 0.2f, 0.5f) : (3.f*(exp(-eye_depth*Kr*6e6f)));
 	myDirectionalLight.SetIntensity(sunColor);
 
 	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
@@ -224,7 +225,7 @@ void SceneManager::NotifyDisplayFrame()
 		glUniform3f(viewPosLoc, myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z);
 
 		GLuint lightPos = glGetUniformLocation(programId, "lightDirection");
-		glUniform3f(lightPos, myDirectionalLight.GetDirection().x, myDirectionalLight.GetDirection().y, myDirectionalLight.GetDirection().z);
+		glUniform3f(lightPos, lightDir.x, lightDir.y, lightDir.z);
 
 		GLuint lightCol = glGetUniformLocation(programId, "lightColor");
 		glUniform3f(lightCol, myDirectionalLight.GetIntensity().r, myDirectionalLight.GetIntensity().g, myDirectionalLight.GetIntensity().b);
@@ -232,15 +233,13 @@ void SceneManager::NotifyDisplayFrame()
 		GLuint lightSpaceMatrixLocation = glGetUniformLocation(programId, "lightSpaceMatrix");
 		glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
 
-		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 6);
-		glActiveTexture(GL_TEXTURE6);
-		glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
-
 		glUniform1i(glGetUniformLocation(programId, "noise"), 5);
 		glActiveTexture(GL_TEXTURE5);
 		glBindTexture(GL_TEXTURE_2D, myNoiseTexture);
 
-		//glBindTexture(GL_TEXTURE_CUBE_MAP, mySkybox.GetTexture());
+		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 6);
+		glActiveTexture(GL_TEXTURE6);
+		glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 	}
 
 	// for Terrain

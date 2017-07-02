@@ -300,13 +300,9 @@ namespace Rendering
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
-			if (myCurrentLOD < 1) // maybe a better parameter ?
+			if (myGrass->IsGenerated()) // maybe a better parameter ?
 			{
 				myGrass->Draw(aShaderManager, myTerrainCell->GetGridIndex(), textures[4].myId);
-			}
-			else
-			{
-				myGrass->Reset();
 			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -325,14 +321,18 @@ namespace Rendering
 
 		void TerrainCellModel::Update()
 		{
-			auto camPos = Manager::SceneManager::GetInstance()->GetCamPos();
-			const vec2i positionOnGrid = vec2i(camPos.x / (128), camPos.z / (128));
-			// ugly
+			const auto camPos = Manager::SceneManager::GetInstance()->GetCamPos();
+			const auto cellSizeInMeters = myTerrainCell->GetCellSizeInMeters();
+			const vec2i positionOnGrid = vec2i(camPos.x / cellSizeInMeters, camPos.z / cellSizeInMeters);
 			auto& tileIndex = myTerrainCell->GetGridIndex();
 			auto squareDist = (tileIndex.x - positionOnGrid.x) * (tileIndex.x - positionOnGrid.x) + (tileIndex.y - positionOnGrid.y) * (tileIndex.y - positionOnGrid.y);
+
+			bool mustGenerateGrassIfNotDone = false;
+
 			if (squareDist <= 9)
 			{
-				myGrass->GenerateGrass(myTerrainCell);
+				//myGrass->GenerateGrass(myTerrainCell);
+				mustGenerateGrassIfNotDone = true;
 				myCurrentLOD = 0;
 			}
 			else if (squareDist <= 16)
@@ -347,6 +347,8 @@ namespace Rendering
 			{
 				myCurrentLOD = 3;
 			}
+
+			myGrass->Update(mustGenerateGrassIfNotDone, myTerrainCell);
 		}
 
 		void TerrainCellModel::SetProgram(GLuint aShaderName)

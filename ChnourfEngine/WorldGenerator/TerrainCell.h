@@ -27,6 +27,8 @@ public:
 	__forceinline bool IsBuilt() { return myIsBuilt; }
 	void OnFinishBuild();
 
+	__forceinline float GetCellSizeInMeters() const { return (float)myCellSize * myResolution; }
+
 	__forceinline float GetMinHeight() const { return myMinHeight; }
 	__forceinline float GetMaxHeight() const { return myMaxHeight; }
 

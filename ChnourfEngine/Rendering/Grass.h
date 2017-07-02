@@ -1,5 +1,6 @@
-#include <vector>
+#include <future>
 #include <random>
+#include <vector>
 #include "Models/TerrainCellModel.h"
 //#include "../WorldGenerator/TerrainCell.h"
 
@@ -23,11 +24,14 @@ public:
 	Grass(unsigned int aCellSize, float aResolution, int aSeed);
 
 	void Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture);
-	void GenerateGrass(const TerrainCell* aCell);
+	void Update(bool aMustGenerate, const TerrainCell* aCell);
 	void Reset();
+
+	__forceinline bool IsGenerated() const{ return myIsGenerated; }
 
 private:
 	void OnGrassGenerationComplete();
+	void GenerateGrass(const TerrainCell* aCell);
 
 	std::vector<GrassInstance> myGrassData;
 	unsigned int myDensityPerSqMeter;
@@ -41,5 +45,8 @@ private:
 	GLuint myInstanceVBO;
 	GLuint myProgram;
 
+    std::future<void> myGeneratingTask;
+
 	bool myIsGenerated;
+	bool myIsGenerating;
 };
