@@ -208,14 +208,14 @@ namespace Rendering
 			}
 		}
 
-		void Model::DrawForShadowMap(const GLuint aShadowMapProgram)
+		void Model::DrawForShadowMap(const Manager::ShaderManager* aShaderManager)
 		{
-			GLuint transformLoc1 = glGetUniformLocation(aShadowMapProgram, "model");
+			GLuint transformLoc1 = glGetUniformLocation(aShaderManager->GetShader("shadowMapShader"), "model");
 			glUniformMatrix4fv(transformLoc1, 1, GL_FALSE, glm::value_ptr(myTransform));
 
 			for (auto mesh : myMeshes)
 			{
-				mesh->DrawForShadowMap(aShadowMapProgram);
+				mesh->DrawForShadowMap(aShaderManager);
 			}
 		}
 

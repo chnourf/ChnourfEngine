@@ -21,7 +21,7 @@ namespace Manager
 		void FillScene(const ShaderManager* aShaderManager);
 
 		void Draw(const glm::mat4& aCameraTransform, const ShaderManager* aShaderManager);
-		void DrawShadowMap(const GLuint aShadowMapProgram);
+		void DrawShadowMap(const ShaderManager* aShaderManager);
 		void Update();
 		const IGameObject& GetModel(const UID& anUID) const;
 

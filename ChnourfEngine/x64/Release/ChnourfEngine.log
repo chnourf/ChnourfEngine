@@ -1,18 +1,7 @@
-﻿  Grass.cpp
-Rendering\Grass.cpp(36): warning C4244: 'initializing': conversion from 'float' to 'unsigned int', possible loss of data
-Rendering\Grass.cpp(36): warning C4244: 'initializing': conversion from 'float' to 'const unsigned int', possible loss of data
-Rendering\Grass.cpp(57): warning C4244: 'argument': conversion from 'float' to 'const unsigned int', possible loss of data
-Rendering\Grass.cpp(69): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(70): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(71): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(77): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(80): warning C4244: '=': conversion from 'float' to 'char', possible loss of data
-Rendering\Grass.cpp(124): warning C4244: 'argument': conversion from 'double' to 'GLfloat', possible loss of data
-Rendering\Grass.cpp(129): warning C4267: 'argument': conversion from 'size_t' to 'GLsizei', possible loss of data
-  Generating code
-  87 of 3489 functions ( 2.5%) were compiled, the rest were copied from previous compilation.
+﻿  Generating code
+  43 of 3491 functions ( 1.2%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    16 functions had inline decision re-evaluated but remain unchanged
+    17 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.exe
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.pdb (Full PDB)

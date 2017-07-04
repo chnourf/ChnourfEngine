@@ -34,7 +34,7 @@ namespace Rendering
 			~TerrainCellModel();
 
 			void Draw(const Manager::ShaderManager* aShaderManager) override;
-			void DrawForShadowMap(const GLuint aShadowMapProgram) override;
+			void DrawForShadowMap(const Manager::ShaderManager* aShaderManager) override;
 			void Update() override;
 			void SetProgram(GLuint aShaderName) override;
 			void Destroy() override;

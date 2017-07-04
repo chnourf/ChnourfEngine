@@ -29,6 +29,7 @@ void ShaderManager::Initialize()
 	terrainFragmentShader.push_back("Shaders\\Environment.h");
 	terrainFragmentShader.push_back("Shaders\\Terrain_Pixel_Shader.glsl");
 	CreateProgram("terrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", terrainFragmentShader);
+	CreateProgram("shadowMapTerrainShader", "Shaders\\Terrain_Vertex_Shader.glsl", "Shaders\\Empty_Fragment_Shader.glsl");
 
 	std::vector<std::string> grassFragmentShader;
 	grassFragmentShader.push_back("Shaders\\Environment.h");

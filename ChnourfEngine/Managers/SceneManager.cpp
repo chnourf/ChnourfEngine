@@ -166,7 +166,7 @@ void SceneManager::NotifyDisplayFrame()
 		myModelManager->ResetCulling();
 	}
 
-	float multiplier = 30.f;
+	float multiplier = 3.f;
 	auto& lightDir = myDirectionalLight.GetDirection();
 	if (abs(lightDir.y) > 0.15f)
 	{
@@ -186,21 +186,29 @@ void SceneManager::NotifyDisplayFrame()
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 	// Shadow Map Pass ----------------------------------------------------------------------------------------------------------------------
-	//glViewport(0, 0, shadowMapResolution, shadowMapResolution);
-	//glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-	//glClear(GL_DEPTH_BUFFER_BIT);
-	//glEnable(GL_DEPTH_TEST);
-	//auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
-	//glUseProgram(shadowMapProgram);
+	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 
-	//GLfloat near_plane = 100.0f, far_plane = 800.f;
-	//glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, near_plane, far_plane);
-	//glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 200.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
-	//myLightSpaceMatrix = lightProjection * lightView;
-	//GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
-	//glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
+	GLfloat near_plane = 100.0f, far_plane = 800.f;
+	glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, near_plane, far_plane);
+	glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 200.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
+	myLightSpaceMatrix = lightProjection * lightView;
 
-	//myModelManager->DrawShadowMap(shadowMapProgram);
+	auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
+	glUseProgram(shadowMapProgram);
+	GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
+	glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
+
+	auto shadowMapTerrainProgramID = myShaderManager->GetShader("shadowMapTerrainShader");
+	glUseProgram(shadowMapTerrainProgramID);
+	GLuint projectionID = glGetUniformLocation(shadowMapTerrainProgramID, "projection");
+	glUniformMatrix4fv(projectionID, 1, GL_FALSE, glm::value_ptr(lightProjection));
+	GLuint viewID = glGetUniformLocation(shadowMapTerrainProgramID, "view");
+	glUniformMatrix4fv(viewID, 1, GL_FALSE, glm::value_ptr(lightView));
+
+	myModelManager->DrawShadowMap(myShaderManager.get());
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

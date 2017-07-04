@@ -83,7 +83,7 @@ namespace Rendering
 		glBindVertexArray(0);
 	}
 
-	void Mesh::DrawForShadowMap(const GLuint aShadowMapProgram)
+	void Mesh::DrawForShadowMap(const Manager::ShaderManager* aShaderManager)
 	{
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);

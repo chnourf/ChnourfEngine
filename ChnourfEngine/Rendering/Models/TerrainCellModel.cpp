@@ -308,11 +308,13 @@ namespace Rendering
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
-		void TerrainCellModel::DrawForShadowMap(const GLuint aShadowMapProgram)
+		void TerrainCellModel::DrawForShadowMap(const Manager::ShaderManager* aShaderManager)
 		{
-			// irrelevant for terrain but needed in shader. To optimize
-			GLuint transformLoc1 = glGetUniformLocation(myProgram, "model");
-			glUniformMatrix4fv(transformLoc1, 1, GL_FALSE, glm::value_ptr(glm::mat4(1.f)));
+			auto shadowProgramID = aShaderManager->GetShader("shadowMapTerrainShader");
+			glUseProgram(shadowProgramID);
+			GLuint tileIndexID = glGetUniformLocation(shadowProgramID, "tileIndex");
+			auto& tileIndex = myTerrainCell->GetGridIndex();
+			glUniform2i(tileIndexID, tileIndex.x, tileIndex.y);
 
 			glBindVertexArray(VAOs[myCurrentLOD]);
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);

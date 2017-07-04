@@ -131,13 +131,13 @@ void ModelManager::Draw(const glm::mat4& aCameraTransform,const ShaderManager* a
 	}
 }
 
-void ModelManager::DrawShadowMap(const GLuint aShadowMapProgram)
+void ModelManager::DrawShadowMap(const ShaderManager* aShaderManager)
 {
 	for (auto model : gameModelList)
 	{
 		if (model->isVisible)
 		{
-			model->DrawForShadowMap(aShadowMapProgram);
+			model->DrawForShadowMap(aShaderManager);
 		}
 	}
 }

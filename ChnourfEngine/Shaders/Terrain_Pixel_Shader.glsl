@@ -74,6 +74,7 @@ void main()
 	//fog
 	result = Fog( result, fs_in.fragPos, viewDir, lightDir );
 
+	result *= Shadow(fs_in.fragPosLightSpace);
 
     out_color = vec4(result, 1.0f);
 }
