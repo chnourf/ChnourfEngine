@@ -300,7 +300,7 @@ namespace Rendering
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
-			if (myGrass->IsGenerated()) // maybe a better parameter ?
+			if (myGrass->IsGenerated())
 			{
 				myGrass->Draw(aShaderManager, myTerrainCell->GetGridIndex(), textures[4].myId);
 			}

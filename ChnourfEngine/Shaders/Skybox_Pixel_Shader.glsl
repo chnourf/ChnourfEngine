@@ -82,8 +82,11 @@ void main()
     vec3 res = vec3(spot * rayleigh_collected + mie_factor * mie_collected + rayleigh_factor * rayleigh_collected);
 
     // clouds
-    vec2 sc = viewPos.xz + rd.xz*(SC*1000.0-viewPos.y)/rd.y;
-    res = mix( res, length(res)*vec3(2.0,1.9,2.0), 0.5*smoothstep(0.7,0.8,fbm(0.0005*sc/SC)) );
+	if (rd.y > 0)
+	{
+		vec2 sc = viewPos.xz + rd.xz*(SC*1000.0-viewPos.y) / rd.y;
+		res = mix( res, length(res)*vec3(2.0,1.9,2.0), 0.5*smoothstep(0.7,0.8,fbm(0.0005*sc/SC)) );
+	}
 
     res = Fog( res, rd * 4000.0, rd, -normalizedToLightDirection );
 

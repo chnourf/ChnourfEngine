@@ -185,6 +185,7 @@
     <None Include="Shaders\StandardBlinn_Shader.glsl" />
     <None Include="Shaders\Terrain_Pixel_Shader.glsl" />
     <None Include="Shaders\Terrain_Vertex_Shader.glsl" />
+    <None Include="Shaders\Terrain_Vertex_Shader_ShadowMap.glsl" />
     <None Include="Shaders\Vertex_Shader.glsl" />
     <None Include="Shaders\FBO_Vertex_Shader.glsl" />
   </ItemGroup>

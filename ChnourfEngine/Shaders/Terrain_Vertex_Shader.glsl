@@ -17,7 +17,6 @@ layout (std140) uniform ViewConstants
 	mat4 view;
 };
 
-uniform mat4 cubemapView;
 uniform mat4 lightSpaceMatrix;
 uniform int cellSize;
 uniform float resolution;

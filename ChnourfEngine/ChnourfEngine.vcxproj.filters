@@ -242,5 +242,8 @@
     <None Include="Shaders\Grass_Fragment_Shader.glsl">
       <Filter>Fichiers sources\Shaders</Filter>
     </None>
+    <None Include="Shaders\Terrain_Vertex_Shader_ShadowMap.glsl">
+      <Filter>Fichiers sources\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
