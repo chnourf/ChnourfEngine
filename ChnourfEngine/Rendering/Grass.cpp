@@ -5,7 +5,6 @@
 #include "../Core/Math.h"
 #include "../Core/Time.h"
 
-#include <ctime>
 
 Grass::Grass(unsigned int aCellSize, float aResolution, int aSeed):
 	myCellSize(aCellSize),
@@ -14,7 +13,17 @@ Grass::Grass(unsigned int aCellSize, float aResolution, int aSeed):
 	myIsGenerated(false)
 {
 	myGeneratingTask = std::future<void>();
-	myDensityPerSqMeter = 3;
+	myDensityPerSqMeter = 2;
+}
+
+Grass::~Grass()
+{
+	// OPTIMIZATION : KILL THE TASK EVEN IF NOT FINISHED
+	if (myGeneratingTask.valid())
+	{
+		myGeneratingTask.wait();
+	}
+	myGrassData.clear();
 }
 
 void Grass::GenerateGrass(const TerrainCell* aCell)
@@ -66,18 +75,18 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 				continue;
 			}
 
-			grassInstance.nx8 = norm.x * 128 + 128;
-			grassInstance.ny8 = norm.y * 128 + 128;
-			grassInstance.nz8 = norm.z * 128 + 128;
+			grassInstance.nx8 = norm.x * 128 + 127;
+			grassInstance.ny8 = norm.y * 128 + 127;
+			grassInstance.nz8 = norm.z * 128 + 127;
 
 			grassInstance.atlasIndex8 = 0;
-			grassInstance.colorLerp8 = 0;
+			grassInstance.colorLerp8 = distribution(myRandomEngine) * 128 + 127;
 
 			auto scale = 0.8f + 0.2f * distribution(myRandomEngine);
-			grassInstance.scale8 = scale * 128 + 128;
+			grassInstance.scale8 = scale * 128 + 127;
 
 			auto direction = distribution(myRandomEngine);
-			grassInstance.direction8 = direction * 128 + 128;
+			grassInstance.direction8 = direction * 128 + 127;
 
 			myGrassData.push_back(grassInstance);
 		}
@@ -106,8 +115,6 @@ void Grass::Update(bool aMustGenerate, const TerrainCell* aCell)
 	}
 }
 
-std::clock_t start = std::clock();
-
 void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture)
 {
 	if (myGrassData.size() == 0)
@@ -119,12 +126,14 @@ void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTil
 	auto grassProgram = aShaderManager->GetShader("grassShader");
 	glUseProgram(grassProgram);
 
-	GLuint elapsedTime = glGetUniformLocation(grassProgram, "elapsedTime");
+	GLuint elapsedTimeID = glGetUniformLocation(grassProgram, "elapsedTime");
+	float time = Time::GetInstance()->GetTime();
+	glUniform1f(elapsedTimeID, time);
 
-	glUniform1f(elapsedTime, (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000)); // TEMPORARY
 	glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 4);
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, aGrassTexture);
+
 	glBindVertexArray(myVAO);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, myGrassData.size());
 	glBindVertexArray(0);

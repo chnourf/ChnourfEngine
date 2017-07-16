@@ -31,6 +31,7 @@ namespace Manager
 				if (strcmp(field.c_str(), "DetectionRadius") == 0)
 				{
 					myDetectionRadius = value;
+					myCachedRadius = value + 1;
 				}
 				else if (strcmp(field.c_str(), "CellSize") == 0)
 				{
@@ -88,19 +89,35 @@ namespace Manager
 			}
 		}
 
-		auto it = myCellsToLoad.begin();
-		while (it < myCellsToLoad.end())
+		auto loadingCellsIt = myCellsToLoad.begin();
+		while (loadingCellsIt < myCellsToLoad.end())
 		{
-			if ((*it)->IsBuilt())
+			if ((*loadingCellsIt)->IsBuilt())
 			{
-				myActiveCells.push_back(*it);
-				SceneManager::GetInstance()->GetModelManager()->AddTerrainCell(*it, myCellSize, myResolution);
+				myActiveCells.push_back(*loadingCellsIt);
+				SceneManager::GetInstance()->GetModelManager()->AddTerrainCell(*loadingCellsIt, myCellSize, myResolution);
 				std::cout << "adding a cell " << myActiveCells.size() << std::endl;
-				it = myCellsToLoad.erase(it);
+				loadingCellsIt = myCellsToLoad.erase(loadingCellsIt);
 			}
 			else
 			{
-				++it;
+				++loadingCellsIt;
+			}
+		}
+
+		auto activeCellsIt = myActiveCells.begin();
+		while (activeCellsIt < myActiveCells.end())
+		{
+			const vec2i tileIndex = (*activeCellsIt)->GetGridIndex();
+			if (pow(tileIndex.x - positionOnGrid.x, 2) + pow(tileIndex.y - positionOnGrid.y, 2) > pow(myCachedRadius, 2))
+			{
+				SceneManager::GetInstance()->GetModelManager()->RemoveTerrainCell(tileIndex);
+				delete *activeCellsIt;
+				activeCellsIt = myActiveCells.erase(activeCellsIt);
+			}
+			else
+			{
+				++activeCellsIt;
 			}
 		}
 	}

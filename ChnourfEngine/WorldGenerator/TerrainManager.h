@@ -31,7 +31,6 @@ namespace Manager
 		std::unique_ptr<TerrainCellBuilder> myCellBuilder;
 
 		void LoadCell(const vec2i& aGridIndex);
-		//void UnloadCell(const vec2i& aGridIndex);
 
 		bool IsCellLoaded(const vec2i& aCellIndex);
 		bool IsCellLoading(const vec2i& aCellIndex);
@@ -39,5 +38,6 @@ namespace Manager
 		int myCellSize;
 		float myResolution;
 		unsigned int myDetectionRadius;
+		unsigned int myCachedRadius;
 	};
 }

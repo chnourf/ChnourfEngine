@@ -1,3 +1,18 @@
 #include "Time.h"
+#include <ctime>
 
-double Time::currentTime = 0.f;
+std::clock_t startTime = std::clock();
+
+Time::Time() :
+	myCurrentTime(0.0),
+	myPreviousTime(0.0)
+{
+}
+
+void Time::Update()
+{
+	auto elapsedTime = (std::clock() - startTime) / (double)(CLOCKS_PER_SEC);
+
+	myPreviousTime = myCurrentTime;
+	myCurrentTime = elapsedTime;
+}

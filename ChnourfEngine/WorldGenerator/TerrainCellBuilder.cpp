@@ -323,8 +323,8 @@ float TerrainCellBuildingTask::SamplePerlinNoise(float x, float y)
 
 	// warping the mountains to mask the 8 axis of the perlin noise
 	const auto warpScale = 40.f / scale;
-	auto warpX = warpScale * myPerlin.noise(x*scale / 40.f, y*scale / 40.f) - 0.5f;
-	auto warpY = warpScale * myPerlin.noise(x*scale / 40.f, y*scale / 40.f, 1) - 0.5f;
+	auto warpX = warpScale * myPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f) - 0.5f;
+	auto warpY = warpScale * myPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f, 1) - 0.5f;
 
 	auto hardNoiseModifier = 1.f;
 	float freq = 1.f;

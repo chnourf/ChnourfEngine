@@ -37,7 +37,8 @@ namespace Rendering
 			void DrawForShadowMap(const Manager::ShaderManager* aShaderManager) override;
 			void Update() override;
 			void SetProgram(GLuint aShaderName) override;
-			void Destroy() override;
+
+			vec2i GetGridIndex() const;
 
 		private:
 			void CreateTexture(GLuint& aTextureID, const std::string& aPath);

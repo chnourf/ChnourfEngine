@@ -16,7 +16,7 @@ void Camera::Initialize(int aWindowWidth, int aWindowHeight)
 void Camera::Update()
 {
 	// UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY
-	myCameraPos -= 100.f * myCameraFront;
+	myCameraPos -= 50.f * myCameraFront;
 
 	auto viewMatrix = glm::lookAt(myCameraPos, myCameraPos + myCameraFront, myCameraUp);
 
@@ -34,5 +34,5 @@ void Camera::Update()
 	myFrustum = Frustum(nearPlane, farPlane, leftPlane, rightPlane, bottomPlane, topPlane);
 
 	// UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY
-	myCameraPos += 100.f * myCameraFront;
+	myCameraPos += 50.f * myCameraFront;
 }

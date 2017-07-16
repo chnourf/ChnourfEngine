@@ -41,7 +41,7 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 	//init GLEW, this can be called in main.cpp
 	Init::Init_GLEW();
 
-	glEnable(GL_MULTISAMPLE);
+	//glEnable(GL_MULTISAMPLE); MSAA and HDR are incompatible
 
 	glShadeModel(GL_SMOOTH);
 

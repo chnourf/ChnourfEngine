@@ -71,9 +71,9 @@ namespace Rendering
 				for (unsigned short j = 0; j < aCellSize; ++j) {
 					auto& element = myTerrainCell->GetElement(i + j*aCellSize);
 
-					unsigned char x = element.myNormal.x * 128 + 128;
-					unsigned char y = element.myNormal.y * 128 + 128;
-					unsigned char z = element.myNormal.z * 128 + 128;
+					unsigned char x = element.myNormal.x * 128 + 127;
+					unsigned char y = element.myNormal.y * 128 + 127;
+					unsigned char z = element.myNormal.z * 128 + 127;
 					unsigned int normal = (x << 16) | (y << 8) | z;
 
 					TerrainVertex vertex = TerrainVertex(element.myElevation, normal);
@@ -266,12 +266,12 @@ namespace Rendering
 				modelManager->AddLoadedTexture(texture);  // Add to loaded textures
 			}
 		}
-
-
+		
 		TerrainCellModel::~TerrainCellModel()
 		{
 			glDeleteVertexArrays(1, &VAOs[0]);
 			glDeleteBuffers(1, &VBOs[0]);
+			delete myGrass;
 			Destroy();
 		}
 
@@ -325,7 +325,7 @@ namespace Rendering
 		{
 			const auto camPos = Manager::SceneManager::GetInstance()->GetCamPos();
 			const auto cellSizeInMeters = myTerrainCell->GetCellSizeInMeters();
-			const vec2i positionOnGrid = vec2i(camPos.x / cellSizeInMeters, camPos.z / cellSizeInMeters);
+			const vec2i positionOnGrid = vec2i(camPos.x / cellSizeInMeters - 0.5f, camPos.z / cellSizeInMeters - 0.5f);
 			auto& tileIndex = myTerrainCell->GetGridIndex();
 			auto squareDist = (tileIndex.x - positionOnGrid.x) * (tileIndex.x - positionOnGrid.x) + (tileIndex.y - positionOnGrid.y) * (tileIndex.y - positionOnGrid.y);
 
@@ -333,7 +333,6 @@ namespace Rendering
 
 			if (squareDist <= 9)
 			{
-				//myGrass->GenerateGrass(myTerrainCell);
 				mustGenerateGrassIfNotDone = true;
 				myCurrentLOD = 0;
 			}
@@ -358,8 +357,9 @@ namespace Rendering
 			myProgram = aShaderName;
 		}
 
-		void TerrainCellModel::Destroy()
+		vec2i TerrainCellModel::GetGridIndex() const
 		{
+			return myTerrainCell->GetGridIndex();
 		}
 
 		void TerrainCellModel::CreateTexture(GLuint& aTextureID, const std::string& aPath)

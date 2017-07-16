@@ -36,6 +36,7 @@ namespace Manager
 		void CullScene(const Camera& aCamera);
 
 		void AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution);
+		void RemoveTerrainCell(const vec2i& anIndex);
 
 		inline const std::vector<TextureFormat>& GetLoadedTextures() { return myLoadedTextures; }
 		inline void AddLoadedTexture(const TextureFormat& aTexture) {

@@ -11,6 +11,7 @@
 using namespace Manager;
 
 bool locEnableCulling = true;
+bool locSpeedUp = false;
 
 SceneManager::SceneManager()
 {
@@ -23,7 +24,7 @@ SceneManager::SceneManager()
 
 	myModelManager = std::make_unique<ModelManager>();
 
-	myDirectionalLight = DirectionalLight(glm::vec3(1.f, -.5f, 1.f), glm::vec3(3.f, 3.f, 2.8f));
+	myDirectionalLight = DirectionalLight(glm::vec3(1.f, -2.f, 1.f), glm::vec3(3.f, 3.f, 2.8f));
 }
 
 SceneManager::~SceneManager()
@@ -133,11 +134,9 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 	//myModelManager->FillScene(myShaderManager.get());
 }
 
-//std::clock_t start = std::clock();
 void SceneManager::NotifyBeginFrame()
 {
-	//auto elapsedTime = (std::clock() - start) / (double)(CLOCKS_PER_SEC);
-	//Time::currentTime = elapsedTime;
+	Time::GetInstance()->Update();
 	myCurrentCamera.Update();
 	TerrainManager::GetInstance()->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));
 	myModelManager->Update();
@@ -161,13 +160,13 @@ void SceneManager::NotifyDisplayFrame()
 		myModelManager->ResetCulling();
 	}
 
-	float multiplier = 3.f;
+	float multiplier = 0.1f;
 	auto& lightDir = myDirectionalLight.GetDirection();
-	if (abs(lightDir.y) > 0.15f)
+	if (lightDir.y > 0.01f)
 	{
-		multiplier = 1.f;
+		multiplier = 10.f;
 	}
-	myDirectionalLight.SetDirection(glm::rotateX(lightDir, multiplier * .0003f));
+	myDirectionalLight.SetDirection(glm::rotateX(lightDir, multiplier * (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame()));
 
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
 	glm::vec3 eye_position = glm::vec3(0.0f, 1.f-13.f/6400.f, 0.0f);
@@ -202,30 +201,30 @@ void SceneManager::NotifyDisplayFrame()
 		glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 	}
 
-	// Shadow Map Pass ----------------------------------------------------------------------------------------------------------------------
-	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
+	//// Shadow Map Pass ----------------------------------------------------------------------------------------------------------------------
+	//glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+	//glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//glEnable(GL_DEPTH_TEST);
 
-	GLfloat near_plane = 10.0f, far_plane = 800.f;
-	glm::mat4 lightProjection = glm::ortho(-50.0f, 50.0f, -50.0f, 50.0f, near_plane, far_plane);
-	glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 200.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
-	myLightSpaceMatrix = lightProjection * lightView;
+	//GLfloat near_plane = 10.0f, far_plane = 1000.f;
+	//glm::mat4 lightProjection = glm::ortho(-200.0f, 200.0f, -200.0f, 200.0f, near_plane, far_plane);
+	//glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 200.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
+	//myLightSpaceMatrix = lightProjection * lightView;
 
-	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	//glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
+	//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
+	//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
+	//glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
-	glUseProgram(shadowMapProgram);
-	GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
-	glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
+	//auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
+	//glUseProgram(shadowMapProgram);
+	//GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
+	//glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
 
-	myModelManager->DrawShadowMap(myShaderManager.get());
+	//myModelManager->DrawShadowMap(myShaderManager.get());
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// First color pass ----------------------------------------------------------------------------------------------------------------------
 	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
@@ -309,7 +308,9 @@ void SceneManager::NotifyReshape(int aWidth, int aHeight, int aPreviousWidth, in
 void SceneManager::KeyboardCallback(unsigned char key, int x, int y)
 {
 	assert(ourInstance);
-	auto cameraSpeed = 2.f;
+	auto cameraSpeed = 10.f;
+	cameraSpeed *= locSpeedUp ? 20 : 1;
+	cameraSpeed *= Time::GetInstance()->GetElapsedTimeSinceLastFrame();
 	auto cameraRight = glm::normalize(glm::cross(ourInstance->myCurrentCamera.myCameraFront, ourInstance->myCurrentCamera.myCameraUp));
 	//to do : take elapsed time into account
 	switch (key)
@@ -334,6 +335,8 @@ void SceneManager::KeyboardCallback(unsigned char key, int x, int y)
 		break;
 	case 'c':
 		locEnableCulling = !locEnableCulling;
+	case '&':
+		locSpeedUp = !locSpeedUp;
 		break;
 	}
 }

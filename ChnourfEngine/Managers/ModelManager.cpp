@@ -115,6 +115,25 @@ void ModelManager::AddTerrainCell(const TerrainCell* aCell, int aCellSize, float
 	gameModelList.push_back(terrain);	
 }
 
+void Manager::ModelManager::RemoveTerrainCell(const vec2i & anIndex)
+{
+	// dynamic casts are ugly, to optimize with hashmap
+	auto it = gameModelList.begin();
+	while (it < gameModelList.end())
+	{
+		if (auto terrainModel = dynamic_cast<Models::TerrainCellModel*>(*it))
+		{
+			if ((*terrainModel).GetGridIndex() == anIndex)
+			{
+				delete *it;
+				gameModelList.erase(it);
+				break;
+			}
+		}
+		++it;
+	}
+}
+
 void ModelManager::Draw(const glm::mat4& aCameraTransform,const ShaderManager* aShaderManager)
 {
 	for (auto& handle : myCullingTasks)

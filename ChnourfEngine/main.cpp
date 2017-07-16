@@ -1,6 +1,7 @@
 #include "Core\Init\InitGLUT.h"
 #include "Managers\SceneManager.h"
 #include "WorldGenerator\TerrainManager.h"
+#include "Core\Time.h"
 
 using namespace Core;
 using namespace Init;
@@ -12,6 +13,8 @@ int main(int argc, char **argv)
 	ContextInfo context(4, 5, true);
 	FramebufferInfo frameBufferInfo(true, true, true, true);
 	Init_GLUT::Init(window, context, frameBufferInfo);
+
+	Time::Create();
 
 	Manager::TerrainManager::Create();
 	

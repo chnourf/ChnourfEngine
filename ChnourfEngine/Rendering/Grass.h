@@ -22,6 +22,7 @@ class Grass
 {
 public:
 	Grass(unsigned int aCellSize, float aResolution, int aSeed);
+	~Grass();
 
 	void Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture);
 	void Update(bool aMustGenerate, const TerrainCell* aCell);

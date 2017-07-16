@@ -65,6 +65,12 @@ bool operator==(const Vector2<T>& l, const Vector2<T>& r)
 }
 
 template <class T>
+Vector2<T> operator-(const Vector2<T>& l, const Vector2<T>& r)
+{
+	return Vector2<T>(l.x - r.x, l.y - r.y);
+}
+
+template <class T>
 Vector3<T> operator+(const Vector3<T>& l, const Vector3<T>& r)
 {
 	return Vector3<T>(l.x + r.x, l.y + r.y, l.z + r.z);

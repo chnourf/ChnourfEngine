@@ -24,7 +24,7 @@ namespace Rendering
 		virtual void DrawForShadowMap(const Manager::ShaderManager* aShaderManager) = 0;
 		virtual void Update() = 0;
 		virtual void SetProgram(GLuint aShaderName) = 0;
-		virtual void Destroy() = 0;
+		inline virtual void Destroy() {};
 
 		const AABB& GetAABB() const { return myAABB; }
 		const vec3f& GetPosition() const { return myPosition; }

@@ -3,6 +3,8 @@
 #include "glm\glm.hpp"
 #include "../Core/Vector.h"
 
+#include <iostream>
+
 typedef unsigned short ushort;
 
 struct TerrainElement
@@ -21,6 +23,7 @@ class TerrainCell
 {
 public:
 	TerrainCell(const vec2i& aGridIndex, int aCellSize, float aResolution);
+	~TerrainCell() { std::cout << "cell destroyed" << std::endl; }
 	inline const vec2i& GetGridIndex() const { return myGridIndex; }
 	__forceinline void AddTerrainElement(TerrainElement anElement) { myElements.push_back(anElement); }
 	__forceinline TerrainElement GetElement(const unsigned int anIndex) const { return *(myElements.begin() + anIndex); }
