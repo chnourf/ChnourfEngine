@@ -44,7 +44,10 @@ void main()
             
     vec3 result = diffuse;
 
+	result *= Shadow(fs_in.fragPos, fs_in.normal);
+
     result = Fog( result, fs_in.fragPos, normalize(viewPos - fs_in.fragPos), lightDir );
+
 
     out_color = vec4(result, 1.0);
 

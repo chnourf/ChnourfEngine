@@ -19,6 +19,7 @@ out VS_OUT
 } vs_out;
 
 uniform float elapsedTime;
+uniform mat4 lightSpaceMatrix;
 
 void main()
 {	
