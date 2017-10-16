@@ -35,9 +35,6 @@ namespace Manager
 
 	private:
 		SceneManager();
-		static void KeyboardCallback(unsigned char key, int x, int y); // to be moved to input manager
-		static void MouseCallback(int button, int state, int x, int y);
-		static void MotionCallback(int x, int y);
 
 		int myWindowWidth;
 		int myWindowHeigth;

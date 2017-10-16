@@ -1,13 +1,25 @@
 ﻿  SceneManager.cpp
-Managers\SceneManager.cpp(151): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-Managers\SceneManager.cpp(152): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-Managers\SceneManager.cpp(153): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-Managers\SceneManager.cpp(155): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-Managers\SceneManager.cpp(317): warning C4244: '*=': conversion from 'double' to 'float', possible loss of data
+Managers\SceneManager.cpp(142): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+Managers\SceneManager.cpp(143): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+Managers\SceneManager.cpp(144): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+Managers\SceneManager.cpp(146): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+  TerrainCellModel.cpp
+Rendering\Models\TerrainCellModel.cpp(66): warning C4244: 'argument': conversion from 'double' to 'unsigned __int64', possible loss of data
+Rendering\Models\TerrainCellModel.cpp(74): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
+Rendering\Models\TerrainCellModel.cpp(75): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
+Rendering\Models\TerrainCellModel.cpp(76): warning C4244: 'initializing': conversion from 'float' to 'unsigned char', possible loss of data
+Rendering\Models\TerrainCellModel.cpp(121): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+Rendering\Models\TerrainCellModel.cpp(121): warning C4244: 'initializing': conversion from 'double' to 'const int', possible loss of data
+Rendering\Models\TerrainCellModel.cpp(170): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
+Rendering\Models\TerrainCellModel.cpp(187): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
+Rendering\Models\TerrainCellModel.cpp(328): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
+  TerrainManager.cpp
+WorldGenerator\TerrainManager.cpp(66): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
+  main.cpp
   Generating code
-  50 of 3510 functions ( 1.4%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    13 functions had inline decision re-evaluated but remain unchanged
+  18 of 4013 functions ( 0.4%) were compiled, the rest were copied from previous compilation.
+    1 functions were new in current compilation
+    11 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.exe
-  ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.pdb (Full PDB)
+  ChnourfEngine.vcxproj -> E:\Projets\Engine\ChnourfEngine\ChnourfEngine\x64\Release\ChnourfEngine.exe
+  ChnourfEngine.vcxproj -> E:\Projets\Engine\ChnourfEngine\ChnourfEngine\x64\Release\ChnourfEngine.pdb (Full PDB)

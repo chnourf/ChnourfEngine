@@ -25,13 +25,7 @@ namespace Manager
 		void Update();
 		const IGameObject& GetModel(const UID& anUID) const;
 
-		inline void ResetCulling()
-		{
-			for (auto model : gameModelList)
-			{
-				model->isVisible = true;
-			}
-		}
+		void ResetCulling();
 
 		void CullScene(const Camera& aCamera);
 

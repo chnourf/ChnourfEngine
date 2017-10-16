@@ -30,12 +30,12 @@ namespace Manager
 			{
 				if (strcmp(field.c_str(), "DetectionRadius") == 0)
 				{
-					myDetectionRadius = value;
-					myCachedRadius = value + 1;
+					myDetectionRadius = (unsigned int) value;
+					myCachedRadius = (unsigned int) (value + 1);
 				}
 				else if (strcmp(field.c_str(), "CellSize") == 0)
 				{
-					myCellSize = value;
+					myCellSize = (unsigned int) value;
 				}
 				else if (strcmp(field.c_str(), "CellResolution") == 0)
 				{

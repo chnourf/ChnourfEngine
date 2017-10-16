@@ -13,9 +13,12 @@ public:
 
 	void Initialize(int aWindowWidth, int aWindowHeight);
 
+	void OnMouseMotion(const float deltaX, const float deltaY);
+
 	void Update();
 
 	glm::vec3 myCameraPos;
+	glm::vec3 myNextCameraPos;
 	glm::vec3 myCameraFront;
 	glm::vec3 myCameraUp;
 
@@ -25,4 +28,6 @@ public:
 private:
 	glm::mat4 myProjectionMatrix;
 	Frustum myFrustum;
+
+	void UpdateFromKeyboard();
 };

@@ -54,7 +54,7 @@ namespace Rendering
 			vec3f aMax = vec3f((float) (myTerrainCell->GetGridIndex().x+1)*aCellSize*aResolution, myTerrainCell->GetMaxHeight(), (float) (myTerrainCell->GetGridIndex().y+1)*aCellSize*aResolution);
 
 			myAABB = AABB(aMin, aMax);
-			myPosition = vec3f((myTerrainCell->GetGridIndex().x + 0.5)*aCellSize*aResolution, 0.f, (myTerrainCell->GetGridIndex().y + 0.5)*aCellSize*aResolution);
+			myPosition = vec3f((myTerrainCell->GetGridIndex().x + 0.5f)*aCellSize*aResolution, 0.f, (myTerrainCell->GetGridIndex().y + 0.5f)*aCellSize*aResolution);
 
 			vertices.reserve(aCellSize*aCellSize);
 			

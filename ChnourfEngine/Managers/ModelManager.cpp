@@ -7,14 +7,21 @@
 #include "SceneManager.h"
 #include "../Rendering/Models/TerrainCellModel.h"
 #include "../WorldGenerator/TerrainCell.h"
+#include "InputManager.h"
 
 using namespace Manager;
 using namespace Rendering;
 
 const unsigned int locCullThreads = 4;
+bool locEnableCulling = true;
 
 ModelManager::ModelManager()
 {
+	Manager::InputManager::GetInstance()->OnKeyPressedSlot.Connect(std::bind([](unsigned char c) {if (c == 'c')
+	{
+		locEnableCulling = !locEnableCulling;
+	}
+	}, std::placeholders::_1));
 }
 
 void ModelManager::FillScene(const ShaderManager* aShaderManager)
@@ -86,9 +93,26 @@ void ModelManager::Update()
 	}
 }
 
+void ModelManager::ResetCulling()
+{
+	if (!locEnableCulling)
+	{
+		return;
+	}
+
+	for (auto model : gameModelList)
+	{
+		model->isVisible = true;
+	}
+}
+
 void ModelManager::CullScene(const Camera& aCamera)
 {
 	// to optimize with quad tree
+	if (!locEnableCulling)
+	{
+		return;
+	}
 	
 	myCullingTasks.clear();
 

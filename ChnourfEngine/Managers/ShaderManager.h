@@ -41,7 +41,5 @@ namespace Manager
 		GLuint CreateShader(GLenum aShaderType, std::string aSource, const std::string& aShaderName);
 
 		std::vector<Program> myPrograms;
-
-
 	};
 }

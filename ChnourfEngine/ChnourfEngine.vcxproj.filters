@@ -194,6 +194,9 @@
     <ClInclude Include="Shaders\Environment.h">
       <Filter>Fichiers sources\Shaders</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Slot.h">
+      <Filter>Fichiers sources\Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\Vertex_Shader.glsl">

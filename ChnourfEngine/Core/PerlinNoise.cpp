@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <numeric>
 
-#include "glm\glm.hpp"
-
 // Initialize with the reference values for the permutation vector
 PerlinNoise::PerlinNoise() {
 

@@ -10,19 +10,9 @@
 
 using namespace Manager;
 
-bool locEnableCulling = true;
-bool locSpeedUp = false;
-glm::vec3 nextCameraPosition = glm::vec3(0.f);
-
 SceneManager::SceneManager()
 {
 	myShaderManager = std::make_unique<ShaderManager>();
-
-	glutSetKeyRepeat(GLUT_KEY_REPEAT_ON);
-	glutKeyboardFunc(KeyboardCallback);
-	glutMouseFunc(MouseCallback);
-	glutMotionFunc(MotionCallback);
-
 	myModelManager = std::make_unique<ModelManager>();
 
 	myDirectionalLight = DirectionalLight(glm::vec3(1.f, -.5f, 1.f), glm::vec3(3.f, 3.f, 2.8f));
@@ -41,7 +31,7 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 	myWindowWidth = aWindow.width;
 
 	myCurrentCamera.Initialize(myWindowWidth, myWindowHeigth);
-	nextCameraPosition = myCurrentCamera.myCameraPos;
+	//nextCameraPosition = myCurrentCamera.myCameraPos;
 
 	// Setting up main framebuffer ----------------------------------------------------------------------------------------------
 	glGenFramebuffers(1, &fbo);
@@ -138,7 +128,7 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 
 void SceneManager::NotifyBeginFrame()
 {
-	myCurrentCamera.myCameraPos = nextCameraPosition;
+	myCurrentCamera.myCameraPos;
 
 	Time::GetInstance()->Update();
 	myCurrentCamera.Update();
@@ -146,6 +136,7 @@ void SceneManager::NotifyBeginFrame()
 	myModelManager->Update();
 }
 
+//ugly
 float atmospheric_depth(glm::vec3 position, glm::vec3 dir) {
 	float a = dot(dir, dir);
 	float b = 2.0*dot(dir, position);
@@ -159,17 +150,14 @@ float atmospheric_depth(glm::vec3 position, glm::vec3 dir) {
 
 void SceneManager::NotifyDisplayFrame()
 {
-	if (locEnableCulling)
-	{
-		myModelManager->ResetCulling();
-	}
+	myModelManager->ResetCulling();
 
 	float multiplier = 0.1f;
 	auto& lightDir = myDirectionalLight.GetDirection();
-	if (lightDir.y > 0.01f)
-	{
-		multiplier = 10.f;
-	}
+	//if (lightDir.y > 0.01f)
+	//{
+	//	multiplier = 10.f;
+	//}
 	myDirectionalLight.SetDirection(glm::rotateX(lightDir, multiplier * (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame()));
 
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
@@ -205,14 +193,14 @@ void SceneManager::NotifyDisplayFrame()
 		glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 	}
 
-	//// Shadow Map Pass ----------------------------------------------------------------------------------------------------------------------
+	// Shadow Map Pass ----------------------------------------------------------------------------------------------------------------------
 	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_CLAMP); // doesn't seem to work
 
-	GLfloat near_plane = 10.0f, far_plane = 1000.f;
-	glm::mat4 lightProjection = glm::ortho(-300.0f, 300.0f, -300.0f, 300.0f, near_plane, far_plane);
+	glm::mat4 lightProjection = glm::ortho(-300.0f, 300.0f, -300.0f, 300.0f, -1000.f, 1000.f);
 	glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 500.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
 	myLightSpaceMatrix = lightProjection * lightView;
 
@@ -229,6 +217,7 @@ void SceneManager::NotifyDisplayFrame()
 	myModelManager->DrawShadowMap(myShaderManager.get());
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDisable(GL_DEPTH_CLAMP);
 
 	// First color pass ----------------------------------------------------------------------------------------------------------------------
 	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
@@ -242,10 +231,7 @@ void SceneManager::NotifyDisplayFrame()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
-	if (locEnableCulling)
-	{
-		myModelManager->CullScene(myCurrentCamera);
-	}
+	myModelManager->CullScene(myCurrentCamera);
 
 	// for Terrain
 	auto terrainShaderID = myShaderManager->GetShader("terrainShader");
@@ -307,78 +293,4 @@ void SceneManager::NotifyReshape(int aWidth, int aHeight, int aPreviousWidth, in
 	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-}
-
-void SceneManager::KeyboardCallback(unsigned char key, int x, int y)
-{
-	assert(ourInstance);
-	auto cameraSpeed = 10.f;
-	cameraSpeed *= locSpeedUp ? 20 : 1;
-	cameraSpeed *= Time::GetInstance()->GetElapsedTimeSinceLastFrame();
-	auto cameraRight = glm::normalize(glm::cross(ourInstance->myCurrentCamera.myCameraFront, ourInstance->myCurrentCamera.myCameraUp));
-	//to do : take elapsed time into account
-	switch (key)
-	{
-	case 'z':
-		nextCameraPosition += cameraSpeed * ourInstance->myCurrentCamera.myCameraFront;
-		break;
-	case 's':
-		nextCameraPosition -= cameraSpeed * ourInstance->myCurrentCamera.myCameraFront;
-		break;
-	case 'q':
-		nextCameraPosition -= cameraSpeed * cameraRight;
-		break;
-	case 'd':
-		nextCameraPosition += cameraSpeed * cameraRight;
-		break;
-	case 'a':
-		nextCameraPosition.y += cameraSpeed;
-		break;
-	case 'e':
-		nextCameraPosition.y -= cameraSpeed;
-		break;
-	case 'c':
-		locEnableCulling = !locEnableCulling;
-	case '&':
-		locSpeedUp = !locSpeedUp;
-		break;
-	}
-}
-
-int xOrigin = -1;
-int yOrigin = -1;
-
-void SceneManager::MouseCallback(int button, int state, int x, int y)
-{
-	if (button == GLUT_LEFT_BUTTON) {
-
-		// when the button is released
-		if (state == GLUT_UP)
-		{
-			xOrigin = -1;
-			yOrigin = -1;
-		}
-		else
-		{
-			xOrigin = x;
-			yOrigin = y;
-		}
-	}
-}
-
-void SceneManager::MotionCallback(int x, int y)
-{
-	// this will only be true when the left button is down
-	if (xOrigin >= 0 && yOrigin >= 0) {
-
-		// update deltaAngle
-		float deltaX = ((float)(x - xOrigin)) * 0.004f;
-		xOrigin = x;
-		float deltaY = ((float)(y - yOrigin)) * 0.004f;
-		yOrigin = y;
-
-		auto& front = ourInstance->myCurrentCamera.myCameraFront;
-		front = glm::rotate(front, deltaY, glm::cross(ourInstance->myCurrentCamera.myCameraFront, ourInstance->myCurrentCamera.myCameraUp));
-		front = glm::rotateY(front, deltaX);
-	}
 }

@@ -9,6 +9,59 @@
 
 class TerrainCell;
 
+enum class Biome
+{
+	Tundra,
+	BorealForest,
+	Woodland,
+	Grassland,
+	SeasonalForest,
+	RainForest,
+	Forest,
+	Swamp,
+	Desert,
+	Savanna,
+	Count,
+};
+
+enum class Reliefs
+{
+	Sea,
+	Plain,
+	Hills,
+	Mountains,
+	HighMountains,
+	Count,
+};
+
+//inline Biome GetBiome(const float aTemperature, const float aRainfall)
+//{
+//	if (aRainfall > 0.75f)
+//	{
+//		if (aTemperature > 0.75f)
+//		{
+//			return RainForest;
+//		}
+//		return Swamp;
+//	}
+//	else if (aRainfall > 0.5f)
+//	{
+//		if (aTemperature > 0.75f)
+//		{
+//			return SeasonalForest;
+//		}
+//		if (aTemperature > 0.5f)
+//		{
+//			return Forest;
+//		}
+//		return BorealForest;
+//	}
+//	else if (aRainfall > 0.25f)
+//	{
+//
+//	}
+//}
+
 namespace Manager
 {
 	class TerrainManager : public Singleton<TerrainManager>
@@ -35,7 +88,7 @@ namespace Manager
 		bool IsCellLoaded(const vec2i& aCellIndex);
 		bool IsCellLoading(const vec2i& aCellIndex);
 
-		int myCellSize;
+		unsigned int myCellSize;
 		float myResolution;
 		unsigned int myDetectionRadius;
 		unsigned int myCachedRadius;

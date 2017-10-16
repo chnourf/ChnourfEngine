@@ -1,9 +1,15 @@
 #include "Camera.h"
 #include "glm\gtc\matrix_transform.hpp"
+#include "../Core/Time.h"
+#include "../Managers/InputManager.h"
+#include "glm\gtx\rotate_vector.hpp"
+
+bool locSpeedUp = false;
 
 Camera::Camera()
 {
 	myCameraPos = glm::vec3(0.0f, 200.0f, 5.0f);
+	myNextCameraPos = myCameraPos;
 	myCameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	myCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 }
@@ -11,10 +17,50 @@ Camera::Camera()
 void Camera::Initialize(int aWindowWidth, int aWindowHeight)
 {
 	myProjectionMatrix = glm::perspective(45.0f, (float)aWindowWidth / (float)aWindowHeight, 0.1f, 3000.f);
+	Manager::InputManager::GetInstance()->OnMouseMotionSlot.Connect(std::bind(&Camera::OnMouseMotion, this, std::placeholders::_1, std::placeholders::_2));
+	Manager::InputManager::GetInstance()->OnKeyPressedSlot.Connect(std::bind([](unsigned char c)
+	{	if (c == '&')
+	{
+		locSpeedUp = !locSpeedUp;
+	}
+	}, std::placeholders::_1));
+}
+
+void Camera::UpdateFromKeyboard()
+{
+	auto cameraSpeed = 10.f;
+	cameraSpeed *= locSpeedUp ? 20 : 1;
+	cameraSpeed *= (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame();
+	auto cameraRight = glm::normalize(glm::cross(myCameraFront, myCameraUp));
+
+	const auto& inputs = Manager::InputManager::GetInstance()->GetKeyBoardState();
+
+	if (inputs['z'])
+		myNextCameraPos += cameraSpeed * myCameraFront;
+	if (inputs['s'])
+		myNextCameraPos -= cameraSpeed * myCameraFront;
+	if (inputs['q'])
+		myNextCameraPos -= cameraSpeed * cameraRight;
+	if (inputs['d'])
+		myNextCameraPos += cameraSpeed * cameraRight;
+	if (inputs['a'])
+		myNextCameraPos.y += cameraSpeed;
+	if (inputs['e'])
+		myNextCameraPos.y -= cameraSpeed;
+}
+
+void Camera::OnMouseMotion(const float deltaX, const float deltaY)
+{
+	auto& front = myCameraFront;
+	front = glm::rotate(front, deltaY, glm::cross(myCameraFront, myCameraUp));
+	front = glm::rotateY(front, deltaX);
 }
 
 void Camera::Update()
 {
+	UpdateFromKeyboard();
+
+	myCameraPos = myNextCameraPos;
 	// UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY
 	myCameraPos -= 50.f * myCameraFront;
 
@@ -35,4 +81,6 @@ void Camera::Update()
 
 	// UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY
 	myCameraPos += 50.f * myCameraFront;
+
+	myNextCameraPos = myCameraPos;
 }

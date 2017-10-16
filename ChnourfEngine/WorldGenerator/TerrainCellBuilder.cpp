@@ -16,7 +16,7 @@ TerrainCellBuildingTask::TerrainCellBuildingTask(const int aSeed, const unsigned
 {
 	myPerlin = PerlinNoise(aSeed);
 	myRandomEngine.seed(aSeed);
-	myHandle = std::async(std::launch::async, [this, anEmptyCell]() {BuildCell(anEmptyCell); });
+	myHandle = std::async(std::launch::async, [this, anEmptyCell]() {BuildCell(anEmptyCell);});
 }
 
 void TerrainCellBuildingTask::ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const ErosionParams& params)
@@ -263,7 +263,7 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 	params.g = 1.f;
 	ComputeErosion(temporaryElements, 20000, params);
 
-	// lerping the edges of the tiles to assure continuity
+	// lerping the edges of the tiles to ensure continuity
 	for (unsigned int i = 0; i < myCellSize; ++i) {
 		for (unsigned int j = 0; j < myCellSize; ++j) {
 
@@ -286,7 +286,7 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 
 			const auto index = j + i * myCellSize;
 
-			// technically erosion should have changed the elevation of the edges but we supposed it's negligeable
+			// technically erosion should have changed the elevation of the edges but we suppose it's negligible
 			const auto s01 = (j == 0) ? SamplePerlinNoise(x - delta * myCellSize * myCellResolution, y) : temporaryElements[index - 1].myElevation;
 			const auto s21 = (j == myCellSize - 1) ? SamplePerlinNoise(x + delta * myCellSize * myCellResolution, y) : temporaryElements[index + 1].myElevation;
 			const auto s10 = (i == 0) ? SamplePerlinNoise(x, y - delta * myCellSize * myCellResolution) : temporaryElements[index - myCellSize].myElevation;
