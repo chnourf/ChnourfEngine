@@ -1,5 +1,6 @@
 #include "TerrainCellBuilder.h"
 #include"TerrainCell.h"
+#include"TerrainGenerationFunctions.h"
 #include <time.h>
 #include <iostream>
 #include "../Core/Vector.h"
@@ -17,199 +18,6 @@ TerrainCellBuildingTask::TerrainCellBuildingTask(const int aSeed, const unsigned
 	myPerlin = PerlinNoise(aSeed);
 	myRandomEngine.seed(aSeed);
 	myHandle = std::async(std::launch::async, [this, anEmptyCell]() {BuildCell(anEmptyCell);});
-}
-
-void TerrainCellBuildingTask::ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const ErosionParams& params)
-{
-	std::uniform_int_distribution<int> distribution(0, myCellSize - 2);
-
-	float Kq = params.Kq, Kevap = params.Kevap, Kerosion = params.Kerosion, Kdepos = params.Kdepos, Kinertia = params.Ki,
-		minSlope = params.minSlope, Kgravity = params.g;
-
-	const unsigned int MAX_PATH_LEN = myCellSize * 4;
-
-#define DEPOSIT_AT(X, Z, W) \
-	{ \
-	float delta=ds*(W); \
-	elevationMap [X + myCellSize * Z].myElevation  += delta; \
-	}
-
-#define DEPOSIT(H) \
-	for (int z = zi - 1; z <= zi + 2; ++z)\
-	{\
-		if (z < 0 || z > myCellSize - 1)\
-			continue;\
-		float zo = z - zp;\
-		float zo2 = zo*zo;\
-		for (int x = xi - 1; x <= xi + 2; ++x)\
-		{\
-			if (x < 0 || x > myCellSize - 1)\
-				continue;\
-			float xo = x - xp;\
-			float w = 1 - (xo*xo + zo2)*0.25f;\
-			if (w <= 0) continue;\
-			w *= 0.03978873577f;\
-			DEPOSIT_AT(x, z, w)\
-		}\
-	}\
-	(H)+=ds;
-
-	for (unsigned int iter = 0; iter < iterations; ++iter)
-	{
-		int xi = distribution(myRandomEngine);
-		int zi = distribution(myRandomEngine);
-
-		float xp = xi, zp = zi;
-		float xf = 0, zf = 0;
-
-		float h = elevationMap[xi + myCellSize * zi].myElevation;
-		float carriedSoil = 0, speed = 1, water = 1;
-
-		float h00 = h;
-		float h10 = elevationMap[xi + 1 + myCellSize * zi].myElevation;
-		float h01 = elevationMap[xi + myCellSize * (zi + 1)].myElevation;
-		float h11 = elevationMap[(xi + 1) + myCellSize * (zi + 1)].myElevation;
-
-		float dx = 0, dz = 0;
-
-		unsigned numMoves = 0;
-		for (; numMoves < MAX_PATH_LEN; ++numMoves)
-		{
-			// calc gradient
-			float gx = h00 + h01 - h10 - h11;
-			float gz = h00 + h10 - h01 - h11;
-
-			// calc next pos
-			dx = (dx - gx)*Kinertia + gx;
-			dz = (dz - gz)*Kinertia + gz;
-
-			float dl = sqrtf(dx*dx + dz*dz);
-			if (dl <= FLT_EPSILON)
-			{
-				// pick random dir
-				float a = std::rand();
-				dx = cosf(a);
-				dz = sinf(a);
-			}
-			else
-			{
-				dx /= dl;
-				dz /= dl;
-			}
-
-			float nxp = xp + dx;
-			float nzp = zp + dz;
-
-			// sample next height
-			int nxi = glm::clamp((int)std::floor(nxp), 0, (int)myCellSize - 1);
-			int nzi = glm::clamp((int)std::floor(nzp), 0, (int)myCellSize - 1);
-
-			// the drop falls of the cell
-			if (nxi == myCellSize - 1 || nzi == myCellSize - 1 || nxi == 0 || nzi == 0)
-				break;
-
-			float nxf = nxp - nxi;
-			float nzf = nzp - nzi;
-
-			float nh00 = elevationMap[nxi + myCellSize * nzi].myElevation;
-			float nh10 = elevationMap[nxi + 1 + myCellSize * nzi].myElevation;
-			float nh01 = elevationMap[nxi + myCellSize * (nzi + 1)].myElevation;
-			float nh11 = elevationMap[nxi + 1 + myCellSize * (nzi + 1)].myElevation;
-
-			float nh = (nh00*(1 - nxf) + nh10*nxf)*(1 - nzf) + (nh01*(1 - nxf) + nh11*nxf)*nzf;
-
-			// if higher than current, try to deposit sediment up to neighbour height
-			if (nh >= h)
-			{
-				float ds = (nh - h) + 0.001f;
-
-				if (ds >= carriedSoil)
-				{
-					// deposit all sediment and stop
-					ds = carriedSoil;
-					DEPOSIT(h)
-						carriedSoil = 0;
-					break;
-				}
-				DEPOSIT(h)
-					carriedSoil -= ds;
-					speed = 0;
-			}
-
-			// compute transport capacity
-			float dh = h - nh;
-
-			speed += Kgravity * std::min(dh, 1.f);
-
-			float q = std::max(dh, minSlope)*speed*water*Kq;
-
-			// deposit/erode (don't erode more than dh)
-			float ds = carriedSoil - q;
-			if (ds >= 0)
-			{
-				// deposit
-				ds *= Kdepos;
-				DEPOSIT(dh)
-					carriedSoil -= ds;
-			}
-			else
-			{
-				// erode
-				ds *= -Kerosion;
-				ds = std::min(ds, dh*0.99f);
-
-#define ERODE(X, Z, W) \
-        { \
-          float delta=ds*(W); \
-          elevationMap[X + myCellSize * Z].myElevation -=delta; \
-        }
-
-				for (int z = zi - 1; z <= zi + 2; ++z)
-				{
-					if (z < 0 || z > myCellSize - 1)
-						continue;
-
-					float zo = z - zp;
-					float zo2 = zo*zo;
-
-					for (int x = xi - 1; x <= xi + 2; ++x)
-					{
-						if (x < 0 || x > myCellSize - 1)
-							continue;
-
-						float xo = x - xp;
-
-						float w = 1 - (xo*xo + zo2)*0.25f;
-						if (w <= 0) continue;
-						w *= 0.1591549430918953f;
-
-						ERODE(x, z, w)
-					}
-				}
-
-				dh -= ds;
-#undef ERODE
-
-				carriedSoil += ds;
-			}
-
-			// move to the neighbour
-			water *= 1.f - Kevap;
-
-			xp = nxp; zp = nzp;
-			xi = nxi; zi = nzi;
-			xf = nxf; zf = nzf;
-
-			h = nh;
-			h00 = nh00;
-			h10 = nh10;
-			h01 = nh01;
-			h11 = nh11;
-		}
-	}
-
-#undef DEPOSIT
-#undef DEPOSIT_AT
 }
 
 void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
@@ -253,7 +61,7 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 	std::vector<TerrainElement> elementsBeforeErosion = temporaryElements;
 
 	//computing erosion, could be moved to presets.txt
-	ErosionParams params;
+	TerrainGeneration::ErosionParams params;
 	params.Kq = 1.5f;
 	params.Kevap = 0.1f;
 	params.Kerosion = .9f;
@@ -261,7 +69,7 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 	params.Ki = .01f;
 	params.minSlope = 0.05f;
 	params.g = 1.f;
-	ComputeErosion(temporaryElements, 20000, params);
+	TerrainGeneration::ComputeErosion(temporaryElements, 20000, params, myCellSize, myRandomEngine);
 
 	// lerping the edges of the tiles to ensure continuity
 	for (unsigned int i = 0; i < myCellSize; ++i) {

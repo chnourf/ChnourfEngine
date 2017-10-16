@@ -11,16 +11,10 @@
 class TerrainCell;
 struct TerrainElement;
 
-struct ErosionParams
+namespace TerrainGeneration
 {
-	float Kq; // soil carry capacity
-	float Kevap; // evaporation speed
-	float Kerosion; // erosion speed
-	float Kdepos; // deposition speed
-	float Ki; // inertia
-	float minSlope;
-	float g; // gravity
-};
+	struct ErosionParams;
+}
 
 struct TerrainCellBuildingTask
 {
@@ -38,7 +32,6 @@ struct TerrainCellBuildingTask
 
 	void BuildCell(TerrainCell* aCell);
 	float SamplePerlinNoise(float aX, float aY);
-	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const ErosionParams& params);
 };
 
 class TerrainCellBuilder

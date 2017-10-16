@@ -133,6 +133,7 @@
     <ClCompile Include="Rendering\Models\TerrainCellModel.cpp" />
     <ClCompile Include="WorldGenerator\TerrainCell.cpp" />
     <ClCompile Include="WorldGenerator\TerrainCellBuilder.cpp" />
+    <ClCompile Include="WorldGenerator\TerrainGenerationFunctions.cpp" />
     <ClCompile Include="WorldGenerator\TerrainManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -169,6 +170,7 @@
     <ClInclude Include="Shaders\Environment.h" />
     <ClInclude Include="WorldGenerator\TerrainCell.h" />
     <ClInclude Include="WorldGenerator\TerrainCellBuilder.h" />
+    <ClInclude Include="WorldGenerator\TerrainGenerationFunctions.h" />
     <ClInclude Include="WorldGenerator\TerrainManager.h" />
   </ItemGroup>
   <ItemGroup>
