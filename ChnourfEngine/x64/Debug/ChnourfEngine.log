@@ -1,8 +1,5 @@
-﻿  SceneManager.cpp
-d:\projets\chnourf_engine\chnourfengine\managers\scenemanager.cpp(155): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\managers\scenemanager.cpp(156): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\managers\scenemanager.cpp(157): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
-d:\projets\chnourf_engine\chnourfengine\managers\scenemanager.cpp(159): warning C4244: 'initializing': conversion from 'double' to 'float', possible loss of data
+﻿  TerrainManager.cpp
+d:\projets\chnourf_engine\chnourfengine\worldgenerator\terrainmanager.cpp(78): warning C4244: 'argument': conversion from 'float' to 'const int', possible loss of data
   SOIL.lib(SOIL.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/LTCG' specification
 InitGlut.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/OPT:LBR' specification

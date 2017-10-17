@@ -5,6 +5,9 @@
 #include "TerrainManager.h"
 #include "TerrainCell.h"
 
+#include "TerrainGenerationFunctions.h"
+
+#include <array>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -25,6 +28,8 @@ namespace Manager
 
 			std::string field;
 			float value;
+			std::array<float, 4> landscapeRepartitionPercentages;
+			unsigned int currentPercentage = 0u;
 
 			while (ss >> field >> value)
 			{
@@ -41,7 +46,18 @@ namespace Manager
 				{
 					myResolution = value;
 				}
+				else if (strcmp(field.c_str(), "LandscapeRepartitionPercentages") == 0)
+				{
+					landscapeRepartitionPercentages[currentPercentage] = value;
+					if (currentPercentage >= landscapeRepartitionPercentages.size())
+					{
+						assert(false);
+					}
+					++currentPercentage;
+				}
 			}
+
+			TerrainGeneration::SetLandscapeRepartitionConstants(landscapeRepartitionPercentages);
 		}
 
 		file.close();

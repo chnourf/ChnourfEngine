@@ -1,3 +1,7 @@
 DetectionRadius 10
 CellSize 257
 CellResolution 0.5
+LandscapeRepartitionPercentages 0.45
+LandscapeRepartitionPercentages 0.7
+LandscapeRepartitionPercentages 0.85
+LandscapeRepartitionPercentages 0.95

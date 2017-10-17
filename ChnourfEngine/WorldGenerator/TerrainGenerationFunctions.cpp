@@ -1,11 +1,69 @@
 #include "TerrainGenerationFunctions.h"
 #include "TerrainCell.h"
 #include <algorithm>
+#include <array>
 #include <vector>
 #include <random>
 
+std::array<float, 4> locLandscapeRepartitionPercentages = {0.5f, 0.6f, 0.8f, 0.9f};
+
 namespace TerrainGeneration
 {
+	Biome GetBiome(const float aTemperature, const float aRainfall)
+	{
+		if (aRainfall > 0.75f)
+		{
+			if (aTemperature > 0.75f)
+			{
+				return Biome::RainForest;
+			}
+			return Biome::Swamp;
+		}
+		else if (aRainfall > 0.5f)
+		{
+			if (aTemperature > 0.75f)
+			{
+				return Biome::SeasonalForest;
+			}
+			if (aTemperature > 0.5f)
+			{
+				return Biome::Forest;
+			}
+			return Biome::BorealForest;
+		}
+		else if (aRainfall > 0.25f)
+		{
+		
+		}
+
+		return Biome::Tundra;
+	}
+
+	LandscapeType GetRelief(const float anAvgAltitude)
+	{
+		if (anAvgAltitude < locLandscapeRepartitionPercentages[0])
+		{
+			return LandscapeType::Sea;
+		}
+
+		if (anAvgAltitude < locLandscapeRepartitionPercentages[1])
+		{
+			return LandscapeType::Plain;
+		}
+
+		if (anAvgAltitude < locLandscapeRepartitionPercentages[2])
+		{
+			return LandscapeType::Hills;
+		}
+
+		if (anAvgAltitude < locLandscapeRepartitionPercentages[3])
+		{
+			return LandscapeType::Mountains;
+		}
+
+		return LandscapeType::HighMountains;
+	}
+
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aCellSize, std::default_random_engine aRandomEngine)
 {
 	std::uniform_int_distribution<int> distribution(0, aCellSize - 2);
@@ -198,4 +256,9 @@ namespace TerrainGeneration
 #undef DEPOSIT
 #undef DEPOSIT_AT
 }
+
+	void SetLandscapeRepartitionConstants(std::array<float, 4> anArray)
+	{
+		locLandscapeRepartitionPercentages = anArray;
+	}
 }

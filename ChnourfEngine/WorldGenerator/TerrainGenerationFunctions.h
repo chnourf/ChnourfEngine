@@ -16,5 +16,34 @@ namespace TerrainGeneration
 		float g; // gravity
 	};
 
+	enum class Biome
+	{
+		Tundra,
+		BorealForest,
+		Woodland,
+		Grassland,
+		SeasonalForest,
+		RainForest,
+		Forest,
+		Swamp,
+		Desert,
+		Savanna,
+		Count,
+	};
+
+	enum class LandscapeType
+	{
+		Sea,
+		Plain,
+		Hills,
+		Mountains,
+		HighMountains,
+		Count,
+	};
+	
+	Biome GetBiome(const float aTemperature, const float aRainfall);
+
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aCellSize, std::default_random_engine aRandomEngine);
+
+	void SetLandscapeRepartitionConstants(const std::array<float,4> anArray);
 }

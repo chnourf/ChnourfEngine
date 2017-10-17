@@ -3,18 +3,10 @@ WorldGenerator\TerrainCellBuilder.cpp(152): warning C4244: '=': conversion from 
 WorldGenerator\TerrainCellBuilder.cpp(159): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 WorldGenerator\TerrainCellBuilder.cpp(162): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
 WorldGenerator\TerrainCellBuilder.cpp(176): warning C4244: '=': conversion from 'time_t' to 'unsigned int', possible loss of data
-  TerrainGenerationFunctions.cpp
-WorldGenerator\TerrainGenerationFunctions.cpp(49): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-WorldGenerator\TerrainGenerationFunctions.cpp(77): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
-WorldGenerator\TerrainGenerationFunctions.cpp(117): warning C4018: '>': signed/unsigned mismatch
-WorldGenerator\TerrainGenerationFunctions.cpp(121): warning C4018: '>': signed/unsigned mismatch
-WorldGenerator\TerrainGenerationFunctions.cpp(139): warning C4018: '>': signed/unsigned mismatch
-WorldGenerator\TerrainGenerationFunctions.cpp(156): warning C4018: '>': signed/unsigned mismatch
-WorldGenerator\TerrainGenerationFunctions.cpp(164): warning C4018: '>': signed/unsigned mismatch
   Generating code
-  77 of 4013 functions ( 1.9%) were compiled, the rest were copied from previous compilation.
-    1 functions were new in current compilation
-    15 functions had inline decision re-evaluated but remain unchanged
+  83 of 4016 functions ( 2.1%) were compiled, the rest were copied from previous compilation.
+    5 functions were new in current compilation
+    16 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.exe
   ChnourfEngine.vcxproj -> D:\Projets\Chnourf_Engine\x64\Release\ChnourfEngine.pdb (Full PDB)
