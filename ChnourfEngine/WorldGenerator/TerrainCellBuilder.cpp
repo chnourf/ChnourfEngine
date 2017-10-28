@@ -58,31 +58,31 @@ void TerrainCellBuildingTask::BuildCell(TerrainCell* aCell)
 	aCell->SetMinHeight(minHeight);
 	aCell->SetMaxHeight(maxHeight);
 
-	std::vector<TerrainElement> elementsBeforeErosion = temporaryElements;
+	//std::vector<TerrainElement> elementsBeforeErosion = temporaryElements;
 
-	//computing erosion, could be moved to presets.txt
-	TerrainGeneration::ErosionParams params;
-	params.Kq = 1.5f;
-	params.Kevap = 0.1f;
-	params.Kerosion = .9f;
-	params.Kdepos = .02f;
-	params.Ki = .01f;
-	params.minSlope = 0.05f;
-	params.g = 1.f;
-	TerrainGeneration::ComputeErosion(temporaryElements, 20000, params, myCellSize, myRandomEngine);
+	////computing erosion, could be moved to presets.txt
+	//TerrainGeneration::ErosionParams params;
+	//params.Kq = 1.5f;
+	//params.Kevap = 0.1f;
+	//params.Kerosion = .9f;
+	//params.Kdepos = .02f;
+	//params.Ki = .01f;
+	//params.minSlope = 0.05f;
+	//params.g = 1.f;
+	//TerrainGeneration::ComputeErosion(temporaryElements, 20000, params, myCellSize, myRandomEngine);
 
-	// lerping the edges of the tiles to ensure continuity
-	for (unsigned int i = 0; i < myCellSize; ++i) {
-		for (unsigned int j = 0; j < myCellSize; ++j) {
+	//// lerping the edges of the tiles to ensure continuity
+	//for (unsigned int i = 0; i < myCellSize; ++i) {
+	//	for (unsigned int j = 0; j < myCellSize; ++j) {
 
-			auto index = i + j * myCellSize;
-			auto lerpFactor = glm::clamp(5.5f - abs(12.f * (float)i / (float)myCellSize - 6.f), 0.f, 1.f);
-			lerpFactor *= glm::clamp(5.5f - abs(12.f * (float)j / (float)myCellSize - 6.f), 0.f, 1.f);
-			auto& el = temporaryElements[index].myElevation;
-			auto& bel = elementsBeforeErosion[index].myElevation;
-			el = bel + lerpFactor * (el - bel);
-		}
-	}
+	//		auto index = i + j * myCellSize;
+	//		auto lerpFactor = glm::clamp(5.5f - abs(12.f * (float)i / (float)myCellSize - 6.f), 0.f, 1.f);
+	//		lerpFactor *= glm::clamp(5.5f - abs(12.f * (float)j / (float)myCellSize - 6.f), 0.f, 1.f);
+	//		auto& el = temporaryElements[index].myElevation;
+	//		auto& bel = elementsBeforeErosion[index].myElevation;
+	//		el = bel + lerpFactor * (el - bel);
+	//	}
+	//}
 
 	//computing normals based on elevation
 	for (unsigned int i = 0; i < myCellSize; ++i) {     // y
@@ -123,50 +123,79 @@ TerrainCellBuildingTask::~TerrainCellBuildingTask()
 float TerrainCellBuildingTask::SamplePerlinNoise(float x, float y)
 {
 	auto cellNoise = 0.f;
-
-	auto lerpFactor = glm::smoothstep(0.3, 0.6, myPerlin.noise(x * scale / 1024.f, y * scale / 1024.f));
-
-	const auto mountainHeight = 2.f * (0.5f + 0.5f * myPerlin.noise(x * scale / 256.f, y * scale / 256.f));
-	const auto plainHeight = 1.f;
-
-	// warping the mountains to mask the 8 axis of the perlin noise
-	const auto warpScale = 40.f / scale;
-	auto warpX = warpScale * myPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f) - 0.5f;
-	auto warpY = warpScale * myPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f, 1) - 0.5f;
-
-	auto hardNoiseModifier = 1.f;
 	float freq = 1.f;
 	float amp = 1.f;
 
-	// Noise computation
-	for (int d = 1; d <= myNoiseDepth; d++)
+	auto warpX = 300.f * myPerlin.noise(x*scale / 400.f + 0.3f, y*scale / 400.f + 0.3f) - 0.5f;
+	auto warpY = 500.f * myPerlin.noise(x*scale / 400.f + 0.3f, y*scale / 400.f + 0.3f, 1) - 0.5f;
+
+	for (int d = 1; d <= 8; d++)
 	{
 		freq *= lacunarity;
 		amp *= gain;
 
 		auto softNoise = 0.f;
-		auto hardNoise = 0.f;
 
-		if (lerpFactor > 0.f)
-		{
-			softNoise = myPerlin.noise(freq * x * scale / 384.f, freq * y * scale / 384.f);
-		}
+		float dist = sqrt(x*x + y * y) * (0.65f + 0.35f * myPerlin.noise(x / 500.f, y / 500.f));
 
-		if (lerpFactor < 1.f)
-		{
-			auto n = myPerlin.noise(freq * (x + warpX) * scale / 256.f, freq * (y + warpY) * scale / 256.f) * 2.f - 1.f;
-			// C-infinity abs approximation
-			hardNoise = 1.f - abs(60.f * n * n * n / (0.1f + 60.f * n * n)) + 0.5f;
-		}
+		softNoise = myPerlin.noise(freq * (x + warpX) * scale / 384.f, freq * (y + warpY) * scale / 384.f) * glm::clamp(0.001f * (1500.f - abs(dist)), 0.f, 1.0f);
 
-		cellNoise +=(lerpFactor * softNoise * amp * plainHeight + hardNoise * hardNoiseModifier * (1 - lerpFactor) * mountainHeight);
-		hardNoiseModifier *= 0.85f * gain;
+		cellNoise += softNoise*amp;
 
-		warpX *= 0.25f;
-		warpY *= 0.25f;
 	}
 
-	return locMultiplier * cellNoise;
+	if ((cellNoise > 0.45f && cellNoise < 0.52f) || cellNoise > 0.6f)
+	{
+		cellNoise += 1.5f * pow(myPerlin.noise((x + warpX) / 400.f, (y + warpY) / 400.f), 2);
+	}
+
+	return cellNoise;
+
+	//auto cellNoise = 0.f;
+
+	//auto lerpFactor = glm::smoothstep(0.3, 0.6, myPerlin.noise(x * scale / 1024.f, y * scale / 1024.f));
+
+	//const auto mountainHeight = 2.f * (0.5f + 0.5f * myPerlin.noise(x * scale / 256.f, y * scale / 256.f));
+	//const auto plainHeight = 1.f;
+
+	//// warping the mountains to mask the 8 axis of the perlin noise
+	//const auto warpScale = 40.f / scale;
+	//auto warpX = warpScale * myPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f) - 0.5f;
+	//auto warpY = warpScale * myPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f, 1) - 0.5f;
+
+	//auto hardNoiseModifier = 1.f;
+	//float freq = 1.f;
+	//float amp = 1.f;
+
+	//// Noise computation
+	//for (int d = 1; d <= myNoiseDepth; d++)
+	//{
+	//	freq *= lacunarity;
+	//	amp *= gain;
+
+	//	auto softNoise = 0.f;
+	//	auto hardNoise = 0.f;
+
+	//	if (lerpFactor > 0.f)
+	//	{
+	//		softNoise = myPerlin.noise(freq * x * scale / 384.f, freq * y * scale / 384.f);
+	//	}
+
+	//	if (lerpFactor < 1.f)
+	//	{
+	//		auto n = myPerlin.noise(freq * (x + warpX) * scale / 256.f, freq * (y + warpY) * scale / 256.f) * 2.f - 1.f;
+	//		// C-infinity abs approximation
+	//		hardNoise = 1.f - abs(60.f * n * n * n / (0.1f + 60.f * n * n)) + 0.5f;
+	//	}
+
+	//	cellNoise +=(lerpFactor * softNoise * amp * plainHeight + hardNoise * hardNoiseModifier * (1 - lerpFactor) * mountainHeight);
+	//	hardNoiseModifier *= 0.85f * gain;
+
+	//	warpX *= 0.25f;
+	//	warpY *= 0.25f;
+	//}
+
+	//return locMultiplier * cellNoise;
 }
 
 TerrainCellBuilder::TerrainCellBuilder(const int aCellSize, const float aResolution):

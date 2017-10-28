@@ -77,5 +77,19 @@ void main()
 	//result *= Shadow(fs_in.fragPos);
 
     out_color = vec4(result, 1.0f);
+
+       vec3 col = vec3(fs_in.fragPos.y);
+       col = vec3(1.0, 1.0, 1.0);
+
+       if (fs_in.fragPos.y < 1.0f)
+       {
+             col = vec3(1.0,3.0,1.0);
+       }
+
+    if (fs_in.fragPos.y < 0.45f)
+    {
+        col = vec3(0.0,1.0,3.0);
+    }
+    out_color = vec4(col, 1.0f);
 }
   
