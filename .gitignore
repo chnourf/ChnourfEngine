@@ -56,3 +56,11 @@ Thumbs.db
 \.vs/ChnourfEngine/v14/
 
 *.ipdb
+
+*.lastbuildstate
+
+*.db
+
+*.idb
+
+*.ilk
