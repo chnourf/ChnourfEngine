@@ -5,12 +5,13 @@
 #include "Geometry.h"
 #include <cassert>
 #include <vector>
+#include <numeric>
 #include <algorithm>
 #include <random>
 #include <time.h>
 
 # define M_PI           3.14159265358979323846  /* pi */
-const unsigned int locPictureDimension = 1024u;
+const unsigned int locPictureDimension = 2048u;
 const unsigned int MetersPerPixel = 64;
 const float locMapSize = (float)MetersPerPixel * (float)locPictureDimension;
 const unsigned int locGridNumOfElements = 128;
@@ -324,13 +325,14 @@ void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 	{
 		return;
 	}
-	bool pointIsSea = (aPoint->myFlags & (int)flags::Land) == 0;
 
+	// modifying wind vector to add some randomness
 	vec2 newWindDirection;
-	float seed = 2 * M_PI* pn.noise(aPoint->myPosition.x * 5.f / locMapSize, aPoint->myPosition.y * 5.f / locMapSize, 0);
+	float seed = M_PI * (pn.noise(aPoint->myPosition.x * 5.f / locMapSize, aPoint->myPosition.y * 5.f / locMapSize, 0) - 0.5f); // between -90 and 90 degrees variation
 	newWindDirection.x = cos(seed) * aWindDirection.x - sin(seed) * aWindDirection.y;
 	newWindDirection.y = sin(seed) * aWindDirection.x + cos(seed) * aWindDirection.y;
 
+	// calculating where the rainfall will go
 	std::vector<float> rainfallTransmissions;
 	for (auto& neighbour : aPoint->myNeighbours)
 	{
@@ -343,19 +345,15 @@ void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 		rainfallTransmissions.push_back(rainfallToTransfer);
 	}
 
-	float totalTransmission = 0.f;
+	const float totalTransmission = std::accumulate(rainfallTransmissions.begin(), rainfallTransmissions.end(), 0.f);
 	for (auto& transmission : rainfallTransmissions)
 	{
-		totalTransmission += transmission;
-	}
-	float percentageOfPointRainfallTransmittedToAllNeighbours = 1.f;
-	for (auto& transmission : rainfallTransmissions)
-	{
-		transmission *= percentageOfPointRainfallTransmittedToAllNeighbours / totalTransmission;
+		transmission /= totalTransmission;
 	}
 
+	// diffusing rainfall
 	const float initialRainfall = aPoint->myRainfall;
-
+	bool pointIsSea = (aPoint->myFlags & (int)flags::Land) == 0;
 	for (int i = 0; i < aPoint->myNeighbours.size(); ++i)
 	{
 		auto& neighbour = aPoint->myNeighbours[i];
@@ -372,23 +370,22 @@ void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 		pointToNeighbour.y = neighbour->myPosition.y - aPoint->myPosition.y;
 		pointToNeighbour.Normalize();
 
-		float rainfallToTransfer = rainfallTransmissions[i];
-
-		float rainfallDropped = initialRainfall * rainfallToTransfer;
+		float rainfallDropped = initialRainfall * rainfallTransmissions[i];
 		auto mountainFlag = neighbour->myFlags & (int)flags::Mountain;
 		if (mountainFlag != 0)
 		{
+			// mountains influence rainfall, we symbolize it by reducing the quantity of rainfall transmitted by an arbitrary coefficient
 			rainfallDropped *= 0.4f;
 		}
-		//rainfallDropped = std::min(rainfallDropped, 1.f - neighbour->myRainfall);
-		//rainfallDropped = std::min(rainfallDropped, 0.5f*(aPoint->myRainfall - neighbour->myRainfall));
+
 		if (!pointIsSea)
 		{
-			aPoint->myRainfall = std::max(aPoint->myRainfall - rainfallDropped, 0.f);
+			//aPoint->myRainfall = std::max(aPoint->myRainfall - rainfallDropped, 0.f);
+			aPoint->myRainfall -= rainfallDropped;
 		}
 		if (!neighbourIsSea)
 		{
-			neighbour->myRainfall = std::min(neighbour->myRainfall + rainfallDropped, 100.f);
+			neighbour->myRainfall += rainfallDropped;
 		}
 	}
 }
@@ -399,7 +396,6 @@ int main(int argc, char **argv)
 	ppm* image = new ppm(locPictureDimension, locPictureDimension);
 
 	unsigned int seed = (unsigned int)time(nullptr);
-
 	engine.seed(seed);
 	PerlinNoise pn(seed);
 
@@ -407,9 +403,11 @@ int main(int argc, char **argv)
 	const unsigned int horizontalAmountOfPoints = (2 * locGridNumOfElements + 1u);
 	const unsigned int verticalAmountOfPoints = (locGridNumOfElements* 4.f / 3.f + 1u);
 	grid.points.reserve(horizontalAmountOfPoints * verticalAmountOfPoints);
-	const unsigned int verticalElements = locGridNumOfElements* 4.f / 3.f;
-	grid.cells.reserve(locGridNumOfElements * verticalElements);
+	const unsigned int verticalElements = verticalAmountOfPoints - 1u;
+	grid.cells.reserve((locGridNumOfElements - 1u) * verticalElements);
 
+	// placing points
+	std::cout << "placing points..." << std::endl;
 	for (unsigned int i = 0; i < verticalAmountOfPoints; ++i)
 	{
 		for (unsigned int j = 0; j < horizontalAmountOfPoints; ++j)
@@ -427,9 +425,7 @@ int main(int argc, char **argv)
 			auto adjustedX = x;
 			auto adjustedY = y;
 
-			vec2 warp;
-			warp.x = floatDistribution(engine) - .5f;
-			warp.y = floatDistribution(engine) - .5f;
+			vec2 warp = vec2(floatDistribution(engine) - .5f, floatDistribution(engine) - .5f);
 			float norm = sqrt(pow(warp.x, 2) + pow(warp.y, 2));
 			if (norm > 1.f)
 			{
@@ -451,6 +447,8 @@ int main(int argc, char **argv)
 		}
 	}
 
+	// creating hexagonal cells
+	std::cout << "creating cells..." << std::endl;
 	for (unsigned int i = 0; i < verticalElements; ++i)
 	{
 		for (unsigned int j = 0; j < locGridNumOfElements - 1; ++j)
@@ -475,10 +473,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-	vec2 midPos;
-	midPos.x = locMapSize / 2.f;
-	midPos.y = locMapSize / 2.f;
+	vec2 midPos = vec2(locMapSize / 2.f, locMapSize / 2.f);
 
+	// ELEVATION
+	std::cout << "generating height and mountains..." << std::endl;
 	for (auto& point : grid.points)
 	{
 		const auto& pointPos = point.myPosition;
@@ -488,18 +486,19 @@ int main(int argc, char **argv)
 		float freq = 1.f;
 		float amp = 1.f;
 
-		auto warpX = locMapSize / 6.f * (pn.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
-		auto warpY = locMapSize / 6.f * (pn.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 1.f) - 0.5f);
 
+		// points far away from the center will "sink" allowing a border ocean. Distance is artificially modified with Perlin noise to create more irregularity
 		float noiseDistAttenuation = 0.f;
-		for (int d = 1; d <= 4; d++)
+		for (int d = 1; d <= 6; d++)
 		{
 			noiseDistAttenuation += pn.noise(3.f * pow(2, d) * pointPos.x / locMapSize, 3.f * pow(2, d) * pointPos.y / locMapSize, 0) / pow(2, d);
 		}
-
 		float distToCenter = (std::max(abs(pointPos.x - midPos.x), abs(pointPos.y - midPos.y))) * (1.f + noiseDistAttenuation);
 		const float distAttenuation = clamp(10.f / locMapSize * (0.70f * locMapSize - abs(distToCenter)), 0.f, 1.0f);
 
+		// warped fractal Perlin noise
+		auto warpX = locMapSize / 6.f * (pn.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
+		auto warpY = locMapSize / 6.f * (pn.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 1.f) - 0.5f);
 		for (int d = 1; d <= 8; d++)
 		{
 			freq *= lacunarity;
@@ -533,6 +532,7 @@ int main(int argc, char **argv)
 	}
 
 	// TEMPERATURE
+	std::cout << "computing temperature..." << std::endl;
 	for (auto& point : grid.points)
 	{
 		auto isSea = (point.myFlags & (int)flags::Land) == 0;
@@ -551,11 +551,13 @@ int main(int argc, char **argv)
 	}
 
 	// RAINFALL
+	std::cout << "diffusing rainfall..." << std::endl;
 	const float phase = 2 * M_PI * floatDistribution(engine);
 	vec2 windVector;
 	windVector.x = sin(phase);
 	windVector.y = cos(phase);
-	const float iterations = locGridNumOfElements / 2;
+	// don't know yet how to link iterations number and resolution
+	const int iterations = locGridNumOfElements / 2; //pow(locGridNumOfElements / 16, 2);
 	for (int i = 0; i < iterations; ++i)
 	{
 		for (auto& point : grid.points)
@@ -563,7 +565,6 @@ int main(int argc, char **argv)
 			PropagateRainfall(&point, windVector, pn);
 		}
 	}
-
 	for (auto& point : grid.points)
 	{
 		auto isSea = (point.myFlags & (int)flags::Land) == 0;
@@ -572,7 +573,6 @@ int main(int argc, char **argv)
 			point.myRainfall = 5.f*point.myRainfall / (1.f + 5.f*point.myRainfall);
 		}
 	}
-
 	for (auto& point : grid.points)
 	{
 		//point.myRainfall += (1.f - point.myPosition.x / locMapSize) * 0.3f;
@@ -586,12 +586,12 @@ int main(int argc, char **argv)
 		point.myRainfall = clamp(point.myRainfall + (rainRandomness - 0.5f), 0.f, 1.f);
 	}
 
+	// DRAWING
+	std::cout << "drawing output..." << std::endl;
 	for (auto cell : grid.cells)
 	{
 		DrawTriangleBiome(&image, cell);
 	}
-
-	// Save the image in a binary PPM file
 	image->write("Biomes.ppm");
 
 	for (auto cell : grid.cells)
