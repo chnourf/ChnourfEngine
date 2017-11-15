@@ -115,7 +115,7 @@
     <ClCompile Include="ppm.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Cell.h" />
+    <ClInclude Include="Geometry.h" />
     <ClInclude Include="math.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="ppm.h" />

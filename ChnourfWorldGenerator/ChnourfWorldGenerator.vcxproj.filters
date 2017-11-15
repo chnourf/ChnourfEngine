@@ -32,10 +32,10 @@
     <ClInclude Include="ppm.h">
       <Filter>Fichiers sources</Filter>
     </ClInclude>
-    <ClInclude Include="Cell.h">
+    <ClInclude Include="math.h">
       <Filter>Fichiers sources</Filter>
     </ClInclude>
-    <ClInclude Include="math.h">
+    <ClInclude Include="Geometry.h">
       <Filter>Fichiers sources</Filter>
     </ClInclude>
   </ItemGroup>

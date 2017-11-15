@@ -1,8 +1,9 @@
 #include <iostream>
 #include "PerlinNoise.h"
 #include "ppm.h"
-#include "Cell.h"
 #include "math.h"
+#include "Geometry.h"
+#include <cassert>
 #include <vector>
 #include <algorithm>
 #include <random>
@@ -12,11 +13,11 @@
 const unsigned int locPictureDimension = 1024u;
 const unsigned int MetersPerPixel = 64;
 const float locMapSize = (float)MetersPerPixel * (float)locPictureDimension;
-const unsigned int locGridNumOfElements = 256;
-const float locDistanceBetweenElements = locMapSize / (float)(locGridNumOfElements - 1u);
+const unsigned int locGridNumOfElements = 128;
+const float locDistanceBetweenElements = locMapSize / (float)(locGridNumOfElements);
 std::default_random_engine engine;
 std::bernoulli_distribution boolDistribution;
-std::uniform_real_distribution<float> floatDistribution(-1.f, 1.f);
+std::uniform_real_distribution<float> floatDistribution(0.f, 1.f);
 const unsigned int locDepth = 6u;
 const float gain = 0.5f;
 const float lacunarity = 1.90f;
@@ -35,85 +36,16 @@ void SaveAsImage(ppm* anImage, float aData[], char* aName)
 	anImage->write(aName);
 }
 
-struct vec2
-{
-	vec2() :
-		x(0.f),
-		y(0.f)
-	{}
-
-	vec2(float aX, float aY) :
-		x(aX),
-		y(aY)
-	{}
-
-	float x;
-	float y;
-
-	void Normalize()
-	{
-		float norm = sqrt(pow(x, 2) + pow(y, 2));
-		if (norm > 0.f)
-		{
-			x /= norm;
-			y /= norm;
-		}
-	}
-};
-
 enum class flags
 {
 	Land = 1 << 0,
 	Mountain = 1 << 1,
 };
 
-struct Point
-{
-	Point(const float x, const float y)
-	{
-		myPosition.x = x;
-		myPosition.y = y;
-		myNeighbours.reserve(8); // between 4 and 8 neighbours
-		myFlags = 0;
-		myRainfall = 0.f;
-		myTemperature = 0.f;
-	}
-
-	vec2 myPosition;
-	std::vector<Point*> myNeighbours;
-	int myFlags;
-	float myTemperature;
-	float myRainfall;
-	float myHeight;
-};
-
-
-struct Triangle
-{
-	Triangle() :
-		myA(nullptr),
-		myB(nullptr),
-		myC(nullptr)
-	{}
-
-	Triangle(Point* aA, Point* aB, Point* aC)
-	{
-		myA = aA;
-		myB = aB;
-		myC = aC;
-	}
-
-	Point* myA;
-	Point* myB;
-	Point* myC;
-
-	Triangle* myNeighbours[3];
-};
-
 struct Grid
 {
 	std::vector<Point> points;
-	std::vector<Triangle> triangles;
+	std::vector<Cell> cells;
 };
 
 void AddUnique(std::vector<Point*>& aVector, Point* anObject)
@@ -204,7 +136,7 @@ void DeduceBiome(const float aTemperature, const float aRainfall, std::vector<fl
 		{
 			CreateCol(anOutCol, 159.f, 234.f, 144.f); // temperate rain forest
 		}
-		else if (aRainfall > 0.10f)
+		else if (aRainfall > 0.15f)
 		{
 			CreateCol(anOutCol, 162.f, 179.f, 104.f); // grassland
 		}
@@ -262,16 +194,13 @@ void DrawTriangle(ppm** anImage, const Triangle& triangle, std::vector<float> co
 	}
 }
 
-void DrawTriangleBiome(ppm** anImage, const Triangle& triangle)
+void DrawTriangleBiome(ppm** anImage, const Cell& cell)
 {
-	auto& a = *triangle.myA;
-	auto& b = *triangle.myB;
-	auto& c = *triangle.myC;
-	bool isLand = ((a.myFlags & (int)flags::Land) && (c.myFlags & (int)flags::Land) && (c.myFlags & (int)flags::Land));
-	float Rainfall = (a.myRainfall + b.myRainfall + c.myRainfall) / 3.f;
-	float Temperature = (a.myTemperature + b.myTemperature + c.myTemperature) / 3.f;
+	float Elevation = cell.GetElevation();
+	float Rainfall = cell.GetRainfall();
+	float Temperature = cell.GetTemperature();
 	std::vector<float> biomeCol;
-	if (isLand)
+	if (Elevation > locSeaLevel)
 	{
 		DeduceBiome(Temperature, Rainfall, biomeCol);
 	}
@@ -282,46 +211,69 @@ void DrawTriangleBiome(ppm** anImage, const Triangle& triangle)
 		biomeCol.push_back(177.f);
 	}
 
-	DrawTriangle(anImage, triangle, biomeCol);
+	const vec2 center = cell.GetCenter();
+	for (int i = 0; i < cell.myPoints.size(); ++i)
+	{
+		Point point;
+		point.myPosition = center;
+		Triangle triangle = Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
+		DrawTriangle(anImage, triangle, biomeCol);
+	}
 }
 
-void DrawTriangleRainfall(ppm** anImage, const Triangle& triangle)
+void DrawTriangleRainfall(ppm** anImage, const Cell& cell)
 {
-	auto& a = *triangle.myA;
-	auto& b = *triangle.myB;
-	auto& c = *triangle.myC;
-	float Rainfall = (a.myRainfall + b.myRainfall + c.myRainfall) / 3.f;
+	const float Rainfall = cell.GetRainfall();
+	const float Elevation = cell.GetElevation();
 
-	std::vector<float> rainfallCol;
+	std::vector<float> elevationCol;
 	for (int i = 0; i < 3; i++)
 	{
-		rainfallCol.push_back(255.f * Rainfall);
+		elevationCol.push_back(255.f * Rainfall);
 	}
-	DrawTriangle(anImage, triangle, rainfallCol);
+
+	if (Elevation < locSeaLevel)
+	{
+		for (int i = 0; i < 3; i++)
+		{
+			elevationCol[i] = 0.f;
+		}
+	}
+
+	const vec2 center = cell.GetCenter();
+	for (int i = 0; i < cell.myPoints.size(); ++i)
+	{
+		Point point;
+		point.myPosition = center;
+		Triangle triangle = Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
+		DrawTriangle(anImage, triangle, elevationCol);
+	}
 }
 
-void DrawTriangleTemperature(ppm** anImage, const Triangle& triangle)
+void DrawTriangleTemperature(ppm** anImage, const Cell& cell)
 {
-	auto& a = *triangle.myA;
-	auto& b = *triangle.myB;
-	auto& c = *triangle.myC;
-	float Temperature = (a.myTemperature + b.myTemperature + c.myTemperature) / 3.f;
+	const float Temperature = cell.GetTemperature();
 
-	std::vector<float> tempCol;
+	std::vector<float> elevationCol;
 	for (int i = 0; i < 3; i++)
 	{
-		tempCol.push_back(255.f * Temperature);
+		elevationCol.push_back(255.f * Temperature);
 	}
-	DrawTriangle(anImage, triangle, tempCol);
+
+	const vec2 center = cell.GetCenter();
+	for (int i = 0; i < cell.myPoints.size(); ++i)
+	{
+		Point point;
+		point.myPosition = center;
+		Triangle triangle = Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
+		DrawTriangle(anImage, triangle, elevationCol);
+	}
 }
 
-void DrawTriangleElevation(ppm** anImage, const Triangle& triangle)
+void DrawTriangleElevation(ppm** anImage, const Cell& cell)
 {
-	auto& a = *triangle.myA;
-	auto& b = *triangle.myB;
-	auto& c = *triangle.myC;
-	bool isMountain = ((a.myFlags & (int)flags::Mountain) && (c.myFlags & (int)flags::Mountain) && (c.myFlags & (int)flags::Mountain));
-	float Elevation = (a.myHeight + b.myHeight + c.myHeight) / 3.f;
+	//bool isMountain = ((a.myFlags & (int)flags::Mountain) && (c.myFlags & (int)flags::Mountain) && (c.myFlags & (int)flags::Mountain));
+	const float Elevation = cell.GetElevation();
 
 	std::vector<float> elevationCol;
 	for (int i = 0; i < 3; i++)
@@ -337,49 +289,80 @@ void DrawTriangleElevation(ppm** anImage, const Triangle& triangle)
 		}
 	}
 
-	if (isMountain)
+	if (Elevation > locSeaLevel + 0.35f)
 	{
 		elevationCol[0] = 0.f;
 		elevationCol[1] = 0.f;
 	}
 
-	DrawTriangle(anImage, triangle, elevationCol);
+	const vec2 center = cell.GetCenter();
+	for (int i = 0; i < cell.myPoints.size(); ++i)
+	{
+		Point point;
+		point.myPosition = center;
+		Triangle triangle = Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
+		DrawTriangle(anImage, triangle, elevationCol);
+	}
 }
 
-void AddTriangle(const unsigned int aFirstIndex, const unsigned int aSecondIndex, const unsigned int aThirdIndex, Grid& aGrid)
+void AddCell(Grid& aGrid, std::vector<Point*> points)
 {
-	auto& pointA = aGrid.points[aFirstIndex];
-	auto& pointB = aGrid.points[aSecondIndex];
-	auto& pointC = aGrid.points[aThirdIndex];
+	const auto pointSize = points.size();
+	for (int i = 0; i < pointSize; ++i)
+	{
+		auto& point = points[i];
+		AddUnique(point->myNeighbours, points[(i + 1) % pointSize]);
+		AddUnique(point->myNeighbours, points[(i + pointSize - 1) % pointSize]);
+	}
 
-	AddUnique(pointA.myNeighbours, &pointB);
-	AddUnique(pointB.myNeighbours, &pointA);
-
-	AddUnique(pointA.myNeighbours, &pointC);
-	AddUnique(pointC.myNeighbours, &pointA);
-
-	AddUnique(pointB.myNeighbours, &pointC);
-	AddUnique(pointC.myNeighbours, &pointB);
-
-	aGrid.triangles.push_back(Triangle(&pointA, &pointB, &pointC));
+	aGrid.cells.push_back(Cell(points));
 }
 
-void PropagateRainfall(Point* aPoint, vec2 aWindDirection)
+void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 {
-	float seed = aPoint->myPosition.x + aPoint->myPosition.y;
-	seed -= locMapSize / 2.f;
-	seed /= 0.5f*locMapSize;
+	if (aPoint->myRainfall < 0.001f)
+	{
+		return;
+	}
+	bool pointIsSea = (aPoint->myFlags & (int)flags::Land) == 0;
 
 	vec2 newWindDirection;
-	newWindDirection.x = cos(seed);// *aWindDirection.x - sin(seed) * aWindDirection.y;
-	newWindDirection.y = sin(seed);// *aWindDirection.x + cos(seed) * aWindDirection.y;
+	float seed = 2 * M_PI* pn.noise(aPoint->myPosition.x * 5.f / locMapSize, aPoint->myPosition.y * 5.f / locMapSize, 0);
+	newWindDirection.x = cos(seed) * aWindDirection.x - sin(seed) * aWindDirection.y;
+	newWindDirection.y = sin(seed) * aWindDirection.x + cos(seed) * aWindDirection.y;
 
-
+	std::vector<float> rainfallTransmissions;
 	for (auto& neighbour : aPoint->myNeighbours)
 	{
+		vec2 pointToNeighbour;
+		pointToNeighbour.x = neighbour->myPosition.x - aPoint->myPosition.x;
+		pointToNeighbour.y = neighbour->myPosition.y - aPoint->myPosition.y;
+		pointToNeighbour.Normalize();
+
+		float rainfallToTransfer = std::max(0.f, (pointToNeighbour.x * newWindDirection.x + pointToNeighbour.y * newWindDirection.y)) * 0.90f + 0.1f;
+		rainfallTransmissions.push_back(rainfallToTransfer);
+	}
+
+	float totalTransmission = 0.f;
+	for (auto& transmission : rainfallTransmissions)
+	{
+		totalTransmission += transmission;
+	}
+	float percentageOfPointRainfallTransmittedToAllNeighbours = 1.f;
+	for (auto& transmission : rainfallTransmissions)
+	{
+		transmission *= percentageOfPointRainfallTransmittedToAllNeighbours / totalTransmission;
+	}
+
+	const float initialRainfall = aPoint->myRainfall;
+
+	for (int i = 0; i < aPoint->myNeighbours.size(); ++i)
+	{
+		auto& neighbour = aPoint->myNeighbours[i];
+
 		auto landFlag = neighbour->myFlags & (int)flags::Land;
 		bool neighbourIsSea = landFlag == 0;
-		if (neighbourIsSea)
+		if (neighbourIsSea && pointIsSea)
 		{
 			continue;
 		}
@@ -388,22 +371,24 @@ void PropagateRainfall(Point* aPoint, vec2 aWindDirection)
 		pointToNeighbour.x = neighbour->myPosition.x - aPoint->myPosition.x;
 		pointToNeighbour.y = neighbour->myPosition.y - aPoint->myPosition.y;
 		pointToNeighbour.Normalize();
-		float rainfallToTransfer = pointToNeighbour.x * newWindDirection.x + pointToNeighbour.y * newWindDirection.y;
-		if (rainfallToTransfer > 0.f)
+
+		float rainfallToTransfer = rainfallTransmissions[i];
+
+		float rainfallDropped = initialRainfall * rainfallToTransfer;
+		auto mountainFlag = neighbour->myFlags & (int)flags::Mountain;
+		if (mountainFlag != 0)
 		{
-			auto mountainFlag = neighbour->myFlags & (int)flags::Mountain;
-			float coeff = 0.1f;
-			float rainfallDropped = coeff * aPoint->myRainfall * rainfallToTransfer;
-			if (mountainFlag != 0)
-			{
-				rainfallDropped *= 0.3f;
-			}
-			bool pointIsSea = (aPoint->myFlags & (int)flags::Land) == 0;
-			if (!pointIsSea)
-			{
-				aPoint->myRainfall = std::max(0.f, aPoint->myRainfall - rainfallDropped);
-			}
-			neighbour->myRainfall = std::min(1.f, neighbour->myRainfall + rainfallDropped);
+			rainfallDropped *= 0.4f;
+		}
+		//rainfallDropped = std::min(rainfallDropped, 1.f - neighbour->myRainfall);
+		//rainfallDropped = std::min(rainfallDropped, 0.5f*(aPoint->myRainfall - neighbour->myRainfall));
+		if (!pointIsSea)
+		{
+			aPoint->myRainfall = std::max(aPoint->myRainfall - rainfallDropped, 0.f);
+		}
+		if (!neighbourIsSea)
+		{
+			neighbour->myRainfall = std::min(neighbour->myRainfall + rainfallDropped, 100.f);
 		}
 	}
 }
@@ -413,28 +398,38 @@ int main(int argc, char **argv)
 	// Create an empty PPM image
 	ppm* image = new ppm(locPictureDimension, locPictureDimension);
 
-	unsigned int seed = 100;//(unsigned int)time(nullptr);
+	unsigned int seed = (unsigned int)time(nullptr);
 
 	engine.seed(seed);
 	PerlinNoise pn(seed);
 
 	Grid grid;
-	grid.points.reserve(locGridNumOfElements * locGridNumOfElements);
-	grid.triangles.reserve((locGridNumOfElements - 1u) * (locGridNumOfElements - 1u) * 2u);
+	const unsigned int horizontalAmountOfPoints = (2 * locGridNumOfElements + 1u);
+	const unsigned int verticalAmountOfPoints = (locGridNumOfElements* 4.f / 3.f + 1u);
+	grid.points.reserve(horizontalAmountOfPoints * verticalAmountOfPoints);
+	const unsigned int verticalElements = locGridNumOfElements* 4.f / 3.f;
+	grid.cells.reserve(locGridNumOfElements * verticalElements);
 
-	for (unsigned int i = 0; i < locGridNumOfElements; ++i)
+	for (unsigned int i = 0; i < verticalAmountOfPoints; ++i)
 	{
-		for (unsigned int j = 0; j < locGridNumOfElements; ++j)
+		for (unsigned int j = 0; j < horizontalAmountOfPoints; ++j)
 		{
-			const auto x = (float)j * locDistanceBetweenElements;
-			const auto y = (float)i * locDistanceBetweenElements;
+			const auto x = (float)j * locDistanceBetweenElements / 2.f;
+
+			float isVerticalOdd = (i % 2 != 0) ? 1.f : 0.f;
+			float isHorizontalOdd = (j % 2 != 0) ? 1.f : 0.f;
+			if (isVerticalOdd)
+			{
+				isHorizontalOdd = 1.f - isHorizontalOdd;
+			}
+			const auto y = ((float)i * 3.f / 4.f + 1.f / 4.f * isHorizontalOdd) * locDistanceBetweenElements;
 
 			auto adjustedX = x;
 			auto adjustedY = y;
 
 			vec2 warp;
-			warp.x = floatDistribution(engine);
-			warp.y = floatDistribution(engine);
+			warp.x = floatDistribution(engine) - .5f;
+			warp.y = floatDistribution(engine) - .5f;
 			float norm = sqrt(pow(warp.x, 2) + pow(warp.y, 2));
 			if (norm > 1.f)
 			{
@@ -442,51 +437,41 @@ int main(int argc, char **argv)
 				warp.y /= norm;
 			}
 
-			if (i > 0 && i < locGridNumOfElements - 1)
+			if (i > 0 && i < verticalAmountOfPoints - 1)
 			{
-				adjustedY = clamp(y + warp.x * locDistanceBetweenElements / 3.f, 0.f, locMapSize);
+				adjustedY = clamp(y + warp.x * locDistanceBetweenElements / 2.f, 0.f, locMapSize);
 			}
-			if (j > 0 && j < locGridNumOfElements - 1)
+			if (j > 0 && j < horizontalAmountOfPoints - 1)
 			{
-				adjustedX = clamp(x + warp.y * locDistanceBetweenElements / 3.f, 0.f, locMapSize);
+				adjustedX = clamp(x + warp.y * locDistanceBetweenElements / 2.f, 0.f, locMapSize);
 			}
 
 			auto pointToAdd = Point(adjustedX, adjustedY);
-			pointToAdd.myTemperature = adjustedY / locMapSize;
 			grid.points.push_back(pointToAdd);
-
-			unsigned int xPixel = (unsigned int)(adjustedX / MetersPerPixel);
-			unsigned int yPixel = (unsigned int)(adjustedY / MetersPerPixel);
-			if (yPixel == locPictureDimension)
-			{
-				yPixel -= 1u;
-			}
-			if (xPixel == locPictureDimension)
-			{
-				xPixel -= 1u;
-			}
 		}
 	}
 
-	for (unsigned int i = 0; i < locGridNumOfElements - 1; ++i)
+	for (unsigned int i = 0; i < verticalElements; ++i)
 	{
 		for (unsigned int j = 0; j < locGridNumOfElements - 1; ++j)
 		{
-			const auto topLeftId = j + i * locGridNumOfElements;
-			const auto bottomLeftId = j + (i + 1) * locGridNumOfElements;
-			const auto bottomRightId = (j + 1) + (i + 1) * locGridNumOfElements;
-			const auto topRightId = (j + 1) + i * locGridNumOfElements;
+			float isVerticalEven = (i % 2 == 0) ? 1.f : 0.f;
+			const auto topLeftId = 2 * j + isVerticalEven + i * horizontalAmountOfPoints;
+			const auto topCenterId = (2 * j + 1 + isVerticalEven) + i * horizontalAmountOfPoints;
+			const auto topRightId = (2 * j + 2 + isVerticalEven) + i * horizontalAmountOfPoints;
+			const auto bottomLeftId = 2 * j + isVerticalEven + (i + 1) * horizontalAmountOfPoints;
+			const auto bottomCenterId = (2 * j + 1 + isVerticalEven) + (i + 1) * horizontalAmountOfPoints;
+			const auto bottomRightId = (2 * j + 2 + isVerticalEven) + (i + 1) * horizontalAmountOfPoints;
 
-			if (boolDistribution(engine))
-			{
-				AddTriangle(topLeftId, topRightId, bottomLeftId, grid);
-				AddTriangle(topRightId, bottomRightId, bottomLeftId, grid);
-			}
-			else
-			{
-				AddTriangle(topLeftId, topRightId, bottomRightId, grid);
-				AddTriangle(topLeftId, bottomRightId, bottomLeftId, grid);
-			}
+			std::vector<Point*> pointsToAdd;
+			pointsToAdd.push_back(&grid.points[topLeftId]);
+			pointsToAdd.push_back(&grid.points[topCenterId]);
+			pointsToAdd.push_back(&grid.points[topRightId]);
+			pointsToAdd.push_back(&grid.points[bottomRightId]);
+			pointsToAdd.push_back(&grid.points[bottomCenterId]);
+			pointsToAdd.push_back(&grid.points[bottomLeftId]);
+
+			AddCell(grid, pointsToAdd);
 		}
 	}
 
@@ -498,7 +483,7 @@ int main(int argc, char **argv)
 	{
 		const auto& pointPos = point.myPosition;
 
-		float cellNoise = 0;
+		float cellNoise = 0.f;
 
 		float freq = 1.f;
 		float amp = 1.f;
@@ -509,7 +494,7 @@ int main(int argc, char **argv)
 		float noiseDistAttenuation = 0.f;
 		for (int d = 1; d <= 4; d++)
 		{
-			noiseDistAttenuation += pn.noise(5.f * pow(2,d) * pointPos.x / locMapSize, 5.f * pow(2, d) * pointPos.y / locMapSize, 0) / pow(2, d);
+			noiseDistAttenuation += pn.noise(3.f * pow(2, d) * pointPos.x / locMapSize, 3.f * pow(2, d) * pointPos.y / locMapSize, 0) / pow(2, d);
 		}
 
 		float distToCenter = (std::max(abs(pointPos.x - midPos.x), abs(pointPos.y - midPos.y))) * (1.f + noiseDistAttenuation);
@@ -522,40 +507,32 @@ int main(int argc, char **argv)
 
 			auto softNoise = 0.f;
 
-			softNoise = pn.noise(freq * (pointPos.x + warpX) / (locMapSize / 4.f), freq * (pointPos.y + warpY) / (locMapSize / 4.f), 0.f) * distAttenuation;
+			softNoise = pn.noise(freq * (pointPos.x + warpX) / (locMapSize / 4.f), freq * (pointPos.y + warpY) / (locMapSize / 4.f), 0.f);
 
 			cellNoise += softNoise*amp;
 		}
 
-		const float locCoastalMountainsWidth = 0.05f;
+		cellNoise *= distAttenuation;
+
+		// MOUNTAINS
+		const float locCoastalMountainsWidth = 0.04f;
 		float coastalMountains = exp(-pow((cellNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
-
-		float continentalMountains = 1.f / (1.f + exp(-100.f * (cellNoise - (locSeaLevel+ 0.15f))));
-
+		float continentalMountains = 1.f / (1.f + exp(-100.f * (cellNoise - (locSeaLevel + 0.15f))));
 		float someRandomNoise = 1.f / (1 + exp(-40.f * (pn.noise((pointPos.x + warpX) / (locMapSize / 4.f), (pointPos.y + warpY) / (locMapSize / 10.f), 0.f) - 0.6f)));
-
 		cellNoise += (coastalMountains + continentalMountains) * someRandomNoise;
 
 		point.myHeight = cellNoise;
-
 		if (cellNoise > locSeaLevel)
 		{
 			point.myFlags |= (int)flags::Land;
 		}
-		if (cellNoise > .8f)
+		if (cellNoise > locSeaLevel + 0.35f)
 		{
 			point.myFlags |= (int)flags::Mountain;
 		}
 	}
 
-	//const float phase = 180.f * floatDistribution(engine);
-	vec2 windVector;
-	//windVector.x = sin(phase);
-	//windVector.y = cos(phase);
-	windVector.x = 1.f;
-	windVector.y = 1.f;
-	windVector.Normalize();
-
+	// TEMPERATURE
 	for (auto& point : grid.points)
 	{
 		auto isSea = (point.myFlags & (int)flags::Land) == 0;
@@ -563,42 +540,75 @@ int main(int argc, char **argv)
 
 		//point.myTemperature = 1 - abs(2.f / locMapSize * (point.myPosition.y - locMapSize / 2.f));
 		point.myTemperature = sin(M_PI / locMapSize*(locMapSize - point.myPosition.y));
-		point.myTemperature = clamp(point.myTemperature + 0.2f * (pn.noise(point.myPosition.x / (locMapSize * 0.1f), point.myPosition.y / (locMapSize * 0.1f), 0.f) - 0.5f), 0.f, 1.f);
+		float tempRandomness = 0.f;
+		for (int d = 1; d <= 4; d++)
+		{
+			tempRandomness += pn.noise(5.f * pow(2, d) * point.myPosition.x / locMapSize, 5.f * pow(2, d) * point.myPosition.y / locMapSize, 0) / pow(2, d);
+		}
+		point.myTemperature = clamp(point.myTemperature + 0.5f * (tempRandomness - 0.5f), 0.f, 1.f);
 		float altitudeInfluence = clamp((point.myHeight - locSeaLevel) * 0.5f, 0.f, 1.f);
 		point.myTemperature = clamp(point.myTemperature - altitudeInfluence, 0.f, 1.f);
 	}
 
-	for (int i = 0; i < locGridNumOfElements * 2; ++i)
+	// RAINFALL
+	const float phase = 2 * M_PI * floatDistribution(engine);
+	vec2 windVector;
+	windVector.x = sin(phase);
+	windVector.y = cos(phase);
+	const float iterations = locGridNumOfElements / 2;
+	for (int i = 0; i < iterations; ++i)
 	{
 		for (auto& point : grid.points)
 		{
-			PropagateRainfall(&point, windVector);
+			PropagateRainfall(&point, windVector, pn);
 		}
 	}
 
-	for (auto triangle : grid.triangles)
+	for (auto& point : grid.points)
 	{
-		DrawTriangleBiome(&image, triangle);
+		auto isSea = (point.myFlags & (int)flags::Land) == 0;
+		if (!isSea)
+		{
+			point.myRainfall = 5.f*point.myRainfall / (1.f + 5.f*point.myRainfall);
+		}
+	}
+
+	for (auto& point : grid.points)
+	{
+		//point.myRainfall += (1.f - point.myPosition.x / locMapSize) * 0.3f;
+		float rainRandomness = 0.f;
+		auto warpX = locMapSize / 6.f * (pn.noise(point.myPosition.x / (locMapSize / 4.f) + 0.3f, point.myPosition.y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
+		auto warpY = locMapSize / 6.f * (pn.noise(point.myPosition.x / (locMapSize / 4.f) + 0.3f, point.myPosition.y / (locMapSize / 4.f) + 0.3f, 1.f) - 0.5f);
+		for (int d = 1; d <= 4; d++)
+		{
+			rainRandomness += pn.noise(4.f * pow(2, d) * (point.myPosition.x + warpX) / locMapSize, 4.f * pow(2, d) * (point.myPosition.y + warpY) / locMapSize, 1) / pow(2, d);
+		}
+		point.myRainfall = clamp(point.myRainfall + (rainRandomness - 0.5f), 0.f, 1.f);
+	}
+
+	for (auto cell : grid.cells)
+	{
+		DrawTriangleBiome(&image, cell);
 	}
 
 	// Save the image in a binary PPM file
 	image->write("Biomes.ppm");
 
-	for (auto triangle : grid.triangles)
+	for (auto cell : grid.cells)
 	{
-		DrawTriangleTemperature(&image, triangle);
+		DrawTriangleTemperature(&image, cell);
 	}
 	image->write("Temperature.ppm");
 
-	for (auto triangle : grid.triangles)
+	for (auto cell : grid.cells)
 	{
-		DrawTriangleRainfall(&image, triangle);
+		DrawTriangleRainfall(&image, cell);
 	}
 	image->write("Rainfall.ppm");
 
-	for (auto triangle : grid.triangles)
+	for (auto cell : grid.cells)
 	{
-		DrawTriangleElevation(&image, triangle);
+		DrawTriangleElevation(&image, cell);
 	}
 	image->write("Elevation.ppm");
 
