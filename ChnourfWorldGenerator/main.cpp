@@ -11,7 +11,7 @@
 #include <time.h>
 
 # define M_PI           3.14159265358979323846  /* pi */
-const unsigned int locPictureDimension = 2048u;
+const unsigned int locPictureDimension = 1024u;
 const unsigned int MetersPerPixel = 64;
 const float locMapSize = (float)MetersPerPixel * (float)locPictureDimension;
 const unsigned int locGridNumOfElements = 128;
@@ -23,6 +23,10 @@ const unsigned int locDepth = 6u;
 const float gain = 0.5f;
 const float lacunarity = 1.90f;
 const float locSeaLevel = 0.45f;
+const float rainfallDiffusionCoefficient = 0.1f;
+const float rainfallMountainTransmissionRate = 0.4f;
+const float windNoisePatternSize = 5.f / locMapSize;
+const unsigned int riverNumber = pow(locGridNumOfElements / 16u, 2u);
 
 void SaveAsImage(ppm* anImage, float aData[], char* aName)
 {
@@ -41,6 +45,7 @@ enum class flags
 {
 	Land = 1 << 0,
 	Mountain = 1 << 1,
+	River = 1 << 2,
 };
 
 struct Grid
@@ -296,6 +301,21 @@ void DrawTriangleElevation(ppm** anImage, const Cell& cell)
 		elevationCol[1] = 0.f;
 	}
 
+	bool isNextToRiver = false;
+	for (auto point : cell.myPoints)
+	{
+		if ((point->myFlags & (int)flags::River) != 0)
+		{
+			isNextToRiver = true;
+			break;
+		}
+	}
+
+	if (isNextToRiver)
+	{
+		elevationCol[0] = 255.f;
+	}
+
 	const vec2 center = cell.GetCenter();
 	for (int i = 0; i < cell.myPoints.size(); ++i)
 	{
@@ -319,6 +339,27 @@ void AddCell(Grid& aGrid, std::vector<Point*> points)
 	aGrid.cells.push_back(Cell(points));
 }
 
+void CreateRiver(Point* aSource)
+{
+	// TO DO : try to elevate height if stuck, some randomness to direction (not lowest), cumulate flow : the further from source the higher
+	Point* currentPoint = aSource;
+
+	bool finished = false;
+	while (!finished)
+	{
+		auto nextPoint = *(std::min_element(currentPoint->myNeighbours.begin(), currentPoint->myNeighbours.end(), [](Point* a, Point* b) {return a->myHeight < b->myHeight;}));
+		if (nextPoint->myHeight > currentPoint->myHeight || ((nextPoint->myFlags & (int)flags::Land) == 0))
+		{
+			finished = true;
+		}
+		else
+		{
+			nextPoint->myFlags |= (int)flags::River;
+			currentPoint = nextPoint;
+		}
+	}
+}
+
 void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 {
 	if (aPoint->myRainfall < 0.001f)
@@ -328,7 +369,7 @@ void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 
 	// modifying wind vector to add some randomness
 	vec2 newWindDirection;
-	float seed = M_PI * (pn.noise(aPoint->myPosition.x * 5.f / locMapSize, aPoint->myPosition.y * 5.f / locMapSize, 0) - 0.5f); // between -90 and 90 degrees variation
+	float seed = M_PI * (pn.noise(aPoint->myPosition.x * windNoisePatternSize, aPoint->myPosition.y * windNoisePatternSize, 0.f) - 0.5f); // between -90 and 90 degrees variation
 	newWindDirection.x = cos(seed) * aWindDirection.x - sin(seed) * aWindDirection.y;
 	newWindDirection.y = sin(seed) * aWindDirection.x + cos(seed) * aWindDirection.y;
 
@@ -341,7 +382,7 @@ void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 		pointToNeighbour.y = neighbour->myPosition.y - aPoint->myPosition.y;
 		pointToNeighbour.Normalize();
 
-		float rainfallToTransfer = std::max(0.f, (pointToNeighbour.x * newWindDirection.x + pointToNeighbour.y * newWindDirection.y)) * 0.90f + 0.1f;
+		float rainfallToTransfer = std::max(0.f, (pointToNeighbour.x * newWindDirection.x + pointToNeighbour.y * newWindDirection.y)) * (1.f - rainfallDiffusionCoefficient) + rainfallDiffusionCoefficient;
 		rainfallTransmissions.push_back(rainfallToTransfer);
 	}
 
@@ -375,7 +416,7 @@ void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 		if (mountainFlag != 0)
 		{
 			// mountains influence rainfall, we symbolize it by reducing the quantity of rainfall transmitted by an arbitrary coefficient
-			rainfallDropped *= 0.4f;
+			rainfallDropped *= rainfallMountainTransmissionRate;
 		}
 
 		if (!pointIsSea)
@@ -398,6 +439,8 @@ int main(int argc, char **argv)
 	unsigned int seed = (unsigned int)time(nullptr);
 	engine.seed(seed);
 	PerlinNoise pn(seed);
+
+	std::vector<Point*> mountainPoints;
 
 	Grid grid;
 	const unsigned int horizontalAmountOfPoints = (2 * locGridNumOfElements + 1u);
@@ -528,6 +571,7 @@ int main(int argc, char **argv)
 		if (cellNoise > locSeaLevel + 0.35f)
 		{
 			point.myFlags |= (int)flags::Mountain;
+			mountainPoints.push_back(&point);
 		}
 	}
 
@@ -548,6 +592,19 @@ int main(int argc, char **argv)
 		point.myTemperature = clamp(point.myTemperature + 0.5f * (tempRandomness - 0.5f), 0.f, 1.f);
 		float altitudeInfluence = clamp((point.myHeight - locSeaLevel) * 0.5f, 0.f, 1.f);
 		point.myTemperature = clamp(point.myTemperature - altitudeInfluence, 0.f, 1.f);
+	}
+
+	//RIVERS
+	std::cout << "placing rivers..." << std::endl;
+	{
+		for (int i = 0; i < riverNumber; ++i)
+		{
+			auto pointId = (unsigned int)(mountainPoints.size() * floatDistribution(engine));
+			auto& point = mountainPoints[pointId];
+			point->myFlags |= (int)flags::River;
+
+			CreateRiver(point);
+		}
 	}
 
 	// RAINFALL
@@ -575,7 +632,6 @@ int main(int argc, char **argv)
 	}
 	for (auto& point : grid.points)
 	{
-		//point.myRainfall += (1.f - point.myPosition.x / locMapSize) * 0.3f;
 		float rainRandomness = 0.f;
 		auto warpX = locMapSize / 6.f * (pn.noise(point.myPosition.x / (locMapSize / 4.f) + 0.3f, point.myPosition.y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
 		auto warpY = locMapSize / 6.f * (pn.noise(point.myPosition.x / (locMapSize / 4.f) + 0.3f, point.myPosition.y / (locMapSize / 4.f) + 0.3f, 1.f) - 0.5f);
