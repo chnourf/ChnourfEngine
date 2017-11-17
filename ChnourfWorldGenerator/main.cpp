@@ -11,7 +11,7 @@
 #include <time.h>
 
 # define M_PI           3.14159265358979323846  /* pi */
-const unsigned int locPictureDimension = 1024u;
+const unsigned int locPictureDimension = 2048u;
 const unsigned int MetersPerPixel = 64;
 const float locMapSize = (float)MetersPerPixel * (float)locPictureDimension;
 const unsigned int locGridNumOfElements = 128;
@@ -26,7 +26,7 @@ const float locSeaLevel = 0.45f;
 const float rainfallDiffusionCoefficient = 0.1f;
 const float rainfallMountainTransmissionRate = 0.4f;
 const float windNoisePatternSize = 5.f / locMapSize;
-const unsigned int riverNumber = pow(locGridNumOfElements / 16u, 2u);
+const unsigned int riverNumber = pow(locGridNumOfElements / 8u, 2u);
 
 void SaveAsImage(ppm* anImage, float aData[], char* aName)
 {
@@ -153,6 +153,32 @@ void DeduceBiome(const float aTemperature, const float aRainfall, std::vector<fl
 	}
 }
 
+void DrawLine(ppm* anImage, const vec2 aStart, const vec2 aEnd, float* aCol)
+{
+	float dist = sqrt(pow(aStart.x - aEnd.x, 2) + pow(aStart.y - aEnd.y, 2));
+	unsigned int distInPixels = dist / MetersPerPixel;
+	for (unsigned int i = 0; i <= distInPixels; ++i)
+	{
+		float r = (float) i / (float) distInPixels;
+		vec2 point = vec2(lerp(r, aStart.x, aEnd.x), lerp(r, aStart.y, aEnd.y));
+
+		unsigned int xPixel = (unsigned int)point.x / MetersPerPixel;
+		unsigned int yPixel = (unsigned int)point.y / MetersPerPixel;
+		if (yPixel == locPictureDimension)
+		{
+			yPixel -= 1u;
+		}
+		if (xPixel == locPictureDimension)
+		{
+			xPixel -= 1u;
+		}
+
+		anImage->r[xPixel + yPixel * locPictureDimension] = aCol[0];
+		anImage->g[xPixel + yPixel * locPictureDimension] = aCol[1];
+		anImage->b[xPixel + yPixel * locPictureDimension] = aCol[2];
+	}
+}
+
 void DrawTriangle(ppm** anImage, const Triangle& triangle, std::vector<float> color)
 {
 	auto& a = *triangle.myA;
@@ -200,7 +226,7 @@ void DrawTriangle(ppm** anImage, const Triangle& triangle, std::vector<float> co
 	}
 }
 
-void DrawTriangleBiome(ppm** anImage, const Cell& cell)
+void DrawCellBiome(ppm** anImage, const Cell& cell)
 {
 	float Elevation = cell.GetElevation();
 	float Rainfall = cell.GetRainfall();
@@ -227,7 +253,7 @@ void DrawTriangleBiome(ppm** anImage, const Cell& cell)
 	}
 }
 
-void DrawTriangleRainfall(ppm** anImage, const Cell& cell)
+void DrawCellRainfall(ppm** anImage, const Cell& cell)
 {
 	const float Rainfall = cell.GetRainfall();
 	const float Elevation = cell.GetElevation();
@@ -256,7 +282,7 @@ void DrawTriangleRainfall(ppm** anImage, const Cell& cell)
 	}
 }
 
-void DrawTriangleTemperature(ppm** anImage, const Cell& cell)
+void DrawCellTemperature(ppm** anImage, const Cell& cell)
 {
 	const float Temperature = cell.GetTemperature();
 
@@ -276,7 +302,7 @@ void DrawTriangleTemperature(ppm** anImage, const Cell& cell)
 	}
 }
 
-void DrawTriangleElevation(ppm** anImage, const Cell& cell)
+void DrawCellElevation(ppm** anImage, const Cell& cell)
 {
 	//bool isMountain = ((a.myFlags & (int)flags::Mountain) && (c.myFlags & (int)flags::Mountain) && (c.myFlags & (int)flags::Mountain));
 	const float Elevation = cell.GetElevation();
@@ -301,21 +327,6 @@ void DrawTriangleElevation(ppm** anImage, const Cell& cell)
 		elevationCol[1] = 0.f;
 	}
 
-	bool isNextToRiver = false;
-	for (auto point : cell.myPoints)
-	{
-		if ((point->myFlags & (int)flags::River) != 0)
-		{
-			isNextToRiver = true;
-			break;
-		}
-	}
-
-	if (isNextToRiver)
-	{
-		elevationCol[0] = 255.f;
-	}
-
 	const vec2 center = cell.GetCenter();
 	for (int i = 0; i < cell.myPoints.size(); ++i)
 	{
@@ -323,6 +334,21 @@ void DrawTriangleElevation(ppm** anImage, const Cell& cell)
 		point.myPosition = center;
 		Triangle triangle = Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
 		DrawTriangle(anImage, triangle, elevationCol);
+	}
+}
+
+void DrawRiver(ppm** anImage, const Cell& cell)
+{
+	for (auto point : cell.myPoints)
+	{
+		for (auto neighbour : point->myNeighbours)
+		{
+			if (((point->myFlags & (int)flags::River) != 0) && ((neighbour->myFlags & (int)flags::River) != 0))
+			{
+				float waterCol[3] = { 0.f, 0.f, 255.f };
+				DrawLine(*anImage, point->myPosition, neighbour->myPosition, waterCol);
+			}
+		}
 	}
 }
 
@@ -348,7 +374,11 @@ void CreateRiver(Point* aSource)
 	while (!finished)
 	{
 		auto nextPoint = *(std::min_element(currentPoint->myNeighbours.begin(), currentPoint->myNeighbours.end(), [](Point* a, Point* b) {return a->myHeight < b->myHeight;}));
-		if (nextPoint->myHeight > currentPoint->myHeight || ((nextPoint->myFlags & (int)flags::Land) == 0))
+		if (nextPoint->myHeight > currentPoint->myHeight)
+		{
+			currentPoint->myHeight = nextPoint->myHeight + 0.001f;
+		}
+		else if ((nextPoint->myFlags & (int)flags::Land) == 0)
 		{
 			finished = true;
 		}
@@ -357,6 +387,7 @@ void CreateRiver(Point* aSource)
 			nextPoint->myFlags |= (int)flags::River;
 			currentPoint = nextPoint;
 		}
+		nextPoint->myFlags |= (int)flags::River;
 	}
 }
 
@@ -614,7 +645,8 @@ int main(int argc, char **argv)
 	windVector.x = sin(phase);
 	windVector.y = cos(phase);
 	// don't know yet how to link iterations number and resolution
-	const int iterations = locGridNumOfElements / 2; //pow(locGridNumOfElements / 16, 2);
+	//const int iterations = locGridNumOfElements / 2; //pow(locGridNumOfElements / 16, 2);
+	const int iterations = pow(locGridNumOfElements / 16, 2);
 	for (int i = 0; i < iterations; ++i)
 	{
 		for (auto& point : grid.points)
@@ -628,6 +660,12 @@ int main(int argc, char **argv)
 		if (!isSea)
 		{
 			point.myRainfall = 5.f*point.myRainfall / (1.f + 5.f*point.myRainfall);
+		}
+
+		// rivers don't increase rainfall stricto sensu but they tend to increase moisture in the area.
+		if ((point.myFlags & (int)flags::River) != 0)
+		{
+			point.myRainfall = clamp(point.myRainfall + 0.5f, 0.f, 1.f);
 		}
 	}
 	for (auto& point : grid.points)
@@ -646,25 +684,27 @@ int main(int argc, char **argv)
 	std::cout << "drawing output..." << std::endl;
 	for (auto cell : grid.cells)
 	{
-		DrawTriangleBiome(&image, cell);
+		DrawCellBiome(&image, cell);
+		DrawRiver(&image, cell);
 	}
 	image->write("Biomes.ppm");
 
 	for (auto cell : grid.cells)
 	{
-		DrawTriangleTemperature(&image, cell);
+		DrawCellTemperature(&image, cell);
 	}
 	image->write("Temperature.ppm");
 
 	for (auto cell : grid.cells)
 	{
-		DrawTriangleRainfall(&image, cell);
+		DrawCellRainfall(&image, cell);
 	}
 	image->write("Rainfall.ppm");
 
 	for (auto cell : grid.cells)
 	{
-		DrawTriangleElevation(&image, cell);
+		DrawCellElevation(&image, cell);
+		DrawRiver(&image, cell);
 	}
 	image->write("Elevation.ppm");
 
