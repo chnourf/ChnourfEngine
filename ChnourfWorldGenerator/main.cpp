@@ -12,7 +12,7 @@
 
 # define M_PI           3.14159265358979323846  /* pi */
 const unsigned int locPictureDimension = 2048u;
-const unsigned int MetersPerPixel = 64;
+const unsigned int MetersPerPixel = 128;
 const float locMapSize = (float)MetersPerPixel * (float)locPictureDimension;
 const unsigned int locGridNumOfElements = 128;
 const float locDistanceBetweenElements = locMapSize / (float)(locGridNumOfElements);
@@ -25,8 +25,8 @@ const float lacunarity = 1.90f;
 const float locSeaLevel = 0.45f;
 const float rainfallDiffusionCoefficient = 0.1f;
 const float rainfallMountainTransmissionRate = 0.4f;
-const float windNoisePatternSize = 5.f / locMapSize;
-const unsigned int riverNumber = pow(locGridNumOfElements / 8u, 2u);
+const float windNoisePatternSize = locMapSize / 5.f;
+const unsigned int riverNumber = pow(locGridNumOfElements / 16u, 2u);
 
 void SaveAsImage(ppm* anImage, float aData[], char* aName)
 {
@@ -63,6 +63,16 @@ void AddUnique(std::vector<Point*>& aVector, Point* anObject)
 
 float lerp(float t, float a, float b) {
 	return a + t * (b - a);
+}
+
+float dist(vec2 aX, vec2 aY)
+{
+	return sqrt(pow(aX.x - aY.x, 2) + pow(aX.y - aY.y, 2));
+}
+
+float dist(Point aX, Point aY)
+{
+	return dist(aX.myPosition, aY.myPosition);
 }
 
 float cross(vec2 aX, vec2 aY)
@@ -117,7 +127,7 @@ void DeduceBiome(const float aTemperature, const float aRainfall, std::vector<fl
 	{
 		if (aRainfall > 0.85f) // temperate rain forest
 		{
-			CreateCol(anOutCol, 144.f, 216.f, 148.f);
+			CreateCol(anOutCol, 159.f, 255.f, 144.f);
 		}
 		else if (aRainfall > 0.5f) // temperate deciduous forest
 		{
@@ -136,11 +146,11 @@ void DeduceBiome(const float aTemperature, const float aRainfall, std::vector<fl
 	{
 		if (aRainfall > 0.65f)
 		{
-			CreateCol(anOutCol, 136.f, 207.f, 149.f); // tropical rain forest
+			CreateCol(anOutCol, 162., 229.f, 96.f); // tropical rain forest
 		}
 		else if (aRainfall > 0.35f)
 		{
-			CreateCol(anOutCol, 159.f, 234.f, 144.f); // temperate rain forest
+			CreateCol(anOutCol, 159.f, 255.f, 144.f); // temperate rain forest
 		}
 		else if (aRainfall > 0.15f)
 		{
@@ -155,11 +165,11 @@ void DeduceBiome(const float aTemperature, const float aRainfall, std::vector<fl
 
 void DrawLine(ppm* anImage, const vec2 aStart, const vec2 aEnd, float* aCol)
 {
-	float dist = sqrt(pow(aStart.x - aEnd.x, 2) + pow(aStart.y - aEnd.y, 2));
-	unsigned int distInPixels = dist / MetersPerPixel;
+	float distance = dist(aStart, aEnd);
+	unsigned int distInPixels = distance / MetersPerPixel;
 	for (unsigned int i = 0; i <= distInPixels; ++i)
 	{
-		float r = (float) i / (float) distInPixels;
+		float r = (float)i / (float)distInPixels;
 		vec2 point = vec2(lerp(r, aStart.x, aEnd.x), lerp(r, aStart.y, aEnd.y));
 
 		unsigned int xPixel = (unsigned int)point.x / MetersPerPixel;
@@ -345,10 +355,19 @@ void DrawRiver(ppm** anImage, const Cell& cell)
 		{
 			if (((point->myFlags & (int)flags::River) != 0) && ((neighbour->myFlags & (int)flags::River) != 0))
 			{
-				float waterCol[3] = { 0.f, 0.f, 255.f };
+				float waterCol[3] = { 37.f, 125.f, 177.f };
 				DrawLine(*anImage, point->myPosition, neighbour->myPosition, waterCol);
 			}
 		}
+	}
+}
+
+void DrawRiver(ppm** anImage, std::vector<Point*> aRiver)
+{
+	float waterCol[3] = { 37.f, 125.f, 177.f };
+	for (auto it = aRiver.begin(); it < aRiver.end() - 1; ++it)
+	{
+		DrawLine(*anImage, (*it)->myPosition, (*(it + 1))->myPosition, waterCol);
 	}
 }
 
@@ -365,30 +384,104 @@ void AddCell(Grid& aGrid, std::vector<Point*> points)
 	aGrid.cells.push_back(Cell(points));
 }
 
-void CreateRiver(Point* aSource)
+std::vector<Point*> CreateRiver(Point* aSource)
 {
-	// TO DO : try to elevate height if stuck, some randomness to direction (not lowest), cumulate flow : the further from source the higher
 	Point* currentPoint = aSource;
+	std::vector<Point*> riverCandidates;
+	std::vector<Point*> failedCandidates;
+	riverCandidates.push_back(currentPoint);
 
-	bool finished = false;
-	while (!finished)
+	while (true)
 	{
-		auto nextPoint = *(std::min_element(currentPoint->myNeighbours.begin(), currentPoint->myNeighbours.end(), [](Point* a, Point* b) {return a->myHeight < b->myHeight;}));
+		Point* nextPoint = nullptr;
+		float lowestHeight = std::numeric_limits<float>::max();
+		for (auto neighbour : currentPoint->myNeighbours)
+		{
+			if (riverCandidates.size() > 1 && neighbour == riverCandidates[riverCandidates.size() - 2])
+			{
+				continue;
+			}
+
+			if (std::find(riverCandidates.begin(), riverCandidates.end(), neighbour) != riverCandidates.end())
+			{
+				continue;
+			}
+
+			if (std::find(failedCandidates.begin(), failedCandidates.end(), neighbour) != failedCandidates.end())
+			{
+				continue;
+			}
+
+			if (neighbour->myHeight < lowestHeight)
+			{
+				lowestHeight = neighbour->myHeight;
+				nextPoint = neighbour;
+			}
+		}
+		if (!nextPoint)
+		{
+			failedCandidates.push_back(currentPoint);
+			currentPoint = riverCandidates[riverCandidates.size() - 2];
+			riverCandidates.erase(riverCandidates.end() - 1);
+			continue;
+		}
+
 		if (nextPoint->myHeight > currentPoint->myHeight)
 		{
-			currentPoint->myHeight = nextPoint->myHeight + 0.001f;
+			nextPoint->myHeight = currentPoint->myHeight - std::numeric_limits<float>::min();
 		}
-		else if ((nextPoint->myFlags & (int)flags::Land) == 0)
+
+		riverCandidates.push_back(nextPoint);
+
+		if ((nextPoint->myFlags & (int)flags::Land) == 0)
 		{
-			finished = true;
+			break;
+		}
+		else if ((nextPoint->myFlags & (int)flags::River) != 0)
+		{
+			// joined an existing river
+			break;
 		}
 		else
 		{
-			nextPoint->myFlags |= (int)flags::River;
 			currentPoint = nextPoint;
 		}
-		nextPoint->myFlags |= (int)flags::River;
 	}
+
+	std::vector<Point*> river;
+	river.push_back(riverCandidates[0]);
+
+	auto it = riverCandidates.begin() + 1;
+	while (it < riverCandidates.end() - 1)
+	{
+		auto neighbourIt = riverCandidates.end();
+		for (auto neighbour : (*it)->myNeighbours)
+		{
+			if (neighbour == *(it + 1) || neighbour == *(it - 1))
+			{
+				continue;
+			}
+
+			neighbourIt = std::find(riverCandidates.begin(), riverCandidates.end(), neighbour);
+		}
+
+		if (neighbourIt != riverCandidates.end() && neighbourIt > it)
+		{
+			it = neighbourIt;
+		}
+		else
+		{
+			++it;
+		}
+		river.push_back(*it);
+	}
+
+	for (auto point : river)
+	{
+		point->myFlags |= (int)flags::River;
+	}
+
+	return river;
 }
 
 void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
@@ -400,7 +493,7 @@ void PropagateRainfall(Point* aPoint, vec2 aWindDirection, PerlinNoise pn)
 
 	// modifying wind vector to add some randomness
 	vec2 newWindDirection;
-	float seed = M_PI * (pn.noise(aPoint->myPosition.x * windNoisePatternSize, aPoint->myPosition.y * windNoisePatternSize, 0.f) - 0.5f); // between -90 and 90 degrees variation
+	float seed = M_PI * (pn.noise(aPoint->myPosition.x / windNoisePatternSize, aPoint->myPosition.y / windNoisePatternSize, 0.f) - 0.5f); // between -90 and 90 degrees variation
 	newWindDirection.x = cos(seed) * aWindDirection.x - sin(seed) * aWindDirection.y;
 	newWindDirection.y = sin(seed) * aWindDirection.x + cos(seed) * aWindDirection.y;
 
@@ -468,6 +561,7 @@ int main(int argc, char **argv)
 	ppm* image = new ppm(locPictureDimension, locPictureDimension);
 
 	unsigned int seed = (unsigned int)time(nullptr);
+	std::cout << "seed is " << seed << std::endl;
 	engine.seed(seed);
 	PerlinNoise pn(seed);
 
@@ -509,11 +603,11 @@ int main(int argc, char **argv)
 
 			if (i > 0 && i < verticalAmountOfPoints - 1)
 			{
-				adjustedY = clamp(y + warp.x * locDistanceBetweenElements / 2.f, 0.f, locMapSize);
+				adjustedY = clamp(y + warp.x * locDistanceBetweenElements / 3.f, 0.f, locMapSize);
 			}
 			if (j > 0 && j < horizontalAmountOfPoints - 1)
 			{
-				adjustedX = clamp(x + warp.y * locDistanceBetweenElements / 2.f, 0.f, locMapSize);
+				adjustedX = clamp(x + warp.y * locDistanceBetweenElements / 3.f, 0.f, locMapSize);
 			}
 
 			auto pointToAdd = Point(adjustedX, adjustedY);
@@ -572,7 +666,7 @@ int main(int argc, char **argv)
 
 		// warped fractal Perlin noise
 		auto warpX = locMapSize / 6.f * (pn.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
-		auto warpY = locMapSize / 6.f * (pn.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 1.f) - 0.5f);
+		auto warpY = locMapSize / 6.f * (pn.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 3.f) - 0.5f);
 		for (int d = 1; d <= 8; d++)
 		{
 			freq *= lacunarity;
@@ -626,6 +720,7 @@ int main(int argc, char **argv)
 	}
 
 	//RIVERS
+	std::vector<std::vector<Point*>> rivers;
 	std::cout << "placing rivers..." << std::endl;
 	{
 		for (int i = 0; i < riverNumber; ++i)
@@ -634,7 +729,7 @@ int main(int argc, char **argv)
 			auto& point = mountainPoints[pointId];
 			point->myFlags |= (int)flags::River;
 
-			CreateRiver(point);
+			rivers.push_back(CreateRiver(point));
 		}
 	}
 
@@ -665,7 +760,7 @@ int main(int argc, char **argv)
 		// rivers don't increase rainfall stricto sensu but they tend to increase moisture in the area.
 		if ((point.myFlags & (int)flags::River) != 0)
 		{
-			point.myRainfall = clamp(point.myRainfall + 0.5f, 0.f, 1.f);
+			point.myRainfall = clamp(point.myRainfall + 0.3f, 0.f, 1.f);
 		}
 	}
 	for (auto& point : grid.points)
@@ -685,7 +780,10 @@ int main(int argc, char **argv)
 	for (auto cell : grid.cells)
 	{
 		DrawCellBiome(&image, cell);
-		DrawRiver(&image, cell);
+	}
+	for (auto river : rivers)
+	{
+		DrawRiver(&image, river);
 	}
 	image->write("Biomes.ppm");
 
@@ -704,7 +802,11 @@ int main(int argc, char **argv)
 	for (auto cell : grid.cells)
 	{
 		DrawCellElevation(&image, cell);
-		DrawRiver(&image, cell);
+	}
+
+	for (auto river : rivers)
+	{
+		DrawRiver(&image, river);
 	}
 	image->write("Elevation.ppm");
 
