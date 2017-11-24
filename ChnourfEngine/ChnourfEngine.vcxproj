@@ -135,6 +135,7 @@
     <ClCompile Include="WorldGenerator\TerrainCellBuilder.cpp" />
     <ClCompile Include="WorldGenerator\TerrainGenerationFunctions.cpp" />
     <ClCompile Include="WorldGenerator\TerrainManager.cpp" />
+    <ClCompile Include="WorldGenerator\WorldGridGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Init\ContextInfo.h" />
@@ -168,10 +169,13 @@
     <ClInclude Include="Rendering\TextureFormat.h" />
     <ClInclude Include="Rendering\VertexFormat.h" />
     <ClInclude Include="Shaders\Environment.h" />
+    <ClInclude Include="WorldGenerator\Geometry.h" />
     <ClInclude Include="WorldGenerator\TerrainCell.h" />
     <ClInclude Include="WorldGenerator\TerrainCellBuilder.h" />
     <ClInclude Include="WorldGenerator\TerrainGenerationFunctions.h" />
     <ClInclude Include="WorldGenerator\TerrainManager.h" />
+    <ClInclude Include="WorldGenerator\WorldGridGenerationParameters.h" />
+    <ClInclude Include="WorldGenerator\WorldGridGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

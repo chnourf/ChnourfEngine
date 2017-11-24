@@ -96,6 +96,9 @@
     <ClCompile Include="WorldGenerator\TerrainGenerationFunctions.cpp">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClCompile>
+    <ClCompile Include="WorldGenerator\WorldGridGenerator.cpp">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Managers\ShaderManager.h">
@@ -201,6 +204,15 @@
       <Filter>Fichiers sources\Core</Filter>
     </ClInclude>
     <ClInclude Include="WorldGenerator\TerrainGenerationFunctions.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\Geometry.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\WorldGridGenerator.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\WorldGridGenerationParameters.h">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClInclude>
   </ItemGroup>
