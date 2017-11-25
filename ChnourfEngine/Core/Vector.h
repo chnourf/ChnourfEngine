@@ -13,12 +13,39 @@ template <class T> struct Vector2
 
 	Vector2(const T& anX):
 		x(anX),
-		y(anY)
+		y(anX)
 	{}
+
+	inline void Normalize()
+	{
+		T squareNorm = x*x + y*y;
+		if (squareNorm > 0)
+		{
+			const T invNorm = T(1) / (T)sqrt(squareNorm);
+			x *= invNorm;
+			y *= invNorm;
+		}
+	}
+
+	inline static T Distance(const Vector2<T> aVector, const Vector2<T> anOther)
+	{
+		return sqrt(pow(aVector.x - anOther.x, 2) + pow(aVector.y - anOther.y, 2));
+	}
+
+	inline static float Cross(const Vector2<T> aVector, const Vector2<T> anOther)
+	{
+		return aVector.x * anOther.y - anOther.x * aVector.y;
+	}
 
 	T x;
 	T y;
 };
+
+template <class T>
+Vector2<T> operator+(const Vector2<T>& l, const Vector2<T>& r)
+{
+	return Vector2<T>(l.x + r.x, l.y + r.y);
+}
 
 template <class T> struct Vector3
 {
@@ -33,6 +60,12 @@ template <class T> struct Vector3
 		x(aVec3.x),
 		y(aVec3.y),
 		z(aVec3.z)
+	{}
+
+	Vector3(const Vector2<T> aVec2) :
+		x(aVec2.x),
+		y(T(0)),
+		z(aVec2.y)
 	{}
 
 	Vector3(const T& anX):

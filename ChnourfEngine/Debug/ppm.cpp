@@ -132,3 +132,10 @@ void ppm::write(const std::string &fname) {
 	}
 	inp.close();
 }
+
+void ppm::setPixel(const vec2i& aPixel, const vec3i& aColor)
+{
+	r[aPixel.x + aPixel.y * width] = aColor.x;
+	g[aPixel.x + aPixel.y * width] = aColor.y;
+	b[aPixel.x + aPixel.y * width] = aColor.z;
+}

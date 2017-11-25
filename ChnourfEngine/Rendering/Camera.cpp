@@ -4,7 +4,7 @@
 #include "../Managers/InputManager.h"
 #include "glm\gtx\rotate_vector.hpp"
 
-bool locSpeedUp = false;
+int locSpeedMultiplier = 1;
 
 Camera::Camera()
 {
@@ -21,7 +21,11 @@ void Camera::Initialize(int aWindowWidth, int aWindowHeight)
 	Manager::InputManager::GetInstance()->OnKeyPressedSlot.Connect(std::bind([](unsigned char c)
 	{	if (c == '&')
 	{
-		locSpeedUp = !locSpeedUp;
+		locSpeedMultiplier *= 10;
+		if (locSpeedMultiplier > 100)
+		{
+			locSpeedMultiplier = 1;
+		}
 	}
 	}, std::placeholders::_1));
 }
@@ -29,7 +33,7 @@ void Camera::Initialize(int aWindowWidth, int aWindowHeight)
 void Camera::UpdateFromKeyboard()
 {
 	auto cameraSpeed = 10.f;
-	cameraSpeed *= locSpeedUp ? 20 : 1;
+	cameraSpeed *= locSpeedMultiplier;
 	cameraSpeed *= (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame();
 	auto cameraRight = glm::normalize(glm::cross(myCameraFront, myCameraUp));
 

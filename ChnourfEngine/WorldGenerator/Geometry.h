@@ -3,6 +3,8 @@
 #include <vector>
 #include <numeric>
 #include "../Core/Vector.h"
+#include "../WorldGenerator/TerrainGenerationFunctions.h"
+#include "../Core/Intersection.h"
 
 namespace TerrainGeneration
 {
@@ -61,7 +63,21 @@ namespace TerrainGeneration
 	struct Cell
 	{
 		Cell(std::vector<Point*> aPoints) :
-			myPoints(aPoints) {}
+			myPoints(aPoints),
+			myBiome(Biome::Invalid)
+		{
+			vec2f minPoint = vec2f(std::numeric_limits<float>::max());
+			vec2f maxPoint = vec2f(-std::numeric_limits<float>::min());
+			for (auto point : myPoints)
+			{
+				minPoint.x = std::min(minPoint.x, point->myPosition.x);
+				minPoint.y = std::min(minPoint.y, point->myPosition.y);
+				maxPoint.x = std::max(maxPoint.x, point->myPosition.x);
+				maxPoint.y = std::max(maxPoint.y, point->myPosition.y);
+			}
+
+			myAABB = AABB(vec3f(minPoint.x, 0.f, minPoint.y), vec3f(maxPoint.x, 0.f, maxPoint.y));
+		}
 
 		std::vector<Point*> myPoints;
 
@@ -106,6 +122,33 @@ namespace TerrainGeneration
 
 			return sum;
 		}
+
+		inline bool IsFlag(PointTypeFlags aFlag) const
+		{
+			auto result = true;
+			for (auto point : myPoints)
+			{
+				result &= ((point->myFlags & static_cast<int>(aFlag)) != 0);
+			}
+
+			return result;
+		}
+
+		inline void SetBiome()
+		{
+			assert(myBiome == Biome::Invalid);
+			myBiome = IsFlag(PointTypeFlags::Land) ? DeduceBiome(GetTemperature(), GetRainfall()) : Biome::Sea;
+		}
+
+		inline Biome GetBiome() const
+		{
+			//assert(myBiome != Biome::Invalid);
+			return myBiome;
+		}
+		AABB myAABB;
+
+	private:
+		Biome myBiome;
 	};
 
 	struct Grid

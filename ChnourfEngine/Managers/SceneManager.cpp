@@ -138,14 +138,14 @@ void SceneManager::NotifyBeginFrame()
 
 //ugly
 float atmospheric_depth(glm::vec3 position, glm::vec3 dir) {
-	float a = dot(dir, dir);
-	float b = 2.0*dot(dir, position);
-	float c = dot(position, position) - 1.0;
-	float det = b*b - 4.0*a*c;
-	float detSqrt = sqrt(det);
-	float q = (-b - detSqrt) / 2.0;
-	float t1 = c / q;
-	return t1;
+	double a = dot(dir, dir);
+	double b = 2.0*dot(dir, position);
+	double c = dot(position, position) - 1.0;
+	double det = b*b - 4.0*a*c;
+	double detSqrt = sqrt(det);
+	double q = (-b - detSqrt) / 2.0;
+	double t1 = c / q;
+	return (float) t1;
 }
 
 void SceneManager::NotifyDisplayFrame()
@@ -237,20 +237,20 @@ void SceneManager::NotifyDisplayFrame()
 	auto terrainShaderID = myShaderManager->GetShader("terrainShader");
 	glUseProgram(terrainShaderID);
 
-	GLuint cellSize = glGetUniformLocation(terrainShaderID, "cellSize");
-	glUniform1i(cellSize, TerrainManager::GetInstance()->GetCellSize());
+	GLuint tileSize = glGetUniformLocation(terrainShaderID, "tileSize");
+	glUniform1i(tileSize, TerrainManager::GetInstance()->GetTileSize());
 
-	GLuint cellResolution = glGetUniformLocation(terrainShaderID, "resolution");
-	glUniform1f(cellResolution, TerrainManager::GetInstance()->GetResolution());
+	GLuint tileResolution = glGetUniformLocation(terrainShaderID, "resolution");
+	glUniform1f(tileResolution, TerrainManager::GetInstance()->GetResolution());
 
 	auto terrainShadowShaderID = myShaderManager->GetShader("shadowMapTerrainShader");
 	glUseProgram(terrainShadowShaderID);
 
-	cellSize = glGetUniformLocation(terrainShadowShaderID, "cellSize");
-	glUniform1i(cellSize, TerrainManager::GetInstance()->GetCellSize());
+	tileSize = glGetUniformLocation(terrainShadowShaderID, "tileSize");
+	glUniform1i(tileSize, TerrainManager::GetInstance()->GetTileSize());
 
-	cellResolution = glGetUniformLocation(terrainShadowShaderID, "resolution");
-	glUniform1f(cellResolution, TerrainManager::GetInstance()->GetResolution());
+	tileResolution = glGetUniformLocation(terrainShadowShaderID, "resolution");
+	glUniform1f(tileResolution, TerrainManager::GetInstance()->GetResolution());
 	
 	myModelManager->Draw(cameraTransform, myShaderManager.get());
 

@@ -3,9 +3,11 @@
 #include "../Managers/SceneManager.h"
 #include "../Managers/ModelManager.h"
 #include "TerrainManager.h"
-#include "TerrainCell.h"
+#include "TerrainTile.h"
 
 #include "TerrainGenerationFunctions.h"
+
+#include "WorldGrid.h"
 
 #include <array>
 #include <iostream>
@@ -15,7 +17,7 @@
 namespace Manager
 {
 	TerrainManager::TerrainManager() :
-		myCellSize(0),
+		myTileSize(0),
 		myResolution(0),
 		myDetectionRadius(0)
 	{
@@ -28,8 +30,6 @@ namespace Manager
 
 			std::string field;
 			float value;
-			std::array<float, 4> landscapeRepartitionPercentages;
-			unsigned int currentPercentage = 0u;
 
 			while (ss >> field >> value)
 			{
@@ -38,48 +38,43 @@ namespace Manager
 					myDetectionRadius = (unsigned int) value;
 					myCachedRadius = (unsigned int) (value + 1);
 				}
-				else if (strcmp(field.c_str(), "CellSize") == 0)
+				else if (strcmp(field.c_str(), "TileSize") == 0)
 				{
-					myCellSize = (unsigned int) value;
+					myTileSize = (unsigned int) value;
 				}
-				else if (strcmp(field.c_str(), "CellResolution") == 0)
+				else if (strcmp(field.c_str(), "TileResolution") == 0)
 				{
 					myResolution = value;
 				}
-				else if (strcmp(field.c_str(), "LandscapeRepartitionPercentages") == 0)
-				{
-					landscapeRepartitionPercentages[currentPercentage] = value;
-					if (currentPercentage >= landscapeRepartitionPercentages.size())
-					{
-						assert(false);
-					}
-					++currentPercentage;
-				}
 			}
-
-			TerrainGeneration::SetLandscapeRepartitionConstants(landscapeRepartitionPercentages);
 		}
 
 		file.close();
 
-		auto mustBeAPowerOf2 = myCellSize - 1;
+		mySeed = time(NULL);
+		srand(mySeed);
+
+		auto mustBeAPowerOf2 = myTileSize - 1;
 		assert(((mustBeAPowerOf2 != 0) && ((mustBeAPowerOf2 & (~mustBeAPowerOf2 + 1)) == mustBeAPowerOf2)));
-		myCellBuilder = std::make_unique<TerrainCellBuilder> (myCellSize, myResolution);
+		myTileBuilder = std::make_unique<TerrainTileBuilder>(myTileSize, myResolution, mySeed);
+		myWorldGrid = std::make_unique<TerrainGeneration::WorldGrid> (mySeed);
+
+		myWorldGrid.get()->Generate();
 	}
 
 	TerrainManager::~TerrainManager()
 	{
-		for (auto cell : myActiveCells)
+		for (auto tile : myActiveTiles)
 		{
-			delete cell;
+			delete tile;
 		}
 	}
 
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
-		myCellBuilder->Update();
+		myTileBuilder->Update();
 
-		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myCellSize*myResolution), aPlayerPosition.z / (myCellSize*myResolution));
+		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myTileSize*myResolution), aPlayerPosition.z / (myTileSize*myResolution));
 
 		// detection square
 		const int minX = positionOnGrid.x - myDetectionRadius;
@@ -90,7 +85,7 @@ namespace Manager
 		{
 			for (int y = minY; y < maxY; y++)
 			{
-				auto cell = vec2i(x, y);
+				auto tile = vec2i(x, y);
 
 				// detection circle
 				if (pow(x - positionOnGrid.x, 2) + pow(y - positionOnGrid.y, 2) > pow(myDetectionRadius, 2))
@@ -98,74 +93,69 @@ namespace Manager
 					continue;
 				}
 				
-				if (!IsCellLoaded(cell) && !IsCellLoading(cell))
+				if (!IsTileLoaded(tile) && !IsTileLoading(tile))
 				{
-					LoadCell(vec2i(x, y));
+					LoadTile(vec2i(x, y));
 				}
 			}
 		}
 
-		auto loadingCellsIt = myCellsToLoad.begin();
-		while (loadingCellsIt < myCellsToLoad.end())
+		auto loadingTilesIt = myTilesToLoad.begin();
+		while (loadingTilesIt < myTilesToLoad.end())
 		{
-			if ((*loadingCellsIt)->IsBuilt())
+			if ((*loadingTilesIt)->IsBuilt())
 			{
-				myActiveCells.push_back(*loadingCellsIt);
-				SceneManager::GetInstance()->GetModelManager()->AddTerrainCell(*loadingCellsIt, myCellSize, myResolution);
-				std::cout << "adding a cell " << myActiveCells.size() << std::endl;
-				loadingCellsIt = myCellsToLoad.erase(loadingCellsIt);
+				myActiveTiles.push_back(*loadingTilesIt);
+				SceneManager::GetInstance()->GetModelManager()->AddTerrainTile(*loadingTilesIt, myTileSize, myResolution);
+				//std::cout << "adding a tile " << myActiveTiles.size() << std::endl;
+				loadingTilesIt = myTilesToLoad.erase(loadingTilesIt);
 			}
 			else
 			{
-				++loadingCellsIt;
+				++loadingTilesIt;
 			}
 		}
 
-		auto activeCellsIt = myActiveCells.begin();
-		while (activeCellsIt < myActiveCells.end())
+		auto activeTilesIt = myActiveTiles.begin();
+		while (activeTilesIt < myActiveTiles.end())
 		{
-			const vec2i tileIndex = (*activeCellsIt)->GetGridIndex();
+			const vec2i tileIndex = (*activeTilesIt)->GetGridIndex();
 			if (pow(tileIndex.x - positionOnGrid.x, 2) + pow(tileIndex.y - positionOnGrid.y, 2) > pow(myCachedRadius, 2))
 			{
-				SceneManager::GetInstance()->GetModelManager()->RemoveTerrainCell(tileIndex);
-				delete *activeCellsIt;
-				activeCellsIt = myActiveCells.erase(activeCellsIt);
+				SceneManager::GetInstance()->GetModelManager()->RemoveTerrainTile(tileIndex);
+				delete *activeTilesIt;
+				activeTilesIt = myActiveTiles.erase(activeTilesIt);
 			}
 			else
 			{
-				++activeCellsIt;
+				++activeTilesIt;
 			}
 		}
 	}
 
-	bool TerrainManager::IsCellLoaded(const vec2i& aCellIndex)
+	bool TerrainManager::IsTileLoaded(const vec2i& aTileIndex)
 	{
-		auto result = false;
-		auto it = std::find_if(myActiveCells.begin(), myActiveCells.end(), [aCellIndex](TerrainCell* aLoadedCell) {return aLoadedCell->GetGridIndex() == aCellIndex; });
-		if (it != myActiveCells.end())
-		{
-			result = true;
-		}
-
-		return result;
+		return std::find_if(myActiveTiles.begin(), myActiveTiles.end(),
+			[aTileIndex](TerrainTile* aLoadedTile)
+		{return aLoadedTile->GetGridIndex() == aTileIndex; })
+			!= myActiveTiles.end();
 	}
 
-	bool TerrainManager::IsCellLoading(const vec2i& aCellIndex)
+	bool TerrainManager::IsTileLoading(const vec2i& aTileIndex)
 	{
-		auto result = false;
-		auto it = std::find_if(myCellsToLoad.begin(), myCellsToLoad.end(), [aCellIndex](TerrainCell* aCellToLoad) {return aCellToLoad->GetGridIndex() == aCellIndex; });
-		if (it != myCellsToLoad.end())
-		{
-			result = true;
-		}
-
-		return result;
+		return std::find_if(myTilesToLoad.begin(), myTilesToLoad.end(),
+			[aTileIndex](TerrainTile* aTileToLoad) 
+		{return aTileToLoad->GetGridIndex() == aTileIndex; })
+			!= myTilesToLoad.end();
 	}
 
-	void TerrainManager::LoadCell(const vec2i& aGridIndex)
+	void TerrainManager::LoadTile(const vec2i& aGridIndex)
 	{
-		auto cell = new TerrainCell(aGridIndex, myCellSize, myResolution);
-		myCellsToLoad.push_back(cell);
-		myCellBuilder->BuildCellRequest(cell);
+		auto tilePosition = vec2f((float) aGridIndex.x * (float) myTileSize * myResolution, (float) aGridIndex.y * (float) myTileSize * myResolution);
+		const auto cell = SampleGrid(tilePosition);
+
+		auto tile = new TerrainTile(aGridIndex, myTileSize, myResolution, cell);
+		myTilesToLoad.push_back(tile);
+		myTileBuilder->BuildTileRequest(tile);
 	}
 }

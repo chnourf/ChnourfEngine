@@ -37,6 +37,9 @@
     <Filter Include="Fichiers sources\WorldGenerator">
       <UniqueIdentifier>{a0eee518-e479-4402-b502-6651d44007af}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers sources\Debug">
+      <UniqueIdentifier>{cc1bb13a-34a4-4644-b8e1-4e6864fa05ce}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -69,20 +72,11 @@
     <ClCompile Include="Rendering\Cubemap.cpp">
       <Filter>Fichiers sources\Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="WorldGenerator\TerrainCell.cpp">
-      <Filter>Fichiers sources\WorldGenerator</Filter>
-    </ClCompile>
     <ClCompile Include="WorldGenerator\TerrainManager.cpp">
-      <Filter>Fichiers sources\WorldGenerator</Filter>
-    </ClCompile>
-    <ClCompile Include="WorldGenerator\TerrainCellBuilder.cpp">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClCompile>
     <ClCompile Include="Core\PerlinNoise.cpp">
       <Filter>Fichiers sources\Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Rendering\Models\TerrainCellModel.cpp">
-      <Filter>Fichiers sources\Rendering\Models</Filter>
     </ClCompile>
     <ClCompile Include="Core\UID.cpp">
       <Filter>Fichiers sources\Core</Filter>
@@ -96,8 +90,23 @@
     <ClCompile Include="WorldGenerator\TerrainGenerationFunctions.cpp">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClCompile>
-    <ClCompile Include="WorldGenerator\WorldGridGenerator.cpp">
+    <ClCompile Include="Debug\ppm.cpp">
+      <Filter>Fichiers sources\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\WorldGridGeneratorDebugDraw.cpp">
+      <Filter>Fichiers sources\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldGenerator\WorldGrid.cpp">
       <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldGenerator\TerrainTile.cpp">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldGenerator\TerrainTileBuilder.cpp">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Models\TerrainTileModel.cpp">
+      <Filter>Fichiers sources\Rendering\Models</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -167,13 +176,7 @@
     <ClInclude Include="Rendering\Cubemap.h">
       <Filter>Fichiers sources\Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="WorldGenerator\TerrainCell.h">
-      <Filter>Fichiers sources\WorldGenerator</Filter>
-    </ClInclude>
     <ClInclude Include="WorldGenerator\TerrainManager.h">
-      <Filter>Fichiers sources\WorldGenerator</Filter>
-    </ClInclude>
-    <ClInclude Include="WorldGenerator\TerrainCellBuilder.h">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClInclude>
     <ClInclude Include="Core\PerlinNoise.h">
@@ -181,9 +184,6 @@
     </ClInclude>
     <ClInclude Include="Core\Vector.h">
       <Filter>Fichiers sources\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\Models\TerrainCellModel.h">
-      <Filter>Fichiers sources\Rendering\Models</Filter>
     </ClInclude>
     <ClInclude Include="Core\Intersection.h">
       <Filter>Fichiers sources\Core</Filter>
@@ -209,11 +209,26 @@
     <ClInclude Include="WorldGenerator\Geometry.h">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClInclude>
-    <ClInclude Include="WorldGenerator\WorldGridGenerator.h">
-      <Filter>Fichiers sources\WorldGenerator</Filter>
-    </ClInclude>
     <ClInclude Include="WorldGenerator\WorldGridGenerationParameters.h">
       <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug\ppm.h">
+      <Filter>Fichiers sources\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug\WorldGridGeneratorDebugDraw.h">
+      <Filter>Fichiers sources\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\WorldGrid.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\TerrainTile.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldGenerator\TerrainTileBuilder.h">
+      <Filter>Fichiers sources\WorldGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Models\TerrainTileModel.h">
+      <Filter>Fichiers sources\Rendering\Models</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

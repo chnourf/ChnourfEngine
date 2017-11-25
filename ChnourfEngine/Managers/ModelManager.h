@@ -6,7 +6,7 @@
 
 using namespace Rendering;
 
-class TerrainCell;
+class TerrainTile;
 
 class Camera;
 
@@ -29,8 +29,8 @@ namespace Manager
 
 		void CullScene(const Camera& aCamera);
 
-		void AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution);
-		void RemoveTerrainCell(const vec2i& anIndex);
+		void AddTerrainTile(const TerrainTile* aTile, int aTileSize, float aResolution);
+		void RemoveTerrainTile(const vec2i& anIndex);
 
 		inline const std::vector<TextureFormat>& GetLoadedTextures() { return myLoadedTextures; }
 		inline void AddLoadedTexture(const TextureFormat& aTexture) {

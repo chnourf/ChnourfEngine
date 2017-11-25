@@ -1,6 +1,7 @@
 //Process a binary PPM file
 #include <vector>
 #include <string>
+#include "../Core/Vector.h"
 
 #ifndef PPM_H
 #define PPM_H
@@ -12,11 +13,6 @@ class ppm {
 	unsigned int nr_columns;
 
 public:
-	//arrays for storing the R,G,B values
-	std::vector<unsigned char> r;
-	std::vector<unsigned char> g;
-	std::vector<unsigned char> b;
-	//
 	unsigned int height;
 	unsigned int width;
 	unsigned int max_col_val;
@@ -32,6 +28,15 @@ public:
 	void read(const std::string &fname);
 	//write the PPM image in fname
 	void write(const std::string &fname);
+
+	void setPixel(const vec2i& aPixel, const vec3i& aColor);
+
+private:
+	//arrays for storing the R,G,B values
+	std::vector<unsigned char> r;
+	std::vector<unsigned char> g;
+	std::vector<unsigned char> b;
+	//
 };
 
 #endif

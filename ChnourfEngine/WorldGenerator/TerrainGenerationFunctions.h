@@ -18,17 +18,21 @@ namespace TerrainGeneration
 
 	enum class Biome
 	{
+		Snow,
 		Tundra,
-		BorealForest,
-		Woodland,
+		Bare,
+		Scorched,
+		Taiga,
+		Shrubland,
+		TemperateDesert,
+		TemperateRainForest,
+		TemperateDeciduousForest,
 		Grassland,
-		SeasonalForest,
-		RainForest,
-		Forest,
-		Swamp,
-		Desert,
-		Savanna,
+		TropicalRainForest,
+		SubtropicalDesert,
+		Sea,
 		Count,
+		Invalid = -1,
 	};
 
 	enum class LandscapeType
@@ -41,9 +45,7 @@ namespace TerrainGeneration
 		Count,
 	};
 	
-	Biome GetBiome(const float aTemperature, const float aRainfall);
+	Biome DeduceBiome(const float aTemperature, const float aRainfall);
 
-	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aCellSize, std::default_random_engine aRandomEngine);
-
-	void SetLandscapeRepartitionConstants(const std::array<float,4> anArray);
+	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize, std::default_random_engine aRandomEngine);
 }

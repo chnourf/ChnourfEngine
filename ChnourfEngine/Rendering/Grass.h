@@ -1,11 +1,11 @@
 #include <future>
 #include <random>
 #include <vector>
-#include "Models/TerrainCellModel.h"
-//#include "../WorldGenerator/TerrainCell.h"
+#include "Models/TerrainTileModel.h"
+//#include "../WorldGenerator/TerrainTile.h"
 
 struct TerrainVertex;
-class TerrainCell;
+class TerrainTile;
 
 struct GrassInstance
 {
@@ -21,22 +21,22 @@ struct GrassInstance
 class Grass
 {
 public:
-	Grass(unsigned int aCellSize, float aResolution, int aSeed);
+	Grass(unsigned int aTileSize, float aResolution, int aSeed);
 	~Grass();
 
 	void Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture);
-	void Update(bool aMustGenerate, const TerrainCell* aCell);
+	void Update(bool aMustGenerate, const TerrainTile* aTile);
 	void Reset();
 
 	__forceinline bool IsGenerated() const{ return myIsGenerated; }
 
 private:
 	void OnGrassGenerationComplete();
-	void GenerateGrass(const TerrainCell* aCell);
+	void GenerateGrass(const TerrainTile* aTile);
 
 	std::vector<GrassInstance> myGrassData;
 	unsigned int myDensityPerSqMeter;
-	unsigned int myCellSize;
+	unsigned int myTileSize;
 	int mySeed;
 	std::default_random_engine myRandomEngine;
 	float myResolution;

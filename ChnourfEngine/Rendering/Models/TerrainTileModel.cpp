@@ -1,5 +1,5 @@
-#include "TerrainCellModel.h"
-#include "../../WorldGenerator/TerrainCell.h"
+#include "TerrainTileModel.h"
+#include "../../WorldGenerator/TerrainTile.h"
 #include "../../Managers/ModelManager.h"
 #include "../Grass.h"
 #include "../../Managers/SceneManager.h"
@@ -7,14 +7,16 @@
 
 #include "../../WorldGenerator/TerrainManager.h"
 
+#include "../../Debug/WorldGridGeneratorDebugDraw.h"
+
 
 namespace Rendering
 {
 	namespace Models
 	{
-		std::vector<GLuint> TerrainCellModel::ourIndices[myNumLOD] = { std::vector<GLuint>(), std::vector<GLuint>(), std::vector<GLuint>(), std::vector<GLuint>() };
+		std::vector<GLuint> TerrainTileModel::ourIndices[myNumLOD] = { std::vector<GLuint>(), std::vector<GLuint>(), std::vector<GLuint>(), std::vector<GLuint>() };
 
-		void TerrainCellModel::CreateAndGenerateBuffers(GLuint& aVao, GLuint& aVbo, GLuint& aEbo, int aLod)
+		void TerrainTileModel::CreateAndGenerateBuffers(GLuint& aVao, GLuint& aVbo, GLuint& aEbo, int aLod)
 		{
 			glGenVertexArrays(1, &aVao);
 			glGenBuffers(1, &aVbo);
@@ -39,37 +41,37 @@ namespace Rendering
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 
-		void TerrainCellModel::AddFace(int aLod, unsigned int a, unsigned int b, unsigned int c)
+		void TerrainTileModel::AddFace(int aLod, unsigned int a, unsigned int b, unsigned int c)
 		{
 			ourIndices[aLod].push_back(a);
 			ourIndices[aLod].push_back(b);
 			ourIndices[aLod].push_back(c);
 		}
 
-		TerrainCellModel::TerrainCellModel(const TerrainCell* aCell, unsigned int aCellSize, float aResolution)
+		TerrainTileModel::TerrainTileModel(const TerrainTile* aTile, unsigned int aTileSize, float aResolution)
 		{
-			myTerrainCell = aCell;
+			myTerrainTile = aTile;
 
-			vec3f aMin = vec3f((float)myTerrainCell->GetGridIndex().x*aCellSize*aResolution, myTerrainCell->GetMinHeight(), (float)myTerrainCell->GetGridIndex().y*aCellSize*aResolution);
-			vec3f aMax = vec3f((float) (myTerrainCell->GetGridIndex().x+1)*aCellSize*aResolution, myTerrainCell->GetMaxHeight(), (float) (myTerrainCell->GetGridIndex().y+1)*aCellSize*aResolution);
+			vec3f aMin = vec3f((float)myTerrainTile->GetGridIndex().x*aTileSize*aResolution, myTerrainTile->GetMinHeight(), (float)myTerrainTile->GetGridIndex().y*aTileSize*aResolution);
+			vec3f aMax = vec3f((float) (myTerrainTile->GetGridIndex().x+1)*aTileSize*aResolution, myTerrainTile->GetMaxHeight(), (float) (myTerrainTile->GetGridIndex().y+1)*aTileSize*aResolution);
 
 			myAABB = AABB(aMin, aMax);
-			myPosition = vec3f((myTerrainCell->GetGridIndex().x + 0.5f)*aCellSize*aResolution, 0.f, (myTerrainCell->GetGridIndex().y + 0.5f)*aCellSize*aResolution);
+			myPosition = vec3f((myTerrainTile->GetGridIndex().x + 0.5f)*aTileSize*aResolution, 0.f, (myTerrainTile->GetGridIndex().y + 0.5f)*aTileSize*aResolution);
 
-			vertices.reserve(aCellSize*aCellSize);
+			vertices.reserve(aTileSize*aTileSize);
 			
 			if (ourIndices[0].capacity() == 0)
 			{
 				for (unsigned int i = 0; i <= myMaxLOD; ++i)
 				{
 					//calculations to be remade
-					ourIndices[i].reserve(7 * ((aCellSize - 1) / pow(2, i))*((aCellSize - 1) / pow(2, i)));
+					ourIndices[i].reserve(7 * ((aTileSize - 1) / pow(2, i))*((aTileSize - 1) / pow(2, i)));
 				}
 			}
 			
-			for (unsigned short i = 0; i < aCellSize; ++i) {
-				for (unsigned short j = 0; j < aCellSize; ++j) {
-					auto& element = myTerrainCell->GetElement(i + j*aCellSize);
+			for (unsigned short i = 0; i < aTileSize; ++i) {
+				for (unsigned short j = 0; j < aTileSize; ++j) {
+					auto& element = myTerrainTile->GetElement(i + j*aTileSize);
 
 					unsigned char x = element.myNormal.x * 128 + 127;
 					unsigned char y = element.myNormal.y * 128 + 127;
@@ -81,36 +83,36 @@ namespace Rendering
 				}
 			}
 
-			// should be done for the first cell only
+			// should be done for the first tile only
 			if (ourIndices[0].size() == 0)
 			{
-				for (unsigned short i = 0; i < (aCellSize - 1); i++) {
-					for (unsigned short j = 0; j < (aCellSize - 1); j++) {
+				for (unsigned short i = 0; i < (aTileSize - 1); i++) {
+					for (unsigned short j = 0; j < (aTileSize - 1); j++) {
 						bool isEven = i % 2 == 0;
 						//alternance even odd
 						if (isEven)
 						{
 							AddFace(0,
-								i + j * aCellSize,
-								i + ((j + 1) % aCellSize)*aCellSize,
-								(i + 1) % aCellSize + j*aCellSize);
+								i + j * aTileSize,
+								i + ((j + 1) % aTileSize)*aTileSize,
+								(i + 1) % aTileSize + j*aTileSize);
 
 							AddFace(0,
-								(i + 1) % aCellSize + j*aCellSize,
-								i + ((j + 1) % aCellSize)*aCellSize,
-								(i + 1) % aCellSize + ((j + 1) % aCellSize)*aCellSize);
+								(i + 1) % aTileSize + j*aTileSize,
+								i + ((j + 1) % aTileSize)*aTileSize,
+								(i + 1) % aTileSize + ((j + 1) % aTileSize)*aTileSize);
 						}
 						else
 						{
 							AddFace(0,
-								i + j * aCellSize,
-								(i + 1) % aCellSize + ((j + 1) % aCellSize)*aCellSize,
-								(i + 1) % aCellSize + j*aCellSize);
+								i + j * aTileSize,
+								(i + 1) % aTileSize + ((j + 1) % aTileSize)*aTileSize,
+								(i + 1) % aTileSize + j*aTileSize);
 
 							AddFace(0,
-								i + j * aCellSize,
-								i + ((j + 1) % aCellSize)*aCellSize,
-								(i + 1) % aCellSize + ((j + 1) % aCellSize)*aCellSize);
+								i + j * aTileSize,
+								i + ((j + 1) % aTileSize)*aTileSize,
+								(i + 1) % aTileSize + ((j + 1) % aTileSize)*aTileSize);
 						}
 					}
 				}
@@ -119,106 +121,106 @@ namespace Rendering
 				for (unsigned int lod = 1; lod <= myMaxLOD; ++lod)
 				{
 					const int scale = pow(2, lod);
-					for (unsigned short i = scale; i < (aCellSize - 2*scale); i += scale) {
-						for (unsigned short j = scale; j < (aCellSize - 2 * scale); j += scale) {
+					for (unsigned short i = scale; i < (aTileSize - 2*scale); i += scale) {
+						for (unsigned short j = scale; j < (aTileSize - 2 * scale); j += scale) {
 							bool isEven = i % 2 == 0;
 							//alternance even odd
 							if (isEven)
 							{
 								AddFace(lod,
-									i + j * aCellSize,
-									i + ((j + scale) % aCellSize)*aCellSize,
-									(i + scale) % aCellSize + j*aCellSize);
+									i + j * aTileSize,
+									i + ((j + scale) % aTileSize)*aTileSize,
+									(i + scale) % aTileSize + j*aTileSize);
 
 								AddFace(lod,
-									(i + scale) % aCellSize + j*aCellSize,
-									i + ((j + scale) % aCellSize)*aCellSize,
-									(i + scale) % aCellSize + ((j + scale) % aCellSize)*aCellSize);
+									(i + scale) % aTileSize + j*aTileSize,
+									i + ((j + scale) % aTileSize)*aTileSize,
+									(i + scale) % aTileSize + ((j + scale) % aTileSize)*aTileSize);
 							}
 							else
 							{
 								AddFace(lod,
-									i + j * aCellSize,
-									(i + scale) % aCellSize + ((j + scale) % aCellSize)*aCellSize,
-									(i + scale) % aCellSize + j*aCellSize);
+									i + j * aTileSize,
+									(i + scale) % aTileSize + ((j + scale) % aTileSize)*aTileSize,
+									(i + scale) % aTileSize + j*aTileSize);
 
 								AddFace(lod,
-									i + j * aCellSize,
-									i + ((j + scale) % aCellSize)*aCellSize,
-									(i + scale) % aCellSize + ((j + scale) % aCellSize)*aCellSize);
+									i + j * aTileSize,
+									i + ((j + scale) % aTileSize)*aTileSize,
+									(i + scale) % aTileSize + ((j + scale) % aTileSize)*aTileSize);
 							}
 						}
 					}
 
 					//edges
-					for (unsigned short i = 0; i < aCellSize; ++i) {
-						for (unsigned short j = 0; j < aCellSize; ++j) {
+					for (unsigned short i = 0; i < aTileSize; ++i) {
+						for (unsigned short j = 0; j < aTileSize; ++j) {
 							
 							// top edge
-							if (j == 0 && i < aCellSize - 1)
+							if (j == 0 && i < aTileSize - 1)
 							{
 								AddFace(lod,
 									i,
-									((i + scale / 2) / scale) * scale + aCellSize*scale,
+									((i + scale / 2) / scale) * scale + aTileSize*scale,
 									i + 1);
 
 								if ((i + scale / 2) % scale == 0)
 								{
 									AddFace(lod,
 										i,
-										floor(i / scale) * scale + aCellSize * scale,
-										floor(i / scale) * scale + (aCellSize + 1) * scale);
+										floor(i / scale) * scale + aTileSize * scale,
+										floor(i / scale) * scale + (aTileSize + 1) * scale);
 								}
 							}
 
 							// bottom edge
-							if (j == aCellSize - 1 && i < aCellSize - 1)
+							if (j == aTileSize - 1 && i < aTileSize - 1)
 							{
 								AddFace(lod,
-									i + aCellSize * j + 1,
-									((i + scale / 2) / scale) * scale + aCellSize * (j - scale),
-									i + aCellSize * j );
+									i + aTileSize * j + 1,
+									((i + scale / 2) / scale) * scale + aTileSize * (j - scale),
+									i + aTileSize * j );
 
 								if ((i + scale / 2) % scale == 0)
 								{
 									AddFace(lod,
-										i + aCellSize * j,
-										floor(i / scale) * scale + aCellSize * (j - scale) + scale,
-										floor(i / scale) * scale + aCellSize * (j - scale));
+										i + aTileSize * j,
+										floor(i / scale) * scale + aTileSize * (j - scale) + scale,
+										floor(i / scale) * scale + aTileSize * (j - scale));
 								}
 							}
 
 							// left edge
-							if (i == 0 && j > scale - 1 && j < aCellSize - scale - 1)
+							if (i == 0 && j > scale - 1 && j < aTileSize - scale - 1)
 							{
 								AddFace(lod,
-									j * aCellSize,
-									(j + 1) * aCellSize,
-									((j + scale / 2) / scale) * scale * aCellSize + scale);
+									j * aTileSize,
+									(j + 1) * aTileSize,
+									((j + scale / 2) / scale) * scale * aTileSize + scale);
 
 								if ((j + scale / 2) % scale == 0)
 								{
 									AddFace(lod,
-										j * aCellSize,
-										(j + scale / 2) / scale * scale * aCellSize + scale,
-										(j + scale / 2) / scale * scale * aCellSize - aCellSize * scale + scale);
+										j * aTileSize,
+										(j + scale / 2) / scale * scale * aTileSize + scale,
+										(j + scale / 2) / scale * scale * aTileSize - aTileSize * scale + scale);
 								}
 							}
 
 							// right edge
-							if (i == aCellSize - 1 && j > scale - 1 && j < aCellSize - scale - 1)
+							if (i == aTileSize - 1 && j > scale - 1 && j < aTileSize - scale - 1)
 							{
 								AddFace(lod,
-									i + j * aCellSize,
-									((j + scale / 2) / scale) * scale * aCellSize + i - scale,
-									i + (j + 1) * aCellSize);
+									i + j * aTileSize,
+									((j + scale / 2) / scale) * scale * aTileSize + i - scale,
+									i + (j + 1) * aTileSize);
 
 								if ((j + scale / 2) % scale == 0)
 								{
 									AddFace(lod,
-										i + j * aCellSize,
-										(j + scale / 2) / scale * scale * aCellSize - aCellSize * scale + i - scale,
-										(j + scale / 2) / scale * scale * aCellSize + i - scale);
+										i + j * aTileSize,
+										(j + scale / 2) / scale * scale * aTileSize - aTileSize * scale + i - scale,
+										(j + scale / 2) / scale * scale * aTileSize + i - scale);
 								}
 							}
 						}
@@ -237,10 +239,10 @@ namespace Rendering
 			AddTexture("Data/TerrainTest/snow_d.jpg");
 			AddTexture("Data/Grass/grass.png");
 
-			myGrass = new Grass(aCellSize, aResolution, myTerrainCell->GetGridIndex().x);
+			myGrass = new Grass(aTileSize, aResolution, myTerrainTile->GetGridIndex().x);
 		}
 
-		void TerrainCellModel::AddTexture(const std::string& aString)
+		void TerrainTileModel::AddTexture(const std::string& aString)
 		{
 			auto modelManager = Manager::SceneManager::GetInstance()->GetModelManager();
 			const auto loadedTextures = modelManager->GetLoadedTextures();
@@ -267,7 +269,7 @@ namespace Rendering
 			}
 		}
 		
-		TerrainCellModel::~TerrainCellModel()
+		TerrainTileModel::~TerrainTileModel()
 		{
 			glDeleteVertexArrays(1, &VAOs[0]);
 			glDeleteBuffers(1, &VBOs[0]);
@@ -275,14 +277,19 @@ namespace Rendering
 			Destroy();
 		}
 
-		void TerrainCellModel::Draw(const Manager::ShaderManager* aShaderManager)
+		void TerrainTileModel::Draw(const Manager::ShaderManager* aShaderManager)
 		{
 			myProgram = aShaderManager->GetShader("terrainShader");
 			glUseProgram(myProgram);
 
 			GLuint tileIndexID = glGetUniformLocation(myProgram, "tileIndex");
-			auto& tileIndex = myTerrainCell->GetGridIndex();
+			auto& tileIndex = myTerrainTile->GetGridIndex();
 			glUniform2i(tileIndexID, tileIndex.x, tileIndex.y);
+
+			GLuint debugBiomeColID = glGetUniformLocation(myProgram, "debugBiomeCol");
+			const auto& biomeColor = Debug::DeduceBiomeColor(myTerrainTile->myWorldCell->GetBiome());
+			glUniform3f(debugBiomeColID, biomeColor.x, biomeColor.y, biomeColor.z);
+
 			glUniform1i(glGetUniformLocation(myProgram, "groundMaterial.diffuse"), 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, textures[0].myId);
@@ -302,18 +309,18 @@ namespace Rendering
 
 			if (myGrass->IsGenerated())
 			{
-				myGrass->Draw(aShaderManager, myTerrainCell->GetGridIndex(), textures[4].myId);
+				myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[4].myId);
 			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
 
-		void TerrainCellModel::DrawForShadowMap(const Manager::ShaderManager* aShaderManager)
+		void TerrainTileModel::DrawForShadowMap(const Manager::ShaderManager* aShaderManager)
 		{
 			auto shadowProgramID = aShaderManager->GetShader("shadowMapTerrainShader");
 			glUseProgram(shadowProgramID);
 			GLuint tileIndexID = glGetUniformLocation(shadowProgramID, "tileIndex");
-			auto& tileIndex = myTerrainCell->GetGridIndex();
+			auto& tileIndex = myTerrainTile->GetGridIndex();
 			glUniform2i(tileIndexID, tileIndex.x, tileIndex.y);
 
 			glBindVertexArray(VAOs[myCurrentLOD]);
@@ -321,12 +328,12 @@ namespace Rendering
 			glBindVertexArray(0);
 		}
 
-		void TerrainCellModel::Update()
+		void TerrainTileModel::Update()
 		{
 			const auto camPos = Manager::SceneManager::GetInstance()->GetCamPos();
-			const auto cellSizeInMeters = myTerrainCell->GetCellSizeInMeters();
-			const vec2i positionOnGrid = vec2i(camPos.x / cellSizeInMeters - 0.5f, camPos.z / cellSizeInMeters - 0.5f);
-			auto& tileIndex = myTerrainCell->GetGridIndex();
+			const auto tileSizeInMeters = myTerrainTile->GetTileSizeInMeters();
+			const vec2i positionOnGrid = vec2i(camPos.x / tileSizeInMeters - 0.5f, camPos.z / tileSizeInMeters - 0.5f);
+			auto& tileIndex = myTerrainTile->GetGridIndex();
 			auto squareDist = (tileIndex.x - positionOnGrid.x) * (tileIndex.x - positionOnGrid.x) + (tileIndex.y - positionOnGrid.y) * (tileIndex.y - positionOnGrid.y);
 
 			bool mustGenerateGrassIfNotDone = false;
@@ -349,20 +356,20 @@ namespace Rendering
 				myCurrentLOD = 3;
 			}
 
-			myGrass->Update(mustGenerateGrassIfNotDone, myTerrainCell);
+			myGrass->Update(mustGenerateGrassIfNotDone, myTerrainTile);
 		}
 
-		void TerrainCellModel::SetProgram(GLuint aShaderName)
+		void TerrainTileModel::SetProgram(GLuint aShaderName)
 		{
 			myProgram = aShaderName;
 		}
 
-		vec2i TerrainCellModel::GetGridIndex() const
+		vec2i TerrainTileModel::GetGridIndex() const
 		{
-			return myTerrainCell->GetGridIndex();
+			return myTerrainTile->GetGridIndex();
 		}
 
-		void TerrainCellModel::CreateTexture(GLuint& aTextureID, const std::string& aPath)
+		void TerrainTileModel::CreateTexture(GLuint& aTextureID, const std::string& aPath)
 		{
 			glGenTextures(1, &aTextureID);
 			glBindTexture(GL_TEXTURE_2D, aTextureID);

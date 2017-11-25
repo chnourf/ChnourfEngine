@@ -21,6 +21,7 @@ uniform Material groundMaterial;
 uniform Material rockMaterial;
 uniform Material snowMaterial;
 uniform sampler2D normalMap;
+uniform vec3 debugBiomeCol;
 
 void main()
 {    
@@ -74,6 +75,7 @@ void main()
 	//fog
 	result = Fog( result, fs_in.fragPos, viewDir, lightDir );
 
+	result = debugBiomeCol;
     out_color = vec4(result, 1.0f);
 }
   

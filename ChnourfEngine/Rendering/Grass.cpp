@@ -1,13 +1,13 @@
 #include "Grass.h"
 
-#include "../WorldGenerator/TerrainCell.h"
+#include "../WorldGenerator/TerrainTile.h"
 #include "../Managers/ShaderManager.h"
 #include "../Core/Math.h"
 #include "../Core/Time.h"
 
 
-Grass::Grass(unsigned int aCellSize, float aResolution, int aSeed):
-	myCellSize(aCellSize),
+Grass::Grass(unsigned int aTileSize, float aResolution, int aSeed):
+	myTileSize(aTileSize),
 	myResolution(aResolution),
 	mySeed(aSeed),
 	myIsGenerated(false)
@@ -26,7 +26,7 @@ Grass::~Grass()
 	myGrassData.clear();
 }
 
-void Grass::GenerateGrass(const TerrainCell* aCell)
+void Grass::GenerateGrass(const TerrainTile* aTile)
 {
 	if (myIsGenerated)
 	{
@@ -40,30 +40,30 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 	const float offset = 0.3f;
 	std::uniform_real_distribution<float> distribution(-1.f, 1.f);
 
-	const float cellSizeInMeters = myCellSize * myResolution;
-	const vec2i& tileIndex = aCell->GetGridIndex();
-	const unsigned int numberOfInstancesPerSide = cellSizeInMeters * myDensityPerSqMeter;
+	const float tileSizeInMeters = myTileSize * myResolution;
+	const vec2i& tileIndex = aTile->GetGridIndex();
+	const unsigned int numberOfInstancesPerSide = tileSizeInMeters * myDensityPerSqMeter;
 	myGrassData.reserve(numberOfInstancesPerSide * numberOfInstancesPerSide);
 
-	auto upperLimit = (float)(myCellSize - 1) * myResolution;
+	auto upperLimit = (float)(myTileSize - 1) * myResolution;
 
 	const auto multiplier = (myDensityPerSqMeter*myResolution);
 	for (unsigned i = 0; i < numberOfInstancesPerSide; ++i)
 	{
 		for (unsigned j = 0; j < numberOfInstancesPerSide; ++j)
 		{
-			float x = tileIndex.x * cellSizeInMeters + glm::clamp((float)j / (float)myDensityPerSqMeter + offset * distribution(myRandomEngine), 0.f, upperLimit);
-			float z = tileIndex.y * cellSizeInMeters + glm::clamp((float)i / (float)myDensityPerSqMeter + offset * distribution(myRandomEngine), 0.f, upperLimit);
+			float x = tileIndex.x * tileSizeInMeters + glm::clamp((float)j / (float)myDensityPerSqMeter + offset * distribution(myRandomEngine), 0.f, upperLimit);
+			float z = tileIndex.y * tileSizeInMeters + glm::clamp((float)i / (float)myDensityPerSqMeter + offset * distribution(myRandomEngine), 0.f, upperLimit);
 
-			//float y = aCell->GetElement(floor(j/ multiplier + 0.5f) * myCellSize + floor(i/ multiplier + 0.5f)).myElevation;
-			float y = aCell->GetY(x, z);
+			//float y = aTile->GetElement(floor(j/ multiplier + 0.5f) * myTileSize + floor(i/ multiplier + 0.5f)).myElevation;
+			float y = aTile->GetY(x, z);
 
 			GrassInstance grassInstance;
 			grassInstance.x = x;
 			grassInstance.y = y;
 			grassInstance.z = z;
 
-			auto norm = aCell->GetElement(floor(j / multiplier) * myCellSize + floor(i / multiplier)).myNormal;// aCell->GetNormal(x, z);
+			auto norm = aTile->GetElement(floor(j / multiplier) * myTileSize + floor(i / multiplier)).myNormal;// aTile->GetNormal(x, z);
 
 			if (norm.y < 0.8f)
 			{
@@ -93,7 +93,7 @@ void Grass::GenerateGrass(const TerrainCell* aCell)
 	}
 }
 
-void Grass::Update(bool aMustGenerate, const TerrainCell* aCell)
+void Grass::Update(bool aMustGenerate, const TerrainTile* aTile)
 {
 	if (aMustGenerate)
 	{
@@ -101,7 +101,7 @@ void Grass::Update(bool aMustGenerate, const TerrainCell* aCell)
 		{
 			if (!myIsGenerating)
 			{
-				myGeneratingTask = std::async(std::launch::async, [this, aCell]() { GenerateGrass(aCell); });
+				myGeneratingTask = std::async(std::launch::async, [this, aTile]() { GenerateGrass(aTile); });
 			}
 			else if (myGeneratingTask.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
 			{

@@ -81,6 +81,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_MBCS;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>Dependencies\freeglut;Dependencies\glew;Dependencies\SOIL;Dependencies\Assimp</AdditionalLibraryDirectories>
@@ -120,6 +121,8 @@
     <ClCompile Include="Core\PerlinNoise.cpp" />
     <ClCompile Include="Core\Time.cpp" />
     <ClCompile Include="Core\UID.cpp" />
+    <ClCompile Include="Debug\ppm.cpp" />
+    <ClCompile Include="Debug\WorldGridGeneratorDebugDraw.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
     <ClCompile Include="Managers\ModelManager.cpp" />
@@ -130,12 +133,12 @@
     <ClCompile Include="Rendering\Grass.cpp" />
     <ClCompile Include="Rendering\Models\Mesh.cpp" />
     <ClCompile Include="Rendering\Models\Model.cpp" />
-    <ClCompile Include="Rendering\Models\TerrainCellModel.cpp" />
-    <ClCompile Include="WorldGenerator\TerrainCell.cpp" />
-    <ClCompile Include="WorldGenerator\TerrainCellBuilder.cpp" />
+    <ClCompile Include="Rendering\Models\TerrainTileModel.cpp" />
+    <ClCompile Include="WorldGenerator\TerrainTile.cpp" />
+    <ClCompile Include="WorldGenerator\TerrainTileBuilder.cpp" />
     <ClCompile Include="WorldGenerator\TerrainGenerationFunctions.cpp" />
     <ClCompile Include="WorldGenerator\TerrainManager.cpp" />
-    <ClCompile Include="WorldGenerator\WorldGridGenerator.cpp" />
+    <ClCompile Include="WorldGenerator\WorldGrid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Init\ContextInfo.h" />
@@ -152,6 +155,8 @@
     <ClInclude Include="Core\Time.h" />
     <ClInclude Include="Core\UID.h" />
     <ClInclude Include="Core\Vector.h" />
+    <ClInclude Include="Debug\ppm.h" />
+    <ClInclude Include="Debug\WorldGridGeneratorDebugDraw.h" />
     <ClInclude Include="Managers\InputManager.h" />
     <ClInclude Include="Managers\ModelManager.h" />
     <ClInclude Include="Managers\SceneManager.h" />
@@ -165,17 +170,17 @@
     <ClInclude Include="Rendering\Light\PointLight.h" />
     <ClInclude Include="Rendering\Models\Mesh.h" />
     <ClInclude Include="Rendering\Models\Model.h" />
-    <ClInclude Include="Rendering\Models\TerrainCellModel.h" />
+    <ClInclude Include="Rendering\Models\TerrainTileModel.h" />
     <ClInclude Include="Rendering\TextureFormat.h" />
     <ClInclude Include="Rendering\VertexFormat.h" />
     <ClInclude Include="Shaders\Environment.h" />
     <ClInclude Include="WorldGenerator\Geometry.h" />
-    <ClInclude Include="WorldGenerator\TerrainCell.h" />
-    <ClInclude Include="WorldGenerator\TerrainCellBuilder.h" />
+    <ClInclude Include="WorldGenerator\TerrainTile.h" />
+    <ClInclude Include="WorldGenerator\TerrainTileBuilder.h" />
     <ClInclude Include="WorldGenerator\TerrainGenerationFunctions.h" />
     <ClInclude Include="WorldGenerator\TerrainManager.h" />
     <ClInclude Include="WorldGenerator\WorldGridGenerationParameters.h" />
-    <ClInclude Include="WorldGenerator\WorldGridGenerator.h" />
+    <ClInclude Include="WorldGenerator\WorldGrid.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

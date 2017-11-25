@@ -5,8 +5,8 @@
 #include "../Core/Intersection.h"
 
 #include "SceneManager.h"
-#include "../Rendering/Models/TerrainCellModel.h"
-#include "../WorldGenerator/TerrainCell.h"
+#include "../Rendering/Models/TerrainTileModel.h"
+#include "../WorldGenerator/TerrainTile.h"
 #include "InputManager.h"
 
 using namespace Manager;
@@ -133,19 +133,19 @@ void ModelManager::CullScene(const Camera& aCamera)
 	}
 }
 
-void ModelManager::AddTerrainCell(const TerrainCell* aCell, int aCellSize, float aResolution)
+void ModelManager::AddTerrainTile(const TerrainTile* aTile, int aTileSize, float aResolution)
 {
-	Models::TerrainCellModel* terrain = new Models::TerrainCellModel(aCell, aCellSize, aResolution);
+	Models::TerrainTileModel* terrain = new Models::TerrainTileModel(aTile, aTileSize, aResolution);
 	gameModelList.push_back(terrain);	
 }
 
-void Manager::ModelManager::RemoveTerrainCell(const vec2i & anIndex)
+void Manager::ModelManager::RemoveTerrainTile(const vec2i & anIndex)
 {
 	// dynamic casts are ugly, to optimize with hashmap
 	auto it = gameModelList.begin();
 	while (it < gameModelList.end())
 	{
-		if (auto terrainModel = dynamic_cast<Models::TerrainCellModel*>(*it))
+		if (auto terrainModel = dynamic_cast<Models::TerrainTileModel*>(*it))
 		{
 			if ((*terrainModel).GetGridIndex() == anIndex)
 			{

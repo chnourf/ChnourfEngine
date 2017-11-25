@@ -5,7 +5,7 @@
 #include "../../Core/Vector.h"
 #include "glm\detail\type_vec3.hpp"
 
-class TerrainCell;
+class TerrainTile;
 class Grass;
 
 struct TerrainVertex
@@ -27,11 +27,11 @@ namespace Rendering
 {
 	namespace Models
 	{
-		class TerrainCellModel :public IGameObject
+		class TerrainTileModel :public IGameObject
 		{
 		public:
-			TerrainCellModel(const TerrainCell* aCell, unsigned int aCellSize, float aResolution);
-			~TerrainCellModel();
+			TerrainTileModel(const TerrainTile* aTile, unsigned int aTileSize, float aResolution);
+			~TerrainTileModel();
 
 			void Draw(const Manager::ShaderManager* aShaderManager) override;
 			void DrawForShadowMap(const Manager::ShaderManager* aShaderManager) override;
@@ -57,7 +57,7 @@ namespace Rendering
 			GLuint EBOs[myNumLOD];
 			GLuint myProgram;
 
-			const TerrainCell* myTerrainCell;
+			const TerrainTile* myTerrainTile;
 			Grass* myGrass;
 
 			unsigned int myCurrentLOD = 0;

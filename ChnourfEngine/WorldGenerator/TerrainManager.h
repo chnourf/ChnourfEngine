@@ -2,12 +2,17 @@
 #include <memory>
 #include <vector>
 #include <glm\glm.hpp>
-#include "TerrainCellBuilder.h"
+#include "TerrainTileBuilder.h"
 
 #include "../Core/Singleton.h"
 #include "../Core/Vector.h"
+#include "WorldGrid.h"
 
-class TerrainCell;
+class TerrainTile;
+namespace TerrainGeneration
+{
+	struct Cell;
+}
 
 namespace Manager
 {
@@ -19,25 +24,29 @@ namespace Manager
 
 		void Update(const vec3f& aPlayerPosition);
 
-		inline unsigned int GetCellSize() { return myCellSize; }
+		inline unsigned int GetTileSize() { return myTileSize; }
 		inline float GetResolution() { return myResolution; }
 
+		inline const TerrainGeneration::Cell* SampleGrid(const vec2f& aPosition) { return myWorldGrid->SampleGrid(aPosition); }
+
 	private:
-		std::vector<TerrainCell*> myActiveCells;
-		std::vector<TerrainCell*> myCachedCells; // to prevent when the character moves back and forth at the border of a cell
-		std::vector<TerrainCell*> myCellsToLoad;
-		std::vector<vec2i> myCellsToRemove;
+		std::vector<TerrainTile*> myActiveTiles;
+		std::vector<TerrainTile*> myTilesToLoad;
+		std::vector<vec2i> myTilesToRemove;
 
-		std::unique_ptr<TerrainCellBuilder> myCellBuilder;
+		std::unique_ptr<TerrainTileBuilder> myTileBuilder;
+		std::unique_ptr<TerrainGeneration::WorldGrid> myWorldGrid;
 
-		void LoadCell(const vec2i& aGridIndex);
+		void LoadTile(const vec2i& aGridIndex);
 
-		bool IsCellLoaded(const vec2i& aCellIndex);
-		bool IsCellLoading(const vec2i& aCellIndex);
+		bool IsTileLoaded(const vec2i& aTileIndex);
+		bool IsTileLoading(const vec2i& aTileIndex);
 
-		unsigned int myCellSize;
+		unsigned int myTileSize;
 		float myResolution;
 		unsigned int myDetectionRadius;
 		unsigned int myCachedRadius;
+
+		unsigned int mySeed;
 	};
 }

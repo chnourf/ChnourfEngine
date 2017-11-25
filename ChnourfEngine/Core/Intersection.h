@@ -1,5 +1,6 @@
 #pragma once
 #include "Vector.h"
+#include <algorithm>
 
 struct AABB
 {
@@ -22,6 +23,20 @@ struct AABB
 
 	vec3f myMin;
 	vec3f myMax;
+};
+
+struct Ray
+{
+	Ray(){}
+
+	Ray(const vec3f& anOrigin, const vec3f aDirection) :
+		myOrigin(anOrigin),
+		myDirection(aDirection)
+	{
+	}
+
+	vec3f myOrigin;
+	vec3f myDirection;
 };
 
 struct Plane
@@ -57,7 +72,6 @@ struct Frustum
 	Plane myBottom;
 	Plane myTop;
 };
-
 
 // Solution by txutxi, uses only one vertex
 inline bool AABBvsFrustum(const AABB& anAABB, const Frustum& aFrustum)
@@ -98,4 +112,41 @@ inline bool AABBvsFrustum(const AABB& anAABB, const Frustum& aFrustum)
 		}
 	}
 	return true;
+}
+
+inline bool IsPointInsideAABB(const AABB& anAABB, const vec3f& aPoint)
+{
+	return aPoint.x >= anAABB.myMin.x && aPoint.y >= anAABB.myMin.y && aPoint.z >= anAABB.myMin.z
+		&& aPoint.x <= anAABB.myMax.x && aPoint.y <= anAABB.myMax.y && aPoint.z <= anAABB.myMax.z;
+}
+
+inline bool AABBvsRay(const AABB& anAABB, const Ray& aRay)
+{
+	float tmin = -INFINITY, tmax = INFINITY;
+
+	if (aRay.myDirection.x != 0.f) {
+		float tx1 = (anAABB.myMin.x - aRay.myOrigin.x) / aRay.myDirection.x;
+		float tx2 = (anAABB.myMax.x - aRay.myOrigin.x) / aRay.myDirection.x;
+
+		tmin = std::max(tmin, std::min(tx1, tx2));
+		tmax = std::min(tmax, std::max(tx1, tx2));
+	}
+
+	if (aRay.myDirection.y != 0.0) {
+		float ty1 = (anAABB.myMin.y - aRay.myOrigin.y) / aRay.myDirection.y;
+		float ty2 = (anAABB.myMax.y - aRay.myOrigin.y) / aRay.myDirection.y;
+
+		tmin = std::max(tmin, std::min(ty1, ty2));
+		tmax = std::min(tmax, std::max(ty1, ty2));
+	}
+
+	if (aRay.myDirection.z != 0.0) {
+		float tz1 = (anAABB.myMin.z - aRay.myOrigin.z) / aRay.myDirection.z;
+		float tz2 = (anAABB.myMax.z - aRay.myOrigin.z) / aRay.myDirection.z;
+
+		tmin = std::max(tmin, std::min(tz1, tz2));
+		tmax = std::min(tmax, std::max(tz1, tz2));
+	}
+
+	return tmax >= tmin;
 }
