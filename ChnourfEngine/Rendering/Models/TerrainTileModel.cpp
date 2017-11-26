@@ -239,7 +239,7 @@ namespace Rendering
 			AddTexture("Data/TerrainTest/snow_d.jpg");
 			AddTexture("Data/Grass/grass.png");
 
-			myGrass = new Grass(aTileSize, aResolution, myTerrainTile->GetGridIndex().x);
+			//myGrass = new Grass(aTileSize, aResolution, myTerrainTile->GetGridIndex().x);
 		}
 
 		void TerrainTileModel::AddTexture(const std::string& aString)
@@ -271,8 +271,11 @@ namespace Rendering
 		
 		TerrainTileModel::~TerrainTileModel()
 		{
-			glDeleteVertexArrays(1, &VAOs[0]);
-			glDeleteBuffers(1, &VBOs[0]);
+			for (int i = 0; i < myNumLOD; ++i)
+			{
+				glDeleteVertexArrays(1, &VAOs[i]);
+				glDeleteBuffers(1, &VBOs[i]);
+			}
 			delete myGrass;
 			Destroy();
 		}
@@ -307,10 +310,10 @@ namespace Rendering
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
-			if (myGrass->IsGenerated())
-			{
-				myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[4].myId);
-			}
+			//if (myGrass->IsGenerated())
+			//{
+			//	myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[4].myId);
+			//}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
@@ -356,7 +359,7 @@ namespace Rendering
 				myCurrentLOD = 3;
 			}
 
-			myGrass->Update(mustGenerateGrassIfNotDone, myTerrainTile);
+			//myGrass->Update(mustGenerateGrassIfNotDone, myTerrainTile);
 		}
 
 		void TerrainTileModel::SetProgram(GLuint aShaderName)

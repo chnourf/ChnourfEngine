@@ -1,12 +1,37 @@
 #include "TerrainGenerationFunctions.h"
 #include "TerrainTile.h"
+#include "../Core/PerlinNoise.h"
 #include <algorithm>
 #include <array>
 #include <vector>
 #include <random>
 
+const float scale = .5f;
+const float locMultiplier = 1000.f / scale; // noise result between 0 and this value (in meters)
+const float gain = 0.5f;
+const float lacunarity = 1.90f;
+const unsigned int locNoiseDepth = 8;
+const float locMapSize = 512.f * 128.f; // size in meters
+const float locSeaLevel = 0.45f;
+const float locMountainStartAltitude = locSeaLevel + 0.35f;
+
 namespace TerrainGeneration
 {
+	float GetMapSize()
+	{
+		return locMapSize;
+	}
+
+	float GetSeaLevel()
+	{
+		return locSeaLevel;
+	}
+
+	float GetMountainStartAltitude()
+	{
+		return locMountainStartAltitude;
+	}
+
 	Biome DeduceBiome(const float aTemperature, const float aRainfall)
 	{
 		if (aTemperature < 0.25f)
@@ -83,29 +108,92 @@ namespace TerrainGeneration
 		}
 	}
 
-	LandscapeType GetRelief(const float anAvgAltitude)
+	float ComputeElevation(const float x, const float y, const PerlinNoise& aPerlin, bool needsDetail)
 	{
-		if (anAvgAltitude < locLandscapeRepartitionPercentages[0])
+		auto tileNoise = 0.f;
+
+		float freq = 1.f;
+		float amp = 1.f;
+
+
+		// points far away from the center will "sink" allowing a border ocean. Distance is artificially modified with Perlin noise to create more irregularity
+		float noiseDistAttenuation = 0.f;
+		for (int d = 1; d <= 6; d++)
 		{
-			return LandscapeType::Sea;
+			noiseDistAttenuation += aPerlin.noise(3.f * pow(2, d) * x / locMapSize, 3.f * pow(2, d) * y / locMapSize, 0) / pow(2, d);
+		}
+		float distToCenter = (std::max(abs(x), abs(y))) * (1.f + noiseDistAttenuation);
+		const float distAttenuation = glm::clamp(10.f / locMapSize * (0.70f * locMapSize - abs(distToCenter)), 0.f, 1.0f);
+
+		// warped fractal Perlin noise
+		auto warpX = locMapSize / 6.f * (aPerlin.noise(x / (locMapSize / 4.f) + 0.3f, y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
+		auto warpY = locMapSize / 6.f * (aPerlin.noise(x / (locMapSize / 4.f) + 0.3f, y / (locMapSize / 4.f) + 0.3f, 3.f) - 0.5f);
+		for (int d = 1; d <= 8; d++)
+		{
+			freq *= lacunarity;
+			amp *= gain;
+
+			auto softNoise = 0.f;
+
+			softNoise = aPerlin.noise(freq * (x + warpX) / (locMapSize / 4.f), freq * (y + warpY) / (locMapSize / 4.f), 0.f);
+
+			tileNoise += softNoise*amp;
 		}
 
-		if (anAvgAltitude < locLandscapeRepartitionPercentages[1])
+		tileNoise *= distAttenuation;
+
+		// MOUNTAINS
+		const float locCoastalMountainsWidth = 0.04f;
+		float coastalMountains = exp(-pow((tileNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
+		float continentalMountains = 1.f / (1.f + exp(-100.f * (tileNoise - (locSeaLevel + 0.15f))));
+		float someRandomNoise = 1.f / (1 + exp(-40.f * (aPerlin.noise((x + warpX) / (locMapSize / 4.f), (y + warpY) / (locMapSize / 10.f), 0.f) - 0.6f)));
+		                            tileNoise += (coastalMountains + continentalMountains) * someRandomNoise;
+
+		if (needsDetail)
 		{
-			return LandscapeType::Plain;
+			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.05f, locMountainStartAltitude + 0.05f, tileNoise);
+
+			// warping the mountains to mask the 8 axis of the perlin noise
+			const auto warpScale = 40.f / scale;
+			auto warpX = warpScale * aPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f) - 0.5f;
+			auto warpY = warpScale * aPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f, 1) - 0.5f;
+
+			auto hardNoiseModifier = .01f;
+			float detailFreq = .1f;
+			float detailAmp = .01f;
+
+			// Noise computation
+			for (int d = 1; d <= locNoiseDepth; d++)
+			{
+				detailFreq *= lacunarity;
+				amp *= gain;
+
+				auto softNoise = 0.f;
+				auto hardNoise = 0.f;
+
+				if (lerpFactor < 1.f)
+				{
+					softNoise = aPerlin.noise(detailFreq * x * scale / 384.f, detailFreq * y * scale / 384.f);
+				}
+
+				if (lerpFactor > 0.f)
+				{
+					auto n = aPerlin.noise(detailFreq * (x + warpX) * scale / 256.f, detailFreq * (y + warpY) * scale / 256.f) * 2.f - 1.f;
+					// C-infinity abs approximation
+					hardNoise = 1.f - abs(60.f * n * n * n / (0.1f + 60.f * n * n));
+				}
+
+				tileNoise += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
+				hardNoiseModifier *= 0.85f * gain;
+
+				warpX *= 0.25f;
+				warpY *= 0.25f;
+			}			
+			tileNoise -= 0.5f;
+			tileNoise *= locMultiplier;
 		}
 
-		if (anAvgAltitude < locLandscapeRepartitionPercentages[2])
-		{
-			return LandscapeType::Hills;
-		}
-
-		if (anAvgAltitude < locLandscapeRepartitionPercentages[3])
-		{
-			return LandscapeType::Mountains;
-		}
-
-		return LandscapeType::HighMountains;
+		return tileNoise;
 	}
 
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize, std::default_random_engine aRandomEngine)

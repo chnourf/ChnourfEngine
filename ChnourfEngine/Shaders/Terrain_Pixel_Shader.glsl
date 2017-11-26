@@ -61,7 +61,8 @@ void main()
 	float e = smoothstep(1.0-0.5*h,1.0-0.1*h,normTest.y);
 	float o = 0.3 + 0.7*smoothstep(0.0,0.1,normTest.x+h*h);
 	textureColor = mix(textureColor, texture(snowMaterial.diffuse, fs_in.texcoord), e*h*o);
-    vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
+    //vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
+    vec3 diffuse = (diff) * vec3(debugBiomeCol);
 
 	// Specular
     vec3 viewDir = normalize(viewPos - fs_in.fragPos);
@@ -75,7 +76,6 @@ void main()
 	//fog
 	result = Fog( result, fs_in.fragPos, viewDir, lightDir );
 
-	result = debugBiomeCol;
-    out_color = vec4(result, 1.0f);
+    out_color = vec4(diffuse, 1.0f);
 }
   

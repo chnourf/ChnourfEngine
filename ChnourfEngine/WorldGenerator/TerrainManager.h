@@ -27,7 +27,7 @@ namespace Manager
 		inline unsigned int GetTileSize() { return myTileSize; }
 		inline float GetResolution() { return myResolution; }
 
-		inline const TerrainGeneration::Cell* SampleGrid(const vec2f& aPosition) { return myWorldGrid->SampleGrid(aPosition); }
+		inline const TerrainGeneration::Cell* SampleGrid(const vec2f& aPosition) { return myWorldGrid->SampleGridCell(aPosition); }
 
 	private:
 		std::vector<TerrainTile*> myActiveTiles;

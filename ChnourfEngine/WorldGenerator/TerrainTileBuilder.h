@@ -23,7 +23,6 @@ struct TerrainTileBuildingTask
 	~TerrainTileBuildingTask();
 
 	PerlinNoise myPerlin;
-	int myNoiseDepth;
 	std::default_random_engine myRandomEngine;
 
 	unsigned int myTileSize;
@@ -32,9 +31,6 @@ struct TerrainTileBuildingTask
 	std::future<void> myHandle;
 
 	void BuildTile(TerrainTile* aTile);
-	float SamplePerlinNoise(float aX, float aY);
-
-	const TerrainGeneration::Cell* myWorldCell;
 };
 
 class TerrainTileBuilder

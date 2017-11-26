@@ -51,7 +51,7 @@ namespace Manager
 
 		file.close();
 
-		mySeed = time(NULL);
+		mySeed = 0;// time(NULL);
 		srand(mySeed);
 
 		auto mustBeAPowerOf2 = myTileSize - 1;

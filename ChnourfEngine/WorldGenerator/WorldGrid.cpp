@@ -5,28 +5,24 @@
 #include "glm\glm.hpp"
 #include <iostream>
 #include "../Debug/WorldGridGeneratorDebugDraw.h"
+#include "TerrainGenerationFunctions.h"
 
 const unsigned int locPictureDimension = 512u;
-const unsigned int MetersPerPixel = 128;
-const float locMapSize = (float)MetersPerPixel * (float)locPictureDimension;
+const unsigned int MetersPerPixel = TerrainGeneration::GetMapSize()  / locPictureDimension;
 #ifndef NDEBUG
 const unsigned int locGridNumOfElements = 128;
 #else
 const unsigned int locGridNumOfElements = 64;
 #endif
-const float locDistanceBetweenElements = locMapSize / (float)(locGridNumOfElements);
+const float locDistanceBetweenElements = TerrainGeneration::GetMapSize() / (float)(locGridNumOfElements);
 std::default_random_engine engine;
 std::bernoulli_distribution boolDistribution;
 std::uniform_real_distribution<float> floatDistribution(0.f, 1.f);
-const unsigned int locDepth = 6u;
-const float gain = 0.5f;
-const float lacunarity = 1.90f;
-const float locSeaLevel = 0.45f;
 const float rainfallDiffusionCoefficient = 0.1f;
 const float rainfallMountainTransmissionRate = 0.4f;
-const float windNoisePatternSize = locMapSize / 5.f;
+const float windNoisePatternSize = TerrainGeneration::GetMapSize() / 5.f;
 const unsigned int riverNumber = pow(locGridNumOfElements / 16u, 2u);
-const auto midPos = Vector2<float>(locMapSize / 2.f, locMapSize / 2.f);
+const auto midPos = Vector2<float>(TerrainGeneration::GetMapSize() / 2.f, TerrainGeneration::GetMapSize() / 2.f);
 
 namespace TerrainGeneration
 {
@@ -262,11 +258,11 @@ namespace TerrainGeneration
 		for (auto& point : myGrid.myPoints)
 		{
 			float rainRandomness = 0.f;
-			auto warpX = locMapSize / 6.f * (myPerlin.noise(point.myPosition.x / (locMapSize / 4.f) + 0.3f, point.myPosition.y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
-			auto warpY = locMapSize / 6.f * (myPerlin.noise(point.myPosition.x / (locMapSize / 4.f) + 0.3f, point.myPosition.y / (locMapSize / 4.f) + 0.3f, 1.f) - 0.5f);
+			auto warpX = TerrainGeneration::GetMapSize() / 6.f * (myPerlin.noise(point.myPosition.x / (TerrainGeneration::GetMapSize() / 4.f) + 0.3f, point.myPosition.y / (TerrainGeneration::GetMapSize() / 4.f) + 0.3f, 0.f) - 0.5f);
+			auto warpY = TerrainGeneration::GetMapSize() / 6.f * (myPerlin.noise(point.myPosition.x / (TerrainGeneration::GetMapSize() / 4.f) + 0.3f, point.myPosition.y / (TerrainGeneration::GetMapSize() / 4.f) + 0.3f, 1.f) - 0.5f);
 			for (int d = 1; d <= 4; d++)
 			{
-				rainRandomness += myPerlin.noise(4.f * pow(2, d) * (point.myPosition.x + warpX) / locMapSize, 4.f * pow(2, d) * (point.myPosition.y + warpY) / locMapSize, 1) / pow(2, d);
+				rainRandomness += myPerlin.noise(4.f * pow(2, d) * (point.myPosition.x + warpX) / TerrainGeneration::GetMapSize(), 4.f * pow(2, d) * (point.myPosition.y + warpY) / TerrainGeneration::GetMapSize(), 1) / pow(2, d);
 			}
 			point.myRainfall = glm::clamp(point.myRainfall + (rainRandomness - 0.5f), 0.f, 1.f);
 		}
@@ -274,13 +270,20 @@ namespace TerrainGeneration
 
 	void WorldGrid::GenerateRiversForGrid(const std::vector<Point*>& potentialSources)
 	{
-		for (int i = 0; i < riverNumber; ++i)
+		if (potentialSources.size() != 0)
 		{
-			auto pointId = (unsigned int)(potentialSources.size() * floatDistribution(engine));
-			auto& point = potentialSources[pointId];
-			point->myFlags |= (int)PointTypeFlags::River;
+			for (int i = 0; i < riverNumber; ++i)
+			{
+				auto pointId = (unsigned int)(potentialSources.size() * floatDistribution(engine));
+				auto& point = potentialSources[pointId];
+				point->myFlags |= (int)PointTypeFlags::River;
 
-			myGrid.myRivers.push_back(CreateRiver(point));
+				myGrid.myRivers.push_back(CreateRiver(point));
+			}
+		}
+		else
+		{
+			std::cout << "no potential sources, skipping river generation" << std::endl;
 		}
 	}
 
@@ -292,14 +295,14 @@ namespace TerrainGeneration
 			point.myRainfall = isSea ? 1.f : 0.f;
 
 			//point.myTemperature = 1 - abs(2.f / locMapSize * (point.myPosition.y - locMapSize / 2.f));
-			point.myTemperature = sin(M_PI / locMapSize*(locMapSize - point.myPosition.y));
+			point.myTemperature = sin(M_PI / TerrainGeneration::GetMapSize()*(TerrainGeneration::GetMapSize() - point.myPosition.y));
 			float tempRandomness = 0.f;
 			for (int d = 1; d <= 4; d++)
 			{
-				tempRandomness += myPerlin.noise(5.f * pow(2, d) * point.myPosition.x / locMapSize, 5.f * pow(2, d) * point.myPosition.y / locMapSize, 0) / pow(2, d);
+				tempRandomness += myPerlin.noise(5.f * pow(2, d) * point.myPosition.x / TerrainGeneration::GetMapSize(), 5.f * pow(2, d) * point.myPosition.y / TerrainGeneration::GetMapSize(), 0) / pow(2, d);
 			}
 			point.myTemperature = glm::clamp(point.myTemperature + 0.5f * (tempRandomness - 0.5f), 0.f, 1.f);
-			float altitudeInfluence = glm::clamp((point.myHeight - locSeaLevel) * 0.5f, 0.f, 1.f);
+			float altitudeInfluence = glm::clamp((point.myHeight - TerrainGeneration::GetSeaLevel()) * 0.5f, 0.f, 1.f);
 			point.myTemperature = glm::clamp(point.myTemperature - altitudeInfluence, 0.f, 1.f);
 		}
 	}
@@ -343,11 +346,11 @@ namespace TerrainGeneration
 
 				if (i > 0 && i < verticalAmountOfPoints - 1)
 				{
-					adjustedY = glm::clamp(y + warp.x * locDistanceBetweenElements / 3.f, 0.f, locMapSize);
+					adjustedY = glm::clamp(y + warp.x * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
 				}
 				if (j > 0 && j < horizontalAmountOfPoints - 1)
 				{
-					adjustedX = glm::clamp(x + warp.y * locDistanceBetweenElements / 3.f, 0.f, locMapSize);
+					adjustedX = glm::clamp(x + warp.y * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
 				}
 
 				auto pointToAdd = Point(adjustedX, adjustedY);
@@ -385,53 +388,14 @@ namespace TerrainGeneration
 		std::cout << "generating height and mountains..." << std::endl;
 		for (auto& point : myGrid.myPoints)
 		{
-			const auto& pointPos = point.myPosition;
+			const auto& adjustedPost = point.myPosition - midPos;
 
-			float tileNoise = 0.f;
-
-			float freq = 1.f;
-			float amp = 1.f;
-
-
-			// points far away from the center will "sink" allowing a border ocean. Distance is artificially modified with Perlin noise to create more irregularity
-			float noiseDistAttenuation = 0.f;
-			for (int d = 1; d <= 6; d++)
-			{
-				noiseDistAttenuation += myPerlin.noise(3.f * pow(2, d) * pointPos.x / locMapSize, 3.f * pow(2, d) * pointPos.y / locMapSize, 0) / pow(2, d);
-			}
-			float distToCenter = (std::max(abs(pointPos.x - midPos.x), abs(pointPos.y - midPos.y))) * (1.f + noiseDistAttenuation);
-			const float distAttenuation = glm::clamp(10.f / locMapSize * (0.70f * locMapSize - abs(distToCenter)), 0.f, 1.0f);
-
-			// warped fractal Perlin noise
-			auto warpX = locMapSize / 6.f * (myPerlin.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
-			auto warpY = locMapSize / 6.f * (myPerlin.noise(pointPos.x / (locMapSize / 4.f) + 0.3f, pointPos.y / (locMapSize / 4.f) + 0.3f, 3.f) - 0.5f);
-			for (int d = 1; d <= 8; d++)
-			{
-				freq *= lacunarity;
-				amp *= gain;
-
-				auto softNoise = 0.f;
-
-				softNoise = myPerlin.noise(freq * (pointPos.x + warpX) / (locMapSize / 4.f), freq * (pointPos.y + warpY) / (locMapSize / 4.f), 0.f);
-
-				tileNoise += softNoise*amp;
-			}
-
-			tileNoise *= distAttenuation;
-
-			// MOUNTAINS
-			const float locCoastalMountainsWidth = 0.04f;
-			float coastalMountains = exp(-pow((tileNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
-			float continentalMountains = 1.f / (1.f + exp(-100.f * (tileNoise - (locSeaLevel + 0.15f))));
-			float someRandomNoise = 1.f / (1 + exp(-40.f * (myPerlin.noise((pointPos.x + warpX) / (locMapSize / 4.f), (pointPos.y + warpY) / (locMapSize / 10.f), 0.f) - 0.6f)));
-			tileNoise += (coastalMountains + continentalMountains) * someRandomNoise;
-
-			point.myHeight = tileNoise;
-			if (tileNoise > locSeaLevel)
+			point.myHeight = TerrainGeneration::ComputeElevation(adjustedPost.x, adjustedPost.y, myPerlin, false);
+			if (point.myHeight > TerrainGeneration::GetSeaLevel())
 			{
 				point.myFlags |= (int)PointTypeFlags::Land;
 			}
-			if (tileNoise > locSeaLevel + 0.35f)
+			if (point.myHeight > TerrainGeneration::GetMountainStartAltitude())
 			{
 				point.myFlags |= (int)PointTypeFlags::Mountain;
 				mountainPoints.push_back(&point);
@@ -462,7 +426,7 @@ namespace TerrainGeneration
 #endif
 	}
 
-	const Cell* WorldGrid::SampleGrid(const vec2f& aPosition)
+	const Cell* WorldGrid::SampleGridCell(const vec2f& aPosition)
 	{
 		const auto adjustedPosition = midPos + aPosition;
 
@@ -506,4 +470,29 @@ namespace TerrainGeneration
 		// this is the cell where the point is
 		return candidates[currentCellId];
 	}
+
+	//const Triangle* WorldGrid::SampleGridTriangle(const vec2f& aPosition)
+	//{
+	//	const auto adjustedPosition = midPos + aPosition;
+
+	//	std::vector<const Cell*> candidates;
+
+	//	for (const auto& cell : myGrid.myCells)
+	//	{
+	//		if (IsPointInsideAABB(cell.myAABB, vec3f(adjustedPosition)))
+	//		{
+	//			candidates.push_back(&cell);
+	//		}
+	//	}
+
+	//	if (candidates.size() == 0)
+	//	{
+	//		return nullptr;
+	//	}
+
+	//	for (auto currentCellId = 0u; currentCellId < candidates.size(); ++currentCellId)
+	//	{
+	//		for 
+	//	}
+	//}
 }

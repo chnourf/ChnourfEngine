@@ -1,3 +1,3 @@
 DetectionRadius 10
-TileSize 257
-TileResolution 0.5
+TileSize 65
+TileResolution 2.0

@@ -154,10 +154,10 @@ void SceneManager::NotifyDisplayFrame()
 
 	float multiplier = 0.1f;
 	auto& lightDir = myDirectionalLight.GetDirection();
-	//if (lightDir.y > 0.01f)
-	//{
-	//	multiplier = 10.f;
-	//}
+	if (lightDir.y > 0.01f)
+	{
+		multiplier = 10.f;
+	}
 	myDirectionalLight.SetDirection(glm::rotateX(lightDir, multiplier * (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame()));
 
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);

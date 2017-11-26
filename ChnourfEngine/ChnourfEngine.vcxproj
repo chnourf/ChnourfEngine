@@ -179,7 +179,6 @@
     <ClInclude Include="WorldGenerator\TerrainTileBuilder.h" />
     <ClInclude Include="WorldGenerator\TerrainGenerationFunctions.h" />
     <ClInclude Include="WorldGenerator\TerrainManager.h" />
-    <ClInclude Include="WorldGenerator\WorldGridGenerationParameters.h" />
     <ClInclude Include="WorldGenerator\WorldGrid.h" />
   </ItemGroup>
   <ItemGroup>
