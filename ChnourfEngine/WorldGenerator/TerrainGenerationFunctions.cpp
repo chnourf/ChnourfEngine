@@ -144,22 +144,22 @@ namespace TerrainGeneration
 		tileNoise *= distAttenuation;
 
 		// MOUNTAINS
-		const float locCoastalMountainsWidth = 0.04f;
+		const float locCoastalMountainsWidth = 0.08f;
 		float coastalMountains = exp(-pow((tileNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
-		float continentalMountains = 1.f / (1.f + exp(-100.f * (tileNoise - (locSeaLevel + 0.15f))));
+		float continentalMountains = 1.f / (1.f + exp(-50.f * (tileNoise - (locSeaLevel + 0.15f))));
 		float someRandomNoise = 1.f / (1 + exp(-40.f * (aPerlin.noise((x + lowWarpX) / (locMapSize / 4.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f) - 0.6f)));
 		tileNoise += (coastalMountains + continentalMountains) * someRandomNoise;
 
 		if (needsDetail)
 		{
-			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.05f, locMountainStartAltitude + 0.05f, tileNoise);
+			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.1f, locMountainStartAltitude + 0.1f, tileNoise);
 
 			// warping the mountains to mask the 8 axis of the perlin noise
 			const auto warpScale = 60.f / scale;
 			auto detailWarpX = warpScale * aPerlin.noise(x*scale / 40.f, y*scale / 40.f) - 0.5f;
 			auto detailWarpY = warpScale * aPerlin.noise(x*scale / 40.f, y*scale / 40.f, 1.f) - 0.5f;
 
-			auto hardNoiseModifier = .01f;
+			auto hardNoiseModifier = .5f;
 			float detailFreq = 1.f;
 			float detailAmp = 0.2f;
 
@@ -171,6 +171,7 @@ namespace TerrainGeneration
 
 				auto softNoise = 0.f;
 				auto hardNoise = 0.f;
+				hardNoiseModifier *= 0.85f * gain;
 
 				if (lerpFactor < 1.f)
 				{
@@ -185,7 +186,6 @@ namespace TerrainGeneration
 				}
 
 				tileNoise += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
-				hardNoiseModifier *= 0.85f * gain;
 
 				detailWarpX *= 0.25f;
 				detailWarpY *= 0.25f;

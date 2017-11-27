@@ -57,10 +57,14 @@ void main()
 	textureColor = vec4(1.2*iColor,1.0);
 	
 	//snow
-	float h = smoothstep(200.0,280.0,fs_in.fragPos.y + 25.0*fbm(0.01*fs_in.fragPos.xz/250) );
+	float h = smoothstep(350.0,430.0,fs_in.fragPos.y + 25.0*fbm(0.01*fs_in.fragPos.xz/250) );
 	float e = smoothstep(1.0-0.5*h,1.0-0.1*h,normTest.y);
 	float o = 0.3 + 0.7*smoothstep(0.0,0.1,normTest.x+h*h);
 	textureColor = mix(textureColor, texture(snowMaterial.diffuse, fs_in.texcoord), e*h*o);
+	if (fs_in.fragPos.y < 0.f)
+	{
+		textureColor = vec4(0, 0.7, 1, 1);
+	}
     vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
 
 	// Specular
