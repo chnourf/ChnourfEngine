@@ -7,7 +7,7 @@
 #include <random>
 
 const float scale = .5f;
-const float locMultiplier = 1000.f / scale; // noise result between 0 and this value (in meters)
+const float locMultiplier = 250.f / scale; // noise result between 0 and this value (in meters)
 const float gain = 0.5f;
 const float lacunarity = 1.90f;
 const unsigned int locNoiseDepth = 8;
@@ -112,8 +112,8 @@ namespace TerrainGeneration
 	{
 		auto tileNoise = 0.f;
 
-		float freq = 1.f;
-		float amp = 1.f;
+		float lowDetailFreq = 1.f;
+		float lowDetailAmp = 1.f;
 
 
 		// points far away from the center will "sink" allowing a border ocean. Distance is artificially modified with Perlin noise to create more irregularity
@@ -126,18 +126,19 @@ namespace TerrainGeneration
 		const float distAttenuation = glm::clamp(10.f / locMapSize * (0.70f * locMapSize - abs(distToCenter)), 0.f, 1.0f);
 
 		// warped fractal Perlin noise
-		auto warpX = locMapSize / 6.f * (aPerlin.noise(x / (locMapSize / 4.f) + 0.3f, y / (locMapSize / 4.f) + 0.3f, 0.f) - 0.5f);
-		auto warpY = locMapSize / 6.f * (aPerlin.noise(x / (locMapSize / 4.f) + 0.3f, y / (locMapSize / 4.f) + 0.3f, 3.f) - 0.5f);
+		auto lowWarpX = locMapSize / 6.f * (aPerlin.noise(x / (locMapSize / 4.f), y / (locMapSize / 4.f), 0.f) - 0.5f);
+		auto lowWarpY = locMapSize / 6.f * (aPerlin.noise(x / (locMapSize / 4.f), y / (locMapSize / 4.f), 3.f) - 0.5f);
+
 		for (int d = 1; d <= 8; d++)
 		{
-			freq *= lacunarity;
-			amp *= gain;
+			lowDetailFreq *= lacunarity;
+			lowDetailAmp *= gain;
 
 			auto softNoise = 0.f;
 
-			softNoise = aPerlin.noise(freq * (x + warpX) / (locMapSize / 4.f), freq * (y + warpY) / (locMapSize / 4.f), 0.f);
+			softNoise = aPerlin.noise(lowDetailFreq * (x + lowWarpX) / (locMapSize / 4.f), lowDetailFreq * (y + lowWarpY) / (locMapSize / 4.f), 0.f);
 
-			tileNoise += softNoise*amp;
+			tileNoise += softNoise*lowDetailAmp;
 		}
 
 		tileNoise *= distAttenuation;
@@ -146,27 +147,27 @@ namespace TerrainGeneration
 		const float locCoastalMountainsWidth = 0.04f;
 		float coastalMountains = exp(-pow((tileNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
 		float continentalMountains = 1.f / (1.f + exp(-100.f * (tileNoise - (locSeaLevel + 0.15f))));
-		float someRandomNoise = 1.f / (1 + exp(-40.f * (aPerlin.noise((x + warpX) / (locMapSize / 4.f), (y + warpY) / (locMapSize / 10.f), 0.f) - 0.6f)));
-		                            tileNoise += (coastalMountains + continentalMountains) * someRandomNoise;
+		float someRandomNoise = 1.f / (1 + exp(-40.f * (aPerlin.noise((x + lowWarpX) / (locMapSize / 4.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f) - 0.6f)));
+		tileNoise += (coastalMountains + continentalMountains) * someRandomNoise;
 
 		if (needsDetail)
 		{
 			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.05f, locMountainStartAltitude + 0.05f, tileNoise);
 
 			// warping the mountains to mask the 8 axis of the perlin noise
-			const auto warpScale = 40.f / scale;
-			auto warpX = warpScale * aPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f) - 0.5f;
-			auto warpY = warpScale * aPerlin.noise(x*scale / 40.f + 0.3f, y*scale / 40.f + 0.3f, 1) - 0.5f;
+			const auto warpScale = 60.f / scale;
+			auto detailWarpX = warpScale * aPerlin.noise(x*scale / 40.f, y*scale / 40.f) - 0.5f;
+			auto detailWarpY = warpScale * aPerlin.noise(x*scale / 40.f, y*scale / 40.f, 1.f) - 0.5f;
 
 			auto hardNoiseModifier = .01f;
-			float detailFreq = .1f;
-			float detailAmp = .01f;
+			float detailFreq = 1.f;
+			float detailAmp = 0.2f;
 
 			// Noise computation
 			for (int d = 1; d <= locNoiseDepth; d++)
 			{
 				detailFreq *= lacunarity;
-				amp *= gain;
+				detailAmp *= gain;
 
 				auto softNoise = 0.f;
 				auto hardNoise = 0.f;
@@ -178,7 +179,7 @@ namespace TerrainGeneration
 
 				if (lerpFactor > 0.f)
 				{
-					auto n = aPerlin.noise(detailFreq * (x + warpX) * scale / 256.f, detailFreq * (y + warpY) * scale / 256.f) * 2.f - 1.f;
+					auto n = aPerlin.noise(detailFreq * (x + detailWarpX) * scale / 256.f, detailFreq * (y + detailWarpY) * scale / 256.f) * 2.f - 1.f;
 					// C-infinity abs approximation
 					hardNoise = 1.f - abs(60.f * n * n * n / (0.1f + 60.f * n * n));
 				}
@@ -186,13 +187,14 @@ namespace TerrainGeneration
 				tileNoise += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
 				hardNoiseModifier *= 0.85f * gain;
 
-				warpX *= 0.25f;
-				warpY *= 0.25f;
-			}			
-			tileNoise -= 0.5f;
+				detailWarpX *= 0.25f;
+				detailWarpY *= 0.25f;
+			}
+			tileNoise -= locSeaLevel;
 			tileNoise *= locMultiplier;
 		}
 
+		// result between 0.f and 2.f (water level at loc sea level)
 		return tileNoise;
 	}
 

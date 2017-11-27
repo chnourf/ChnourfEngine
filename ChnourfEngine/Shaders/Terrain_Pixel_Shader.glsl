@@ -61,8 +61,7 @@ void main()
 	float e = smoothstep(1.0-0.5*h,1.0-0.1*h,normTest.y);
 	float o = 0.3 + 0.7*smoothstep(0.0,0.1,normTest.x+h*h);
 	textureColor = mix(textureColor, texture(snowMaterial.diffuse, fs_in.texcoord), e*h*o);
-    //vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
-    vec3 diffuse = (diff) * vec3(debugBiomeCol);
+    vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
 
 	// Specular
     vec3 viewDir = normalize(viewPos - fs_in.fragPos);
