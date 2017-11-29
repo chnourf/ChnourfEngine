@@ -7,6 +7,9 @@
 #include "../Core/Intersection.h"
 #include "../Core/Time.h"
 #include <ctime>
+#include "../Dependencies/imgui/imgui.h"
+#include "../Dependencies/imgui/ImGui_impl_glut.h"
+
 
 using namespace Manager;
 
@@ -22,6 +25,8 @@ SceneManager::~SceneManager()
 {
 	glDeleteFramebuffers(1, &fbo);
 }
+
+float testFloat = 3.f;
 
 void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 {
@@ -134,6 +139,8 @@ void SceneManager::NotifyBeginFrame()
 	myCurrentCamera.Update();
 	TerrainManager::GetInstance()->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));
 	myModelManager->Update();
+
+	ImGui_ImplGLUT_NewFrame(1600, 900);
 }
 
 //ugly
@@ -194,30 +201,30 @@ void SceneManager::NotifyDisplayFrame()
 	}
 
 	// Shadow Map Pass ----------------------------------------------------------------------------------------------------------------------
-	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_DEPTH_CLAMP); // doesn't seem to work
+	//glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+	//glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_CLAMP); // doesn't seem to work
 
-	glm::mat4 lightProjection = glm::ortho(-300.0f, 300.0f, -300.0f, 300.0f, -1000.f, 1000.f);
-	glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 500.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
-	myLightSpaceMatrix = lightProjection * lightView;
+	//glm::mat4 lightProjection = glm::ortho(-300.0f, 300.0f, -300.0f, 300.0f, -1000.f, 1000.f);
+	//glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 500.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
+	//myLightSpaceMatrix = lightProjection * lightView;
 
-	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	//glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
+	//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
+	//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
+	//glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
-	glUseProgram(shadowMapProgram);
-	GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
-	glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
+	//auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
+	//glUseProgram(shadowMapProgram);
+	//GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
+	//glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
 
-	myModelManager->DrawShadowMap(myShaderManager.get());
+	//myModelManager->DrawShadowMap(myShaderManager.get());
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_CLAMP);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glDisable(GL_DEPTH_CLAMP);
 
 	// First color pass ----------------------------------------------------------------------------------------------------------------------
 	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
@@ -276,6 +283,9 @@ void SceneManager::NotifyDisplayFrame()
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
+
+	ImGui::SliderFloat("test", &testFloat, 0.f, 10.f);
+	ImGui::Render();
 }
 
 void SceneManager::NotifyEndFrame()

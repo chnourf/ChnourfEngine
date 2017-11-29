@@ -123,6 +123,10 @@
     <ClCompile Include="Core\UID.cpp" />
     <ClCompile Include="Debug\ppm.cpp" />
     <ClCompile Include="Debug\WorldGridGeneratorDebugDraw.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Dependencies\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Dependencies\imgui\ImGuy_impl_glut.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
     <ClCompile Include="Managers\ModelManager.cpp" />
@@ -157,6 +161,13 @@
     <ClInclude Include="Core\Vector.h" />
     <ClInclude Include="Debug\ppm.h" />
     <ClInclude Include="Debug\WorldGridGeneratorDebugDraw.h" />
+    <ClInclude Include="Dependencies\imgui\imconfig.h" />
+    <ClInclude Include="Dependencies\imgui\imgui.h" />
+    <ClInclude Include="Dependencies\imgui\ImGui_impl_glut.h" />
+    <ClInclude Include="Dependencies\imgui\imgui_internal.h" />
+    <ClInclude Include="Dependencies\imgui\stb_rect_pack.h" />
+    <ClInclude Include="Dependencies\imgui\stb_textedit.h" />
+    <ClInclude Include="Dependencies\imgui\stb_truetype.h" />
     <ClInclude Include="Managers\InputManager.h" />
     <ClInclude Include="Managers\ModelManager.h" />
     <ClInclude Include="Managers\SceneManager.h" />

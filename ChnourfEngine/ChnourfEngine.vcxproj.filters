@@ -40,6 +40,9 @@
     <Filter Include="Fichiers sources\Debug">
       <UniqueIdentifier>{cc1bb13a-34a4-4644-b8e1-4e6864fa05ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Fichiers sources\Debug\imgui">
+      <UniqueIdentifier>{501aff5d-19d9-4b8f-aeb6-f97b92d61fa8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -107,6 +110,18 @@
     </ClCompile>
     <ClCompile Include="Rendering\Models\TerrainTileModel.cpp">
       <Filter>Fichiers sources\Rendering\Models</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\imgui\imgui.cpp">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\imgui\imgui_demo.cpp">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\imgui\imgui_draw.cpp">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\imgui\ImGuy_impl_glut.cpp">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -226,6 +241,27 @@
     </ClInclude>
     <ClInclude Include="Rendering\Models\TerrainTileModel.h">
       <Filter>Fichiers sources\Rendering\Models</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\imgui\imconfig.h">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\imgui\imgui.h">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\imgui\imgui_internal.h">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\imgui\stb_rect_pack.h">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\imgui\stb_textedit.h">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\imgui\stb_truetype.h">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\imgui\ImGui_impl_glut.h">
+      <Filter>Fichiers sources\Debug\imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

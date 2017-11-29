@@ -1,5 +1,6 @@
 #include "InitGLUT.h"
 #include "IListener.h"
+#include "../../Dependencies/imgui/ImGui_impl_glut.h"
 
 using namespace Core::Init;
 
@@ -59,6 +60,9 @@ void Init_GLUT::Init(const Core::WindowInfo& aWindowInfo, const Core::ContextInf
 	PrintOpenGLInfo(aWindowInfo, aContextInfo);
 
 	windowInformation = aWindowInfo;
+
+	ImGui_ImplGLUT_Init();
+	ImGui_ImplGLUT_NewFrame(aWindowInfo.width, aWindowInfo.height);
 }
 
 //starts the rendering Loop
@@ -72,6 +76,8 @@ void Init_GLUT::Close()
 {
 	std::cout << "GLUT:\t Finished" << std::endl;
 	glutLeaveMainLoop();
+
+	ImGui_ImplGLUT_Shutdown();
 }
 
 void Init_GLUT::IdleCallback(void)
