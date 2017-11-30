@@ -7,6 +7,11 @@
 #include "../Core/Intersection.h"
 #include "../Core/Time.h"
 #include <ctime>
+#include "../Dependencies/GLFW/glfw3.h"
+#include "../Dependencies/glew/glew.h"
+#include "../Core/Init/GLFWwrapper.h"
+#include "../Dependencies/imgui/imgui.h"
+
 
 using namespace Manager;
 
@@ -23,14 +28,15 @@ SceneManager::~SceneManager()
 	glDeleteFramebuffers(1, &fbo);
 }
 
-void SceneManager::Initialize(const Core::WindowInfo& aWindow)
+float testFloat = 3.f;
+
+void SceneManager::Initialize()
 {
 	myShaderManager->Initialize();
 
-	myWindowHeigth = aWindow.height;
-	myWindowWidth = aWindow.width;
-
-	myCurrentCamera.Initialize(myWindowWidth, myWindowHeigth);
+	int windowWidth, windowHeight;
+	Core::Init::GLFWwrapper::GetWindowWidthAndHeight(windowWidth, windowHeight);
+	myCurrentCamera.Initialize(windowWidth, windowHeight);
 	//nextCameraPosition = myCurrentCamera.myCameraPos;
 
 	// Setting up main framebuffer ----------------------------------------------------------------------------------------------
@@ -39,18 +45,18 @@ void SceneManager::Initialize(const Core::WindowInfo& aWindow)
 
 	glGenTextures(1, &textureColorBuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, myWindowWidth, myWindowHeigth, 0, GL_RGBA, GL_FLOAT, nullptr); // for HDR
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, windowWidth, windowHeight, 0, GL_RGBA, GL_FLOAT, nullptr); // for HDR
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorBuffer, 0);
 	
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, myWindowWidth, myWindowHeigth, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, windowWidth, windowHeight, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, nullptr);
 	GLuint rbo;
 	glGenRenderbuffers(1, &rbo);
 	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, myWindowWidth, myWindowHeigth);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, windowWidth, windowHeight);
 	glBindRenderbuffer(GL_RENDERBUFFER, 0);
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
@@ -148,17 +154,19 @@ float atmospheric_depth(glm::vec3 position, glm::vec3 dir) {
 	return (float) t1;
 }
 
+float angle = 0.f;
 void SceneManager::NotifyDisplayFrame()
 {
 	myModelManager->ResetCulling();
 
-	float multiplier = 0.1f;
+	//float multiplier = 0.1f;
 	auto& lightDir = myDirectionalLight.GetDirection();
-	if (lightDir.y > 0.01f)
-	{
-		multiplier = 10.f;
-	}
-	myDirectionalLight.SetDirection(glm::rotateX(lightDir, multiplier * (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame()));
+	//if (lightDir.y > 0.01f)
+	//{
+	//	multiplier = 10.f;
+	//}
+	ImGui::SliderFloat("sun angle", &angle, -1.f, 1.f);
+	myDirectionalLight.SetDirection(glm::rotateX(glm::vec3(1.f, -.5f, 1.f), (float)M_PI * angle));
 
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
 	glm::vec3 eye_position = glm::vec3(0.0f, 1.f-13.f/6400.f, 0.0f);
@@ -194,30 +202,30 @@ void SceneManager::NotifyDisplayFrame()
 	}
 
 	// Shadow Map Pass ----------------------------------------------------------------------------------------------------------------------
-	glViewport(0, 0, shadowMapResolution, shadowMapResolution);
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-	glClear(GL_DEPTH_BUFFER_BIT);
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_DEPTH_CLAMP); // doesn't seem to work
+	//glViewport(0, 0, shadowMapResolution, shadowMapResolution);
+	//glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	//glClear(GL_DEPTH_BUFFER_BIT);
+	//glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_CLAMP); // doesn't seem to work
 
-	glm::mat4 lightProjection = glm::ortho(-300.0f, 300.0f, -300.0f, 300.0f, -1000.f, 1000.f);
-	glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 500.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
-	myLightSpaceMatrix = lightProjection * lightView;
+	//glm::mat4 lightProjection = glm::ortho(-300.0f, 300.0f, -300.0f, 300.0f, -1000.f, 1000.f);
+	//glm::mat4 lightView = glm::lookAt(myCurrentCamera.myCameraPos - 500.f * myDirectionalLight.GetDirection(), myCurrentCamera.myCameraPos,	glm::vec3(0.0f, 1.0f, 0.0f));
+	//myLightSpaceMatrix = lightProjection * lightView;
 
-	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	//glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
+	//glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(lightProjection));
+	//glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(lightView));
+	//glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
-	glUseProgram(shadowMapProgram);
-	GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
-	glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
+	//auto shadowMapProgram = myShaderManager->GetShader("shadowMapShader");
+	//glUseProgram(shadowMapProgram);
+	//GLuint lightSpaceMatrixLocation = glGetUniformLocation(shadowMapProgram, "lightSpaceMatrix");
+	//glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
 
-	myModelManager->DrawShadowMap(myShaderManager.get());
+	//myModelManager->DrawShadowMap(myShaderManager.get());
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glDisable(GL_DEPTH_CLAMP);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glDisable(GL_DEPTH_CLAMP);
 
 	// First color pass ----------------------------------------------------------------------------------------------------------------------
 	auto cameraTransform = glm::lookAt(myCurrentCamera.myCameraPos, myCurrentCamera.myCameraPos + myCurrentCamera.myCameraFront, myCurrentCamera.myCameraUp);
@@ -226,7 +234,9 @@ void SceneManager::NotifyDisplayFrame()
 	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(cameraTransform));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-	glViewport(0, 0, myWindowWidth, myWindowHeigth);
+	int width, height;
+	Core::Init::GLFWwrapper::GetWindowWidthAndHeight(width, height);
+	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
@@ -285,11 +295,11 @@ void SceneManager::NotifyEndFrame()
 
 void SceneManager::NotifyReshape(int aWidth, int aHeight, int aPreviousWidth, int aPreviousHeight)
 {
-	myWindowWidth = aWidth;
-	myWindowHeigth = aHeight;
+	int width, height;
+	Core::Init::GLFWwrapper::GetWindowWidthAndHeight(width, height);
 
 	glm::mat4 projection;
-	projection = glm::perspective(45.0f, (float)myWindowWidth / (float)myWindowHeigth, 0.1f, 3000.0f);
+	projection = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 3000.0f);
 	glBindBuffer(GL_UNIFORM_BUFFER, myViewConstantUbo);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);

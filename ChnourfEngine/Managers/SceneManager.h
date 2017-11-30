@@ -7,7 +7,6 @@
 #include "../Rendering/Cubemap.h"
 #include "../Rendering/Light/DirectionalLight.h"
 #include "../Core/Init/IListener.h"
-#include "../Core/Init/WindowInfo.h"
 #include "../Core/Singleton.h"
 
 namespace Manager
@@ -23,7 +22,7 @@ namespace Manager
 	public:
 		~SceneManager();
 
-		void Initialize(const Core::WindowInfo& aWindow);
+		void Initialize();
 
 		void NotifyBeginFrame() override;
 		void NotifyDisplayFrame() override;
@@ -35,9 +34,6 @@ namespace Manager
 
 	private:
 		SceneManager();
-
-		int myWindowWidth;
-		int myWindowHeigth;
 
 		GLuint myViewConstantUbo;
 

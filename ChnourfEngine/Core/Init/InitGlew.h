@@ -2,7 +2,7 @@
 #pragma once
 #include <iostream>
 #include "../../Dependencies/glew/glew.h"
-#include "../../Dependencies/freeglut/freeglut.h"
+#include <cassert>
 
 namespace Core 
 {
@@ -15,14 +15,18 @@ namespace Core
 			{
 				std::cout << "GLEW: Initialize" << std::endl;
 			}
-
-			if (glewIsSupported("GL_VERSION_4_5"))
+			else
 			{
-				std::cout << "GLEW GL_VERSION_4_5 is 4.5\n " << std::endl;
+				assert(false);
+			}
+
+			if (glewIsSupported("GL_VERSION_3_3"))
+			{
+				std::cout << "GLEW GL_VERSION_3_3 is 3.3\n " << std::endl;
 			}
 			else
 			{
-				std::cout << " GLEW GL_VERSION_4_5 not supported\n " << std::endl;
+				std::cout << " GLEW GL_VERSION_3_3 not supported\n " << std::endl;
 			}
 		}
 	}

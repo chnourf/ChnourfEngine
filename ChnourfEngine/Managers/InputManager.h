@@ -1,10 +1,12 @@
 #pragma once
 
 #include "../Dependencies/glew/glew.h"
-#include "../Dependencies/freeglut/freeglut.h"
+#include "../Dependencies/glew/glew.h"
 #include "../Core/Singleton.h"
 #include "../Core/Slot.h"
 #include "../Core/Vector.h"
+
+struct GLFWwindow;
 
 namespace Manager
 {
@@ -27,9 +29,8 @@ namespace Manager
 		InputState myInputState;
 
 		// must be static for glut
-		static void KeyboardDownCallback(unsigned char key, int x, int y);
-		static void KeyboardUpCallback(unsigned char key, int x, int y);
-		static void MouseCallback(int button, int state, int x, int y);
-		static void MotionCallback(int x, int y);
+		static void KeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+		static void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
+		static void MouseCallback(GLFWwindow* window, int button, int action, int mods);
 	};
 }
