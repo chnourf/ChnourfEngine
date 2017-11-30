@@ -2,7 +2,7 @@
 #include <vector>
 #include <iostream>
 #include "../Dependencies/glew/glew.h"
-#include "../Dependencies/freeglut/freeglut.h"
+#include "../Dependencies/GLFW/glfw3.h"
 #include "../Dependencies/SOIL/SOIL.h"
 #include "VertexFormat.h"
 #include "../Core/Intersection.h"

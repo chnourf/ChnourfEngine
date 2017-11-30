@@ -1,19 +1,16 @@
-#include "Core\Init\InitGLUT.h"
+#include "Core\Init\GLFWwrapper.h"
 #include "Managers\SceneManager.h"
 #include "Managers\InputManager.h"
 #include "WorldGenerator\TerrainManager.h"
 #include "Core\Time.h"
+#include "Dependencies\GLFW\glfw3.h"
 
 using namespace Core;
 using namespace Init;
 
 int main(int argc, char **argv)
 {
-	WindowInfo window(std::string("Chnourf Engine"), 400, 200, 1600, 900, true);
-
-	ContextInfo context(4, 5, true);
-	FramebufferInfo frameBufferInfo(true, true, true, true);
-	Init_GLUT::Init(window, context, frameBufferInfo);
+	GLFWwrapper::Init(1600, 900, "Chnourf Engine");
 
 	Time::Create();
 	Manager::InputManager::Create();
@@ -21,17 +18,19 @@ int main(int argc, char **argv)
 	Manager::TerrainManager::Create();
 	
 	Manager::SceneManager::Create();
-	Manager::SceneManager::GetInstance()->Initialize(window);
+	Manager::SceneManager::GetInstance()->Initialize();
 	IListener* scene = Manager::SceneManager::GetInstance();
-	Init::Init_GLUT::SetListener(scene);
+	GLFWwrapper::SetListener(scene);
 
-	Init_GLUT::Run();
+	GLFWwrapper::Run();
 
 	Manager::SceneManager::Destroy();
 
 	Manager::TerrainManager::Destroy();
 
 	Manager::InputManager::Destroy();
+
+	glfwTerminate();
 
 	return 0;
 }

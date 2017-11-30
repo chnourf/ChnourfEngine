@@ -51,9 +51,6 @@
     <ClCompile Include="Managers\ShaderManager.cpp">
       <Filter>Fichiers sources\Managers</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Init\InitGlut.cpp">
-      <Filter>Fichiers sources\Core\Init</Filter>
-    </ClCompile>
     <ClCompile Include="Managers\SceneManager.cpp">
       <Filter>Fichiers sources\Managers</Filter>
     </ClCompile>
@@ -120,7 +117,10 @@
     <ClCompile Include="Dependencies\imgui\imgui_draw.cpp">
       <Filter>Fichiers sources\Debug\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="Dependencies\imgui\ImGuy_impl_glut.cpp">
+    <ClCompile Include="Core\Init\GLFWwrapper.cpp">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClCompile>
+    <ClCompile Include="Dependencies\imgui\imgui_impl_glfw_glew.cpp">
       <Filter>Fichiers sources\Debug\imgui</Filter>
     </ClCompile>
   </ItemGroup>
@@ -128,19 +128,7 @@
     <ClInclude Include="Managers\ShaderManager.h">
       <Filter>Fichiers sources\Managers</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Init\WindowInfo.h">
-      <Filter>Fichiers sources\Core\Init</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Init\ContextInfo.h">
-      <Filter>Fichiers sources\Core\Init</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Init\FramebufferInfo.h">
-      <Filter>Fichiers sources\Core\Init</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Init\InitGlew.h">
-      <Filter>Fichiers sources\Core\Init</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Init\InitGlut.h">
       <Filter>Fichiers sources\Core\Init</Filter>
     </ClInclude>
     <ClInclude Include="Core\Init\IListener.h">
@@ -260,7 +248,13 @@
     <ClInclude Include="Dependencies\imgui\stb_truetype.h">
       <Filter>Fichiers sources\Debug\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Dependencies\imgui\ImGui_impl_glut.h">
+    <ClInclude Include="Core\Init\GLFWwrapper.h">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Init\InitGlew.h">
+      <Filter>Fichiers sources\Core\Init</Filter>
+    </ClInclude>
+    <ClInclude Include="Dependencies\imgui\imgui_impl_glfw_glew.h">
       <Filter>Fichiers sources\Debug\imgui</Filter>
     </ClInclude>
   </ItemGroup>

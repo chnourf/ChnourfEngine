@@ -1,8 +1,7 @@
 #ifndef  TextureFormat_H_
 #define TextureFormat_H_
 
-#include "../Dependencies/glew/glew.h"
-#include "../Dependencies/freeglut/freeglut.h"
+#include "../Dependencies/GLFW/glfw3.h"
 
 #include "../Dependencies/Assimp/types.h"
 

@@ -3,6 +3,7 @@
 #include "../Core/Time.h"
 #include "../Managers/InputManager.h"
 #include "glm\gtx\rotate_vector.hpp"
+#include "../Dependencies/imgui/imgui.h"
 
 int locSpeedMultiplier = 1;
 
@@ -19,7 +20,7 @@ void Camera::Initialize(int aWindowWidth, int aWindowHeight)
 	myProjectionMatrix = glm::perspective(45.0f, (float)aWindowWidth / (float)aWindowHeight, 0.1f, 3000.f);
 	Manager::InputManager::GetInstance()->OnMouseMotionSlot.Connect(std::bind(&Camera::OnMouseMotion, this, std::placeholders::_1, std::placeholders::_2));
 	Manager::InputManager::GetInstance()->OnKeyPressedSlot.Connect(std::bind([](unsigned char c)
-	{	if (c == '&')
+	{	if (c == GLFW_KEY_1)
 	{
 		locSpeedMultiplier *= 10;
 		if (locSpeedMultiplier > 100)
@@ -32,6 +33,9 @@ void Camera::Initialize(int aWindowWidth, int aWindowHeight)
 
 void Camera::UpdateFromKeyboard()
 {
+	ImGui::Text("Camera Position : x %f, y %f, z %f", float(myCameraPos.x), float(myCameraPos.y), float(myCameraPos.z));
+	ImGui::Text("Camera Facing : x %f, y %f, z %f",  float(myCameraFront.x), float(myCameraFront.y), float(myCameraFront.z));
+	
 	auto cameraSpeed = 10.f;
 	cameraSpeed *= locSpeedMultiplier;
 	cameraSpeed *= (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame();
@@ -39,17 +43,17 @@ void Camera::UpdateFromKeyboard()
 
 	const auto& inputs = Manager::InputManager::GetInstance()->GetKeyBoardState();
 
-	if (inputs['z'])
+	if (inputs[GLFW_KEY_W])
 		myNextCameraPos += cameraSpeed * myCameraFront;
-	if (inputs['s'])
+	if (inputs[GLFW_KEY_S])
 		myNextCameraPos -= cameraSpeed * myCameraFront;
-	if (inputs['q'])
+	if (inputs[GLFW_KEY_A])
 		myNextCameraPos -= cameraSpeed * cameraRight;
-	if (inputs['d'])
+	if (inputs[GLFW_KEY_D])
 		myNextCameraPos += cameraSpeed * cameraRight;
-	if (inputs['a'])
+	if (inputs[GLFW_KEY_Q])
 		myNextCameraPos.y += cameraSpeed;
-	if (inputs['e'])
+	if (inputs[GLFW_KEY_E])
 		myNextCameraPos.y -= cameraSpeed;
 }
 
