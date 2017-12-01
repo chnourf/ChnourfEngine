@@ -9,7 +9,6 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 	myTileSize(aTileSize),
 	myTileResolution(aTileResolution)
 {
-	myPerlin = PerlinNoise(aSeed);
 	myRandomEngine.seed(aSeed);
 	myHandle = std::async(std::launch::async, [this, anEmptyTile]() {BuildTile(anEmptyTile);});
 }
@@ -34,7 +33,7 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 			const float x = ((float)j / ((float)myTileSize-1) + aTile->GetGridIndex().y) * myTileSize * myTileResolution;
 			const float y = ((float)i / ((float)myTileSize-1) + aTile->GetGridIndex().x) * myTileSize * myTileResolution;
 
-			const auto pointNoise = TerrainGeneration::ComputeElevation(x, y, myPerlin, true);
+			const auto pointNoise = TerrainGeneration::ComputeElevation(x, y, true);
 
 			if (pointNoise < minHeight)
 			{
@@ -89,10 +88,10 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 			const auto index = j + i * myTileSize;
 
 			// technically erosion should have changed the elevation of the edges but we suppose it's negligible, thanks to the lerp above
-			const auto s01 = (j == 0) ? TerrainGeneration::ComputeElevation(x - delta * myTileSize * myTileResolution, y, myPerlin, true) : temporaryElements[index - 1].myElevation;
-			const auto s21 = (j == myTileSize - 1) ? TerrainGeneration::ComputeElevation(x + delta * myTileSize * myTileResolution, y, myPerlin, true) : temporaryElements[index + 1].myElevation;
-			const auto s10 = (i == 0) ? TerrainGeneration::ComputeElevation(x, y - delta * myTileSize * myTileResolution, myPerlin, true) : temporaryElements[index - myTileSize].myElevation;
-			const auto s12 = (i == myTileSize - 1) ? TerrainGeneration::ComputeElevation(x, y + delta * myTileSize * myTileResolution, myPerlin, true) : temporaryElements[index + myTileSize].myElevation;
+			const auto s01 = (j == 0) ? TerrainGeneration::ComputeElevation(x - delta * myTileSize * myTileResolution, y, true) : temporaryElements[index - 1].myElevation;
+			const auto s21 = (j == myTileSize - 1) ? TerrainGeneration::ComputeElevation(x + delta * myTileSize * myTileResolution, y, true) : temporaryElements[index + 1].myElevation;
+			const auto s10 = (i == 0) ? TerrainGeneration::ComputeElevation(x, y - delta * myTileSize * myTileResolution, true) : temporaryElements[index - myTileSize].myElevation;
+			const auto s12 = (i == myTileSize - 1) ? TerrainGeneration::ComputeElevation(x, y + delta * myTileSize * myTileResolution, true) : temporaryElements[index + myTileSize].myElevation;
 			const glm::vec3 va = glm::normalize(glm::vec3(2 * delta, (s21 - s01) / (myTileSize * myTileResolution), 0.0f));
 			const glm::vec3 vb = glm::normalize(glm::vec3(0.0f, (s12 - s10) / (myTileSize * myTileResolution), 2 * delta));
 			const auto normal = glm::cross(vb, va);

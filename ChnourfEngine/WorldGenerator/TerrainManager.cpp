@@ -5,6 +5,8 @@
 #include "TerrainManager.h"
 #include "TerrainTile.h"
 
+#include "../Dependencies/imgui/imgui.h"
+
 #include "TerrainGenerationFunctions.h"
 
 #include "WorldGrid.h"
@@ -54,6 +56,8 @@ namespace Manager
 		mySeed = 0;// time(NULL);
 		srand(mySeed);
 
+		TerrainGeneration::Initialize(mySeed);
+
 		auto mustBeAPowerOf2 = myTileSize - 1;
 		assert(((mustBeAPowerOf2 != 0) && ((mustBeAPowerOf2 & (~mustBeAPowerOf2 + 1)) == mustBeAPowerOf2)));
 		myTileBuilder = std::make_unique<TerrainTileBuilder>(myTileSize, myResolution, mySeed);
@@ -72,6 +76,10 @@ namespace Manager
 
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
+		auto temperature = TerrainGeneration::ComputeTemperature(aPlayerPosition.x, aPlayerPosition.y, aPlayerPosition.z);
+		auto temperatureInCelsius = int(70.f * temperature - 30.f);
+		ImGui::Text("Temperature at camera position : %03f, or %d Celsius", temperature, temperatureInCelsius);
+
 		myTileBuilder->Update();
 
 		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myTileSize*myResolution), aPlayerPosition.z / (myTileSize*myResolution));

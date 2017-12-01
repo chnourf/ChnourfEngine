@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "glm\glm.hpp"
 #include <iostream>
-#include "../Debug/WorldGridGeneratorDebugDraw.h"
+#include "../Debug/WorldGridGeneratorDebug.h"
 #include "TerrainGenerationFunctions.h"
 
 const unsigned int locPictureDimension = 512u;
@@ -234,6 +234,13 @@ namespace TerrainGeneration
 		// don't know yet how to link iterations number and resolution
 		const int iterations = locGridNumOfElements / 2;
 		//const int iterations = pow(locGridNumOfElements / 16, 2);
+
+		for (auto& point : myGrid.myPoints)
+		{
+			auto isSea = (point.myFlags & (int)PointTypeFlags::Land) == 0;
+			point.myRainfall = isSea ? 1.f : 0.f;
+		}
+
 		for (int i = 0; i < iterations; ++i)
 		{
 			for (auto& point : myGrid.myPoints)
@@ -291,19 +298,8 @@ namespace TerrainGeneration
 	{
 		for (auto& point : myGrid.myPoints)
 		{
-			auto isSea = (point.myFlags & (int)PointTypeFlags::Land) == 0;
-			point.myRainfall = isSea ? 1.f : 0.f;
-
-			//point.myTemperature = 1 - abs(2.f / locMapSize * (point.myPosition.y - locMapSize / 2.f));
-			point.myTemperature = sin(M_PI / TerrainGeneration::GetMapSize()*(TerrainGeneration::GetMapSize() - point.myPosition.y));
-			float tempRandomness = 0.f;
-			for (int d = 1; d <= 4; d++)
-			{
-				tempRandomness += myPerlin.noise(5.f * pow(2, d) * point.myPosition.x / TerrainGeneration::GetMapSize(), 5.f * pow(2, d) * point.myPosition.y / TerrainGeneration::GetMapSize(), 0) / pow(2, d);
-			}
-			point.myTemperature = glm::clamp(point.myTemperature + 0.5f * (tempRandomness - 0.5f), 0.f, 1.f);
-			float altitudeInfluence = glm::clamp((point.myHeight - TerrainGeneration::GetSeaLevel()) * 0.5f, 0.f, 1.f);
-			point.myTemperature = glm::clamp(point.myTemperature - altitudeInfluence, 0.f, 1.f);
+			const auto& adjustedPost = point.myPosition - midPos;
+			point.myTemperature = TerrainGeneration::ComputeTemperature(adjustedPost.x, point.myHeight, adjustedPost.y);
 		}
 	}
 
@@ -390,8 +386,8 @@ namespace TerrainGeneration
 		{
 			const auto& adjustedPost = point.myPosition - midPos;
 
-			point.myHeight = TerrainGeneration::ComputeElevation(adjustedPost.x, adjustedPost.y, myPerlin, false);
-			if (point.myHeight > TerrainGeneration::GetSeaLevel())
+			point.myHeight = TerrainGeneration::ComputeElevation(adjustedPost.x, adjustedPost.y, false);
+			if (point.myHeight > 0.f)
 			{
 				point.myFlags |= (int)PointTypeFlags::Land;
 			}
@@ -470,29 +466,4 @@ namespace TerrainGeneration
 		// this is the cell where the point is
 		return candidates[currentCellId];
 	}
-
-	//const Triangle* WorldGrid::SampleGridTriangle(const vec2f& aPosition)
-	//{
-	//	const auto adjustedPosition = midPos + aPosition;
-
-	//	std::vector<const Cell*> candidates;
-
-	//	for (const auto& cell : myGrid.myCells)
-	//	{
-	//		if (IsPointInsideAABB(cell.myAABB, vec3f(adjustedPosition)))
-	//		{
-	//			candidates.push_back(&cell);
-	//		}
-	//	}
-
-	//	if (candidates.size() == 0)
-	//	{
-	//		return nullptr;
-	//	}
-
-	//	for (auto currentCellId = 0u; currentCellId < candidates.size(); ++currentCellId)
-	//	{
-	//		for 
-	//	}
-	//}
 }

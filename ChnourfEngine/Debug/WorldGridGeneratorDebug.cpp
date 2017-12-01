@@ -1,4 +1,4 @@
-#include "WorldGridGeneratorDebugDraw.h"
+#include "WorldGridGeneratorDebug.h"
 #include "ppm.h"
 #include "../Core/Vector.h"
 #include <algorithm>
@@ -67,6 +67,9 @@ namespace Debug
 			break;
 		case TerrainGeneration::Biome::Sea:
 			return locWaterColFloat;
+			break;
+		default:
+			return vec3f(0.f);
 			break;
 		}
 	}
@@ -158,7 +161,7 @@ namespace Debug
 
 	void DrawCellTemperature(ppm* anImage, const TerrainGeneration::Cell& cell, const unsigned int anImageSize, const unsigned int metersPerPixel)
 	{
-		auto elevationCol = vec3i(255 * cell.GetTemperature());
+		auto tempColor = vec3i(255 * cell.GetTemperature());
 
 		const auto center = cell.GetCenter();
 		for (int i = 0; i < cell.myPoints.size(); ++i)
@@ -166,13 +169,13 @@ namespace Debug
 			TerrainGeneration::Point point;
 			point.myPosition = center;
 			auto triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, elevationCol, anImageSize, metersPerPixel);
+			DrawTriangle(anImage, triangle, tempColor, anImageSize, metersPerPixel);
 		}
 	}
 
 	void DrawCellElevation(ppm* anImage, const TerrainGeneration::Cell& cell, const unsigned int anImageSize, const unsigned int metersPerPixel)
 	{
-		auto elevationCol = vec3i(128 * cell.GetElevation());
+		auto elevationCol = vec3i(255 * ( 0.3f + 0.5f*cell.GetElevation()/ TerrainGeneration::GetMultiplier()));
 
 		if (!cell.IsFlag(TerrainGeneration::PointTypeFlags::Land))
 		{

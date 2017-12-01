@@ -2,7 +2,6 @@
 #include <vector>
 #include <random>
 struct TerrainElement;
-class PerlinNoise;
 
 namespace TerrainGeneration
 {
@@ -47,13 +46,17 @@ namespace TerrainGeneration
 	};
 
 	float GetMapSize();
-	float GetSeaLevel();
 	float GetMountainStartAltitude();
+	float GetMultiplier();
 
 	Biome DeduceBiome(const float aTemperature, const float aRainfall);
 
-	float ComputeElevation(const float x, const float y, const PerlinNoise& aPerlin, bool needsDetail);
+	const char* GetBiomeName(const Biome aBiome);
 
+	float ComputeElevation(const float x, const float y, bool needsDetail);
+	float ComputeTemperature(const float x, const float y, const float z);
 
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize, std::default_random_engine aRandomEngine);
+
+	void Initialize(unsigned int aSeed);
 }

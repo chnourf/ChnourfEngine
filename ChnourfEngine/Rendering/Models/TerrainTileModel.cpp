@@ -7,7 +7,7 @@
 
 #include "../../WorldGenerator/TerrainManager.h"
 
-#include "../../Debug/WorldGridGeneratorDebugDraw.h"
+#include "../../Debug/WorldGridGeneratorDebug.h"
 
 
 namespace Rendering
