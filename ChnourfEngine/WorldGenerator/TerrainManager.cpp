@@ -76,6 +76,18 @@ namespace Manager
 
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
+		if (ImGui::Button("Invalidate Tiles"))
+		{
+			auto activeTilesIt = myActiveTiles.begin();
+			while (activeTilesIt < myActiveTiles.end())
+			{
+				const vec2i tileIndex = (*activeTilesIt)->GetGridIndex();
+				SceneManager::GetInstance()->GetModelManager()->RemoveTerrainTile(tileIndex);
+				delete *activeTilesIt;
+				activeTilesIt = myActiveTiles.erase(activeTilesIt);
+			}
+		}
+
 		auto temperature = TerrainGeneration::ComputeTemperature(aPlayerPosition.x, aPlayerPosition.y, aPlayerPosition.z);
 		auto temperatureInCelsius = int(70.f * temperature - 30.f);
 		ImGui::Text("Temperature at camera position : %03f, or %d Celsius", temperature, temperatureInCelsius);

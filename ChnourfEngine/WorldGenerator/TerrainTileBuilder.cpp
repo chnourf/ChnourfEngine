@@ -4,14 +4,20 @@
 #include <iostream>
 #include "../Core/Vector.h"
 #include "../WorldGenerator/TerrainManager.h"
+#include "../Dependencies/imgui/imgui.h"
 
 TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned int aTileSize, float aTileResolution, TerrainTile* anEmptyTile):
 	myTileSize(aTileSize),
 	myTileResolution(aTileResolution)
 {
-	myRandomEngine.seed(aSeed);
 	myHandle = std::async(std::launch::async, [this, anEmptyTile]() {BuildTile(anEmptyTile);});
 }
+
+
+float locCarryCapacity = 15.f;
+float locRockHardness = 0.5f;
+int locIterations = 10000;
+int locErosionRadius = 0;
 
 void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 {
@@ -51,31 +57,27 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	aTile->SetMinHeight(minHeight);
 	aTile->SetMaxHeight(maxHeight);
 
-	//std::vector<TerrainElement> elementsBeforeErosion = temporaryElements;
+	std::vector<TerrainElement> elementsBeforeErosion = temporaryElements;
 
-	////computing erosion, could be moved to presets.txt
-	//TerrainGeneration::ErosionParams params;
-	//params.Kq = 1.5f;
-	//params.Kevap = 0.1f;
-	//params.Kerosion = .9f;
-	//params.Kdepos = .02f;
-	//params.Ki = .01f;
-	//params.minSlope = 0.05f;
-	//params.g = 1.f;
-	//TerrainGeneration::ComputeErosion(temporaryElements, 10000, params, myTileSize, myRandomEngine);
+	//computing erosion, could be moved to presets.txt
+	TerrainGeneration::ErosionParams params;
+	params.carryCapacity = locCarryCapacity;
+	params.iterations = locIterations;
+	params.rockHardness = locRockHardness;
+	params.depositionRadius = locErosionRadius;
+	TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
 
-	//// lerping the edges of the tiles to ensure continuity
-	//for (unsigned int i = 0; i < myTileSize; ++i) {
-	//	for (unsigned int j = 0; j < myTileSize; ++j) {
-
-	//		auto index = i + j * myTileSize;
-	//		auto lerpFactor = glm::clamp(5.5f - abs(12.f * (float)i / (float)myTileSize - 6.f), 0.f, 1.f);
-	//		lerpFactor *= glm::clamp(5.5f - abs(12.f * (float)j / (float)myTileSize - 6.f), 0.f, 1.f);
-	//		auto& el = temporaryElements[index].myElevation;
-	//		auto& bel = elementsBeforeErosion[index].myElevation;
-	//		el = bel + lerpFactor * (el - bel);
-	//	}
-	//}
+	// lerping the edges of the tiles to ensure continuity after erosion
+	for (unsigned int i = 0; i < myTileSize; ++i) {
+		for (unsigned int j = 0; j < myTileSize; ++j) {
+			auto index = i + j * myTileSize;
+			auto lerpFactor = glm::clamp(5.5f - abs(12.f * (float)i / (float)myTileSize - 6.f), 0.f, 1.f);
+			lerpFactor *= glm::clamp(5.5f - abs(12.f * (float)j / (float)myTileSize - 6.f), 0.f, 1.f);
+			auto& el = temporaryElements[index].myElevation;
+			auto& bel = elementsBeforeErosion[index].myElevation;
+			el = bel + lerpFactor * (el - bel);
+		}
+	}
 
 	//computing normals based on elevation
 	for (unsigned int i = 0; i < myTileSize; ++i) {     // y
@@ -134,6 +136,11 @@ void TerrainTileBuilder::BuildTileRequest(TerrainTile* aTile)
 
 void TerrainTileBuilder::Update()
 {
+	ImGui::SliderFloat("carry capacity : ", &locCarryCapacity, 0.f, 100.f, "%.3f", 2.f);
+	ImGui::SliderFloat("rock Hardness : ", &locRockHardness, 0.f, 1.f, "%.3f", 2.f);
+	ImGui::SliderInt("iterations : ", &locIterations, 1000, 400000);
+	ImGui::SliderInt("Erosion Radius : ", &locErosionRadius, 0, 10);
+
 	auto it = myLoadingTasks.begin();
 	while (it < myLoadingTasks.end())
 	{

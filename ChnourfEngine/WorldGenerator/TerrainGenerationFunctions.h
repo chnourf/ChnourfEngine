@@ -7,13 +7,10 @@ namespace TerrainGeneration
 {
 	struct ErosionParams
 	{
-		float Kq; // soil carry capacity
-		float Kevap; // evaporation speed
-		float Kerosion; // erosion speed
-		float Kdepos; // deposition speed
-		float Ki; // inertia
-		float minSlope;
-		float g; // gravity
+		float carryCapacity; // soil carry capacity
+		float rockHardness; // erosion speed
+		int iterations; // number of iterations
+		int depositionRadius;
 	};
 
 	enum class Biome
@@ -56,7 +53,7 @@ namespace TerrainGeneration
 	float ComputeElevation(const float x, const float y, bool needsDetail);
 	float ComputeTemperature(const float x, const float y, const float z);
 
-	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize, std::default_random_engine aRandomEngine);
+	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
 
 	void Initialize(unsigned int aSeed);
 }

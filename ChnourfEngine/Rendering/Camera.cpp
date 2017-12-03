@@ -9,7 +9,8 @@ int locSpeedMultiplier = 1;
 
 Camera::Camera()
 {
-	myCameraPos = glm::vec3(0.0f, 200.0f, 5.0f);
+	//myCameraPos = glm::vec3(0.0f, 200.0f, 5.0f);
+	myCameraPos = glm::vec3(1740.f, 400.0f, 140.0f);
 	myNextCameraPos = myCameraPos;
 	myCameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	myCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);

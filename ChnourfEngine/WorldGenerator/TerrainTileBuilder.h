@@ -22,8 +22,6 @@ struct TerrainTileBuildingTask
 	TerrainTileBuildingTask(const int aSeed, const unsigned int aTileSize, float aTileResolution, TerrainTile* anEmptyTile);
 	~TerrainTileBuildingTask();
 
-	std::default_random_engine myRandomEngine;
-
 	unsigned int myTileSize;
 	float myTileResolution;
 

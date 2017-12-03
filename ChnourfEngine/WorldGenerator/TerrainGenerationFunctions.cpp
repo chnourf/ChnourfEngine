@@ -19,6 +19,7 @@ const float locSeaLevel = 0.45f;
 const float locMountainStartAltitude = locSeaLevel + 0.35f;
 
 PerlinNoise perlinNoise;
+std::default_random_engine randomEngine;
 
 
 static const char* biomeNames[static_cast<int>(TerrainGeneration::Biome::Count)] =
@@ -187,7 +188,7 @@ namespace TerrainGeneration
 			auto detailWarpX = warpScale * perlinNoise.noise(x*scale / 40.f, y*scale / 40.f) - 0.5f;
 			auto detailWarpY = warpScale * perlinNoise.noise(x*scale / 40.f, y*scale / 40.f, 1.f) - 0.5f;
 
-			auto hardNoiseModifier = .5f;
+			auto hardNoiseModifier = .3f;
 			float detailFreq = 1.f;
 			float detailAmp = 0.2f;
 
@@ -196,10 +197,10 @@ namespace TerrainGeneration
 			{
 				detailFreq *= lacunarity;
 				detailAmp *= gain;
+				hardNoiseModifier *= gain;
 
 				auto softNoise = 0.f;
 				auto hardNoise = 0.f;
-				hardNoiseModifier *= 0.85f * gain;
 
 				if (lerpFactor < 1.f)
 				{
@@ -242,202 +243,172 @@ namespace TerrainGeneration
 		return temperature;
 	}
 
-	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize, std::default_random_engine aRandomEngine)
-{
-	std::uniform_int_distribution<int> distribution(0, aTileSize - 2);
+	void Erode(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float amount, float& carriedSediment, const int xi, const int zi)
+	{
+		for (int z = zi - params.depositionRadius; z <= zi + params.depositionRadius; ++z)
+		{
+			if (z < 0 || z > aTileSize - 1)
+			{
+				continue; 
+			}
+				int zo = z - zi;
+				float zo2 = zo*zo;
+				for (int x = xi - params.depositionRadius; x <= xi + params.depositionRadius; ++x)
+				{
+					if (x < 0 || x > aTileSize - 1)
+					{
+						continue;
+					}
+					int xo = x - xi;
+					float weight = 1.f /((1.f + float(params.depositionRadius)) * (1.f + pow((xo*xo + zo2),2)));
+					elevationMap[xi + aTileSize * zi].myElevation -= amount * weight;
+			}
+		}
 
-	float Kq = params.Kq, Kevap = params.Kevap, Kerosion = params.Kerosion, Kdepos = params.Kdepos, Kinertia = params.Ki,
-		minSlope = params.minSlope, Kgravity = params.g;
-
-	const unsigned int MAX_PATH_LEN = aTileSize * 4;
-
-#define DEPOSIT_AT(X, Z, W) \
-	{ \
-	float delta=ds*(W); \
-	elevationMap [X + aTileSize * Z].myElevation  += delta; \
+		carriedSediment += amount;
 	}
 
-#define DEPOSIT(H) \
-	for (int z = zi - 1; z <= zi + 2; ++z)\
-	{\
-		if (z < 0 || z > aTileSize - 1)\
-			continue;\
-		float zo = z - zp;\
-		float zo2 = zo*zo;\
-		for (int x = xi - 1; x <= xi + 2; ++x)\
-		{\
-			if (x < 0 || x > aTileSize - 1)\
-				continue;\
-			float xo = x - xp;\
-			float w = 1 - (xo*xo + zo2)*0.25f;\
-			if (w <= 0) continue;\
-			w *= 0.03978873577f;\
-			DEPOSIT_AT(x, z, w)\
-		}\
-	}\
-	(H)+=ds;
-
-	for (unsigned int iter = 0; iter < iterations; ++iter)
+	void Depose(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float amount, float& carriedSediment, const int xi, const int zi)
 	{
-		int xi = distribution(aRandomEngine);
-		int zi = distribution(aRandomEngine);
-
-		float xp = xi, zp = zi;
-		float xf = 0, zf = 0;
-
-		float h = elevationMap[xi + aTileSize * zi].myElevation;
-		float carriedSoil = 0, speed = 1, water = 1;
-
-		float h00 = h;
-		float h10 = elevationMap[xi + 1 + aTileSize * zi].myElevation;
-		float h01 = elevationMap[xi + aTileSize * (zi + 1)].myElevation;
-		float h11 = elevationMap[(xi + 1) + aTileSize * (zi + 1)].myElevation;
-
-		float dx = 0, dz = 0;
-
-		unsigned numMoves = 0;
-		for (; numMoves < MAX_PATH_LEN; ++numMoves)
+		for (int z = zi - params.depositionRadius; z <= zi + params.depositionRadius; ++z)
 		{
-			// calc gradient
-			float gx = h00 + h01 - h10 - h11;
-			float gz = h00 + h10 - h01 - h11;
-
-			// calc next pos
-			dx = (dx - gx)*Kinertia + gx;
-			dz = (dz - gz)*Kinertia + gz;
-
-			float dl = sqrtf(dx*dx + dz*dz);
-			if (dl <= FLT_EPSILON)
+			if (z < 0 || z > aTileSize - 1)
 			{
-				// pick random dir
-				float a = std::rand();
-				dx = cosf(a);
-				dz = sinf(a);
+				continue;
 			}
-			else
+			int zo = z - zi;
+			float zo2 = zo*zo;
+			for (int x = xi - params.depositionRadius; x <= xi + params.depositionRadius; ++x)
 			{
-				dx /= dl;
-				dz /= dl;
-			}
-
-			float nxp = xp + dx;
-			float nzp = zp + dz;
-
-			// sample next height
-			int nxi = glm::clamp((int)std::floor(nxp), 0, (int)aTileSize - 1);
-			int nzi = glm::clamp((int)std::floor(nzp), 0, (int)aTileSize - 1);
-
-			// the drop falls off the tile
-			if (nxi == aTileSize - 1 || nzi == aTileSize - 1 || nxi == 0 || nzi == 0)
-				break;
-
-			float nxf = nxp - nxi;
-			float nzf = nzp - nzi;
-
-			float nh00 = elevationMap[nxi + aTileSize * nzi].myElevation;
-			float nh10 = elevationMap[nxi + 1 + aTileSize * nzi].myElevation;
-			float nh01 = elevationMap[nxi + aTileSize * (nzi + 1)].myElevation;
-			float nh11 = elevationMap[nxi + 1 + aTileSize * (nzi + 1)].myElevation;
-
-			float nh = (nh00*(1 - nxf) + nh10*nxf)*(1 - nzf) + (nh01*(1 - nxf) + nh11*nxf)*nzf;
-
-			// if higher than current, try to deposit sediment up to neighbour height
-			if (nh >= h)
-			{
-				float ds = (nh - h) + 0.001f;
-
-				if (ds >= carriedSoil)
+				if (x < 0 || x > aTileSize - 1)
 				{
-					// deposit all sediment and stop
-					ds = carriedSoil;
-					DEPOSIT(h)
-						carriedSoil = 0;
-					break;
+					continue;
 				}
-				DEPOSIT(h)
-					carriedSoil -= ds;
-				speed = 0;
+				int xo = x - xi;
+				float weight = 1.f / ((1.f + float(params.depositionRadius)) * (1.f + pow((xo*xo + zo2), 2)));
+				elevationMap[xi + aTileSize * zi].myElevation += amount * weight;
 			}
+		}
 
-			// compute transport capacity
-			float dh = h - nh;
+		carriedSediment -= amount;
+	}
 
-			speed += Kgravity * std::min(dh, 1.f);
+	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize)
+	{
+		std::uniform_int_distribution<int> distribution(0, aTileSize - 2);
 
-			float q = std::max(dh, minSlope)*speed*water*Kq;
+		const unsigned int MAX_PATH_LEN = aTileSize * 4;
 
-			// deposit/erode (don't erode more than dh)
-			float ds = carriedSoil - q;
-			if (ds >= 0)
+		for (unsigned int iter = 0; iter < params.iterations; ++iter)
+		{
+			int xi = distribution(randomEngine);
+			int zi = distribution(randomEngine);
+
+			float xPos = xi, zPos = zi;
+
+			float currentHeight = elevationMap[xi + aTileSize * zi].myElevation;
+			float carriedSediment = 0.f;
+
+			float height00 = currentHeight;
+			float height10 = elevationMap[xi + 1 + aTileSize * zi].myElevation;
+			float height01 = elevationMap[xi + aTileSize * (zi + 1)].myElevation;
+			float height11 = elevationMap[(xi + 1) + aTileSize * (zi + 1)].myElevation;
+
+			float deltaX = 0, deltaZ = 0;
+
+			for (unsigned int numMoves = 0; numMoves < MAX_PATH_LEN; ++numMoves)
 			{
-				// deposit
-				ds *= Kdepos;
-				DEPOSIT(dh)
-					carriedSoil -= ds;
-			}
-			else
-			{
-				// erode
-				ds *= -Kerosion;
-				ds = std::min(ds, dh*0.99f);
+				// calc gradient
+				float gradX = height00 + height01 - height10 - height11;
+				float gradZ = height00 + height10 - height01 - height11;
 
-#define ERODE(X, Z, W) \
-        { \
-          float delta=ds*(W); \
-          elevationMap[X + aTileSize * Z].myElevation -=delta; \
-        }
+				// calc next pos
+				deltaX = gradX;
+				deltaZ = gradZ;
 
-				for (int z = zi - 1; z <= zi + 2; ++z)
+				float deltaLength = sqrtf(deltaX*deltaX + deltaZ*deltaZ);
+				if (deltaLength <= FLT_EPSILON)
 				{
-					if (z < 0 || z > aTileSize - 1)
-						continue;
+					// pick random dir
+					float a = std::rand();
+					deltaX = cosf(a);
+					deltaZ = sinf(a);
+				}
+				else
+				{
+					deltaX /= deltaLength;
+					deltaZ /= deltaLength;
+				}
 
-					float zo = z - zp;
-					float zo2 = zo*zo;
+				float newXpos = xPos + deltaX;
+				float newZpos = zPos + deltaZ;
 
-					for (int x = xi - 1; x <= xi + 2; ++x)
+				// sample next height
+				int newXi = glm::clamp(int(std::floor(newXpos)), 0, int(aTileSize) - 1);
+				int newZi = glm::clamp(int(std::floor(newZpos)), 0, int(aTileSize) - 1);
+
+				// the drop falls off the tile
+				if (newXi == aTileSize - 1 || newZi == aTileSize - 1 || newXi == 0 || newZi == 0)
+					break;
+
+				float newXf = newXpos - newXi;
+				float newZf = newZpos - newZi;
+
+				float newHeight00 = elevationMap[newXi + aTileSize * newZi].myElevation;
+				float newHeight10 = elevationMap[newXi + 1 + aTileSize * newZi].myElevation;
+				float newHeight01 = elevationMap[newXi + aTileSize * (newZi + 1)].myElevation;
+				float newHeight11 = elevationMap[newXi + 1 + aTileSize * (newZi + 1)].myElevation;
+
+				float newHeight = (newHeight00*(1 - newXf) + newHeight10 * newXf) * (1 - newZf) + (newHeight01 * (1 - newXf) + newHeight11 * newXf) * newZf;
+
+				float deltaHeight = currentHeight - newHeight + 0.001f;
+
+				// if higher than current, try to deposit sediment up to neighbour height
+				if (deltaHeight < 0.f)
+				{
+					break;
+					if (-deltaHeight >= carriedSediment)
 					{
-						if (x < 0 || x > aTileSize - 1)
-							continue;
+						// deposit all sediment and stop
+						Depose(elevationMap, params, aTileSize, carriedSediment, carriedSediment, xi, zi);
+						break;
+					}
+					Depose(elevationMap, params, aTileSize, -deltaHeight, carriedSediment, xi, zi);
+				}
+				else
+				{
+					// compute transport capacity
+					float sedimentEroded = deltaHeight * (1.f - params.rockHardness);
+					float sedimentExcipient = std::max(0.f, carriedSediment + sedimentEroded - params.carryCapacity);
 
-						float xo = x - xp;
-
-						float w = 1 - (xo*xo + zo2)*0.25f;
-						if (w <= 0) continue;
-						w *= 0.1591549430918953f;
-
-						ERODE(x, z, w)
+					// deposit/erode (don't erode more than dh)
+					if (sedimentExcipient > 0.f)
+					{
+						Depose(elevationMap, params, aTileSize, sedimentExcipient, carriedSediment, xi, zi);
+					}
+					else
+					{
+						Erode(elevationMap, params, aTileSize, sedimentEroded, carriedSediment, xi, zi);
 					}
 				}
 
-				dh -= ds;
-#undef ERODE
+				// move to the neighbour
+				xPos = newXpos; zPos = newZpos;
+				xi = newXi; zi = newZi;
 
-				carriedSoil += ds;
+				currentHeight = newHeight;
+				height00 = newHeight00;
+				height10 = newHeight10;
+				height01 = newHeight01;
+				height11 = newHeight11;
 			}
-
-			// move to the neighbour
-			water *= 1.f - Kevap;
-
-			xp = nxp; zp = nzp;
-			xi = nxi; zi = nzi;
-			xf = nxf; zf = nzf;
-
-			h = nh;
-			h00 = nh00;
-			h10 = nh10;
-			h01 = nh01;
-			h11 = nh11;
 		}
 	}
 
-#undef DEPOSIT
-#undef DEPOSIT_AT
-}
-
-void Initialize(unsigned int aSeed)
-{
-	perlinNoise = PerlinNoise(aSeed);
-}
+	void Initialize(unsigned int aSeed)
+	{
+		perlinNoise = PerlinNoise(aSeed);
+		randomEngine.seed(aSeed);
+	}
 
 }
