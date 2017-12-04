@@ -243,31 +243,6 @@ namespace TerrainGeneration
 		return temperature;
 	}
 
-	void Erode(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float amount, float& carriedSediment, const int xi, const int zi)
-	{
-		for (int z = zi - params.depositionRadius; z <= zi + params.depositionRadius; ++z)
-		{
-			if (z < 0 || z > aTileSize - 1)
-			{
-				continue; 
-			}
-				int zo = z - zi;
-				float zo2 = zo*zo;
-				for (int x = xi - params.depositionRadius; x <= xi + params.depositionRadius; ++x)
-				{
-					if (x < 0 || x > aTileSize - 1)
-					{
-						continue;
-					}
-					int xo = x - xi;
-					float weight = 1.f /((1.f + float(params.depositionRadius)) * (1.f + pow((xo*xo + zo2),2)));
-					elevationMap[xi + aTileSize * zi].myElevation -= amount * weight;
-			}
-		}
-
-		carriedSediment += amount;
-	}
-
 	void Depose(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float amount, float& carriedSediment, const int xi, const int zi)
 	{
 		for (int z = zi - params.depositionRadius; z <= zi + params.depositionRadius; ++z)
@@ -285,8 +260,8 @@ namespace TerrainGeneration
 					continue;
 				}
 				int xo = x - xi;
-				float weight = 1.f / ((1.f + float(params.depositionRadius)) * (1.f + pow((xo*xo + zo2), 2)));
-				elevationMap[xi + aTileSize * zi].myElevation += amount * weight;
+				float weight = 1.f / ((1.f + float(params.depositionRadius)) * (1.f + (xo*xo + zo2)));
+				elevationMap[x + aTileSize * z].myElevation += amount * weight;
 			}
 		}
 
@@ -388,7 +363,8 @@ namespace TerrainGeneration
 					}
 					else
 					{
-						Erode(elevationMap, params, aTileSize, sedimentEroded, carriedSediment, xi, zi);
+						// erode (deposing a negative amount)
+						Depose(elevationMap, params, aTileSize, -sedimentEroded, carriedSediment, xi, zi);
 					}
 				}
 
