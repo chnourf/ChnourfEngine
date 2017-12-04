@@ -172,7 +172,7 @@ namespace TerrainGeneration
 
 		tileNoise *= distAttenuation;
 
-		// MOUNTAINS
+		// MOUNTAINS RANGES
 		const float locCoastalMountainsWidth = 0.08f;
 		float coastalMountains = exp(-pow((tileNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
 		float continentalMountains = 1.f / (1.f + exp(-50.f * (tileNoise - (locSeaLevel + 0.15f))));
@@ -197,7 +197,7 @@ namespace TerrainGeneration
 			{
 				detailFreq *= lacunarity;
 				detailAmp *= gain;
-				hardNoiseModifier *= gain;
+				hardNoiseModifier *= 0.9f * gain;
 
 				auto softNoise = 0.f;
 				auto hardNoise = 0.f;
@@ -211,13 +211,13 @@ namespace TerrainGeneration
 				{
 					auto n = perlinNoise.noise(detailFreq * (x + detailWarpX) * scale / 256.f, detailFreq * (y + detailWarpY) * scale / 256.f) * 2.f - 1.f;
 					// C-infinity abs approximation
-					hardNoise = 1.f - abs(60.f * n * n * n / (0.1f + 60.f * n * n));
+					hardNoise = 1.f - abs(60.f * n * n * n / (0.01f + 60.f * n * n));
 				}
 
 				tileNoise += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
 
-				detailWarpX *= 0.25f;
-				detailWarpY *= 0.25f;
+				detailWarpX *= 0.5f;
+				detailWarpY *= 0.5f;
 			}
 		}
 
@@ -243,7 +243,7 @@ namespace TerrainGeneration
 		return temperature;
 	}
 
-	void Depose(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float amount, float& carriedSediment, const int xi, const int zi)
+	void Depose(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float amount, float& carriedSediment, const int xi, const int zi, const float xp, const float zp)
 	{
 		for (int z = zi - params.depositionRadius; z <= zi + params.depositionRadius; ++z)
 		{
@@ -251,7 +251,7 @@ namespace TerrainGeneration
 			{
 				continue;
 			}
-			int zo = z - zi;
+			float zo = z - zp;
 			float zo2 = zo*zo;
 			for (int x = xi - params.depositionRadius; x <= xi + params.depositionRadius; ++x)
 			{
@@ -259,7 +259,7 @@ namespace TerrainGeneration
 				{
 					continue;
 				}
-				int xo = x - xi;
+				float xo = x - xp;
 				float weight = 1.f / ((1.f + float(params.depositionRadius)) * (1.f + (xo*xo + zo2)));
 				elevationMap[x + aTileSize * z].myElevation += amount * weight;
 			}
@@ -341,30 +341,31 @@ namespace TerrainGeneration
 				// if higher than current, try to deposit sediment up to neighbour height
 				if (deltaHeight < 0.f)
 				{
-					break;
 					if (-deltaHeight >= carriedSediment)
 					{
 						// deposit all sediment and stop
-						Depose(elevationMap, params, aTileSize, carriedSediment, carriedSediment, xi, zi);
+						Depose(elevationMap, params, aTileSize, carriedSediment, carriedSediment, xi, zi, xPos, zPos);
 						break;
 					}
-					Depose(elevationMap, params, aTileSize, -deltaHeight, carriedSediment, xi, zi);
+					Depose(elevationMap, params, aTileSize, -deltaHeight, carriedSediment, xi, zi, xPos, zPos);
 				}
 				else
 				{
 					// compute transport capacity
 					float sedimentEroded = deltaHeight * (1.f - params.rockHardness);
-					float sedimentExcipient = std::max(0.f, carriedSediment + sedimentEroded - params.carryCapacity);
+					carriedSediment += sedimentEroded;
+					//float sedimentExcipient = std::max(0.f, carriedSediment + sedimentEroded - params.carryCapacity);
+					float sedimentExcipient = std::max(0.f, carriedSediment - params.carryCapacity);
 
 					// deposit/erode (don't erode more than dh)
 					if (sedimentExcipient > 0.f)
 					{
-						Depose(elevationMap, params, aTileSize, sedimentExcipient, carriedSediment, xi, zi);
+						Depose(elevationMap, params, aTileSize, sedimentExcipient, carriedSediment, xi, zi, xPos, zPos);
 					}
 					else
 					{
 						// erode (deposing a negative amount)
-						Depose(elevationMap, params, aTileSize, -sedimentEroded, carriedSediment, xi, zi);
+						Depose(elevationMap, params, aTileSize, -sedimentEroded, carriedSediment, xi, zi, xPos, zPos);
 					}
 				}
 

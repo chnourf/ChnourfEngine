@@ -67,12 +67,13 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	params.depositionRadius = locErosionRadius;
 	TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
 
+	const float erosionStrength = 0.7f;
 	// lerping the edges of the tiles to ensure continuity after erosion
 	for (unsigned int i = 0; i < myTileSize; ++i) {
 		for (unsigned int j = 0; j < myTileSize; ++j) {
 			auto index = i + j * myTileSize;
-			auto lerpFactor = glm::clamp(5.5f - abs(12.f * (float)i / (float)myTileSize - 6.f), 0.f, 1.f);
-			lerpFactor *= glm::clamp(5.5f - abs(12.f * (float)j / (float)myTileSize - 6.f), 0.f, 1.f);
+			auto lerpFactor = glm::clamp(5.5f - abs(12.f * (float)i / (float)myTileSize - 6.f), 0.f, erosionStrength);
+			lerpFactor *= glm::clamp(5.5f - abs(12.f * (float)j / (float)myTileSize - 6.f), 0.f, erosionStrength);
 			auto& el = temporaryElements[index].myElevation;
 			auto& bel = elementsBeforeErosion[index].myElevation;
 			el = bel + lerpFactor * (el - bel);
