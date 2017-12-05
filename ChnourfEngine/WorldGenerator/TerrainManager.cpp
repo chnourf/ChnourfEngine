@@ -76,6 +76,7 @@ namespace Manager
 
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
+		ImGui::Begin("Terrain Generation");
 		if (ImGui::Button("Invalidate Tiles"))
 		{
 			auto activeTilesIt = myActiveTiles.begin();
@@ -87,6 +88,9 @@ namespace Manager
 				activeTilesIt = myActiveTiles.erase(activeTilesIt);
 			}
 		}
+		ImGui::Text("Tiles loaded : %d", myActiveTiles.size());
+		ImGui::Text("Tiles loading : %d", myTilesToLoad.size());
+		ImGui::End();
 
 		auto temperature = TerrainGeneration::ComputeTemperature(aPlayerPosition.x, aPlayerPosition.y, aPlayerPosition.z);
 		auto temperatureInCelsius = int(70.f * temperature - 30.f);

@@ -14,10 +14,10 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 }
 
 
-float locCarryCapacity = 15.f;
-float locRockHardness = 0.5f;
+float locCarryCapacity = 10.f;
+float locRockHardness = 0.7f;
 int locIterations = 10000;
-int locErosionRadius = 0;
+int locErosionRadius = 1;
 
 void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 {
@@ -68,12 +68,13 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
 
 	const float erosionStrength = 0.7f;
+	const float lerpStrength = 3.f;
 	// lerping the edges of the tiles to ensure continuity after erosion
 	for (unsigned int i = 0; i < myTileSize; ++i) {
 		for (unsigned int j = 0; j < myTileSize; ++j) {
 			auto index = i + j * myTileSize;
-			auto lerpFactor = glm::clamp(5.5f - abs(12.f * (float)i / (float)myTileSize - 6.f), 0.f, erosionStrength);
-			lerpFactor *= glm::clamp(5.5f - abs(12.f * (float)j / (float)myTileSize - 6.f), 0.f, erosionStrength);
+			auto lerpFactor = glm::clamp(lerpStrength - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
+			lerpFactor *= glm::clamp(lerpStrength - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
 			auto& el = temporaryElements[index].myElevation;
 			auto& bel = elementsBeforeErosion[index].myElevation;
 			el = bel + lerpFactor * (el - bel);

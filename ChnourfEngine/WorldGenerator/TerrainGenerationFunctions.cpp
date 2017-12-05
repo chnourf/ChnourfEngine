@@ -181,14 +181,14 @@ namespace TerrainGeneration
 
 		if (needsDetail)
 		{
-			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.1f, locMountainStartAltitude + 0.1f, tileNoise);
+			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.1f, locMountainStartAltitude + 0.2f, tileNoise);
 
 			// warping the mountains to mask the 8 axis of the perlin noise
 			const auto warpScale = 60.f / scale;
 			auto detailWarpX = warpScale * perlinNoise.noise(x*scale / 40.f, y*scale / 40.f) - 0.5f;
 			auto detailWarpY = warpScale * perlinNoise.noise(x*scale / 40.f, y*scale / 40.f, 1.f) - 0.5f;
 
-			auto hardNoiseModifier = .3f;
+			auto hardNoiseModifier = 1.5f;
 			float detailFreq = 1.f;
 			float detailAmp = 0.2f;
 
@@ -209,9 +209,9 @@ namespace TerrainGeneration
 
 				if (lerpFactor > 0.f)
 				{
-					auto n = perlinNoise.noise(detailFreq * (x + detailWarpX) * scale / 256.f, detailFreq * (y + detailWarpY) * scale / 256.f) * 2.f - 1.f;
-					// C-infinity abs approximation
-					hardNoise = 1.f - abs(60.f * n * n * n / (0.01f + 60.f * n * n));
+					auto n = perlinNoise.noise(detailFreq * (x + detailWarpX) * scale / 800.f, detailFreq * (y + detailWarpY) * scale / 800.f) * 2.f - 1.f;
+					// C-infinity abs approximation, results between -0.5 and 0.5
+					hardNoise = 0.5f - abs(60.f * n * n * n / (0.01f + 60.f * n * n));
 				}
 
 				tileNoise += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
