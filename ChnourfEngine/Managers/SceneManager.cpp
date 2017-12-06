@@ -183,8 +183,8 @@ void SceneManager::NotifyDisplayFrame()
 		GLint viewPosLoc = glGetUniformLocation(programId, "viewPos");
 		glUniform3f(viewPosLoc, myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z);
 
-		GLuint lightPos = glGetUniformLocation(programId, "lightDirection");
-		glUniform3f(lightPos, lightDir.x, lightDir.y, lightDir.z);
+		GLuint lightDirectionId = glGetUniformLocation(programId, "lightDirection");
+		glUniform3f(lightDirectionId, lightDir.x, lightDir.y, lightDir.z);
 
 		GLuint lightCol = glGetUniformLocation(programId, "lightColor");
 		glUniform3f(lightCol, myDirectionalLight.GetIntensity().r, myDirectionalLight.GetIntensity().g, myDirectionalLight.GetIntensity().b);
