@@ -6,6 +6,10 @@
 #include "../Core/Time.h"
 
 
+const float locGrassMaxAltitude = 380.f;
+const float locGrassAltRandomAmplitude = 40.f;
+const float locGrassTotalMaxAltitude = locGrassMaxAltitude + locGrassAltRandomAmplitude;
+
 Grass::Grass(unsigned int aTileSize, float aResolution, int aSeed):
 	myTileSize(aTileSize),
 	myResolution(aResolution),
@@ -29,6 +33,12 @@ Grass::~Grass()
 void Grass::GenerateGrass(const TerrainTile* aTile)
 {
 	if (myIsGenerated)
+	{
+		return;
+	}
+
+	// no need to generate in that case, the tile is too high
+	if (aTile->GetMinHeight() > locGrassTotalMaxAltitude)
 	{
 		return;
 	}
@@ -70,7 +80,7 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 				continue;
 			}
 
-			if (y + distribution(myRandomEngine) * 20 > 200)
+			if (y + distribution(myRandomEngine) * locGrassAltRandomAmplitude > locGrassMaxAltitude)
 			{
 				continue;
 			}
@@ -117,6 +127,8 @@ void Grass::Update(bool aMustGenerate, const TerrainTile* aTile)
 
 void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture)
 {
+	//Use special mipmap for texture with alpha ? Or alpha blending
+
 	if (myGrassData.size() == 0)
 	{
 		return;
