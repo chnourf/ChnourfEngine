@@ -17,7 +17,7 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 float locCarryCapacity = 10.f;
 float locRockHardness = 0.7f;
 int locIterations = 10000;
-int locErosionRadius = 1;
+int locErosionRadius = 2;
 
 void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 {
@@ -73,8 +73,8 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	for (unsigned int i = 0; i < myTileSize; ++i) {
 		for (unsigned int j = 0; j < myTileSize; ++j) {
 			auto index = i + j * myTileSize;
-			auto lerpFactor = glm::clamp(lerpStrength - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
-			lerpFactor *= glm::clamp(lerpStrength - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
+			auto lerpFactor = glm::clamp(lerpStrength*0.95f - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
+			lerpFactor *= glm::clamp(lerpStrength*0.95f - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
 			auto& el = temporaryElements[index].myElevation;
 			auto& bel = elementsBeforeErosion[index].myElevation;
 			el = bel + lerpFactor * (el - bel);

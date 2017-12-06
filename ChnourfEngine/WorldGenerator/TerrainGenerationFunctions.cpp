@@ -197,7 +197,7 @@ namespace TerrainGeneration
 			{
 				detailFreq *= lacunarity;
 				detailAmp *= gain;
-				hardNoiseModifier *= 0.9f * gain;
+				hardNoiseModifier *= 0.85f * gain;
 
 				auto softNoise = 0.f;
 				auto hardNoise = 0.f;
