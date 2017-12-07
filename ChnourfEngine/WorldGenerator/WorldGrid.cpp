@@ -466,4 +466,38 @@ namespace TerrainGeneration
 		// this is the cell where the point is
 		return candidates[currentCellId];
 	}
+
+	const float WorldGrid::SampleGridRainfall(const vec2f& aPosition)
+	{
+		auto sampledCell = SampleGridCell(aPosition);
+		float rainfall = -1.f;
+		auto center = sampledCell->GetCenter();
+		for (int i = 0; i < sampledCell->myPoints.size(); ++i)
+		{
+			auto pointA = sampledCell->myPoints[i];
+			auto pointB = sampledCell->myPoints[(i + 1) % (sampledCell->myPoints.size())];
+
+			auto centerToA = Vector2<float>(pointA->myPosition.x - center.x, pointA->myPosition.y - center.y);
+			auto centerToB = Vector2<float>(pointB->myPosition.x - center.x, pointB->myPosition.y - center.y);
+
+			Vector2<float> CenterToPosition = Vector2<float>(aPosition.x - center.x, aPosition.y - center.y);
+			bool isInTriangle = (Vector2<float>::Cross(CenterToPosition, centerToA) >= 0.f && Vector2<float>::Cross(CenterToPosition, centerToB) <= 0.f);
+			if (isInTriangle)
+			{
+				// calculate the areas and factors (order of parameters doesn't matter):
+				auto a = Vector2<float>::Cross(pointA->myPosition - center, pointB->myPosition - center); // main triangle area a
+				Vector2<float> posToA = Vector2<float>(pointA->myPosition.x - aPosition.x, pointA->myPosition.y - aPosition.y);
+				Vector2<float> posToB = Vector2<float>(pointB->myPosition.x - aPosition.x, pointB->myPosition.y - aPosition.y);
+				auto aCenter = Vector2<float>::Cross(posToA, posToB) / a; // p1's triangle area / a
+				auto aA = Vector2<float>::Cross(posToB, vec2f() -CenterToPosition) / a; // p2's triangle area / a 
+				auto aB = Vector2<float>::Cross(vec2f() - CenterToPosition, posToA) / a; // p3's triangle area / a
+				// find the uv corresponding to point f (uv1/uv2/uv3 are associated to p1/p2/p3):
+				rainfall = (sampledCell->GetRainfall() * aCenter + pointA->myRainfall * aA + pointB->myRainfall * aB)/a;
+				break;
+			}
+		}
+
+		return rainfall;
+	}
+
 }

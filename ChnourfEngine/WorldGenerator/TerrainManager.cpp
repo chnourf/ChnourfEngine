@@ -96,6 +96,9 @@ namespace Manager
 		auto temperatureInCelsius = int(70.f * temperature - 30.f);
 		ImGui::Text("Temperature at camera position : %03f, or %d Celsius", temperature, temperatureInCelsius);
 
+		auto rainfall = myWorldGrid->SampleGridRainfall(vec2f(aPlayerPosition.x, aPlayerPosition.z));
+		ImGui::Text("Rainfall at camera position : %03f", rainfall);
+
 		myTileBuilder->Update();
 
 		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myTileSize*myResolution), aPlayerPosition.z / (myTileSize*myResolution));

@@ -32,9 +32,9 @@ void main()
 	
     vs_out.texcoord = position.xz;
 	
-	int normX = ((in_normal >> 16) & 0xff) - 128;
+	int normX = ((in_normal) & 0xff) - 128;
 	int normY = ((in_normal >> 8) & 0xff) - 128;
-	int normZ = ((in_normal) & 0xff) - 128;
+	int normZ = ((in_normal >> 16) & 0xff) - 128;
 	
 	vs_out.normal = normalize(vec3(normX, normY, normZ));
 	vs_out.fragPos = position;

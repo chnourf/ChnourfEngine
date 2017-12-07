@@ -14,7 +14,7 @@ namespace TerrainGeneration
 
 		void Generate();
 		const Cell* SampleGridCell(const vec2f& aPosition);
-		const Triangle* SampleGridTriangle(const vec2f& aPosition);
+		const float SampleGridRainfall(const vec2f& aPosition);
 
 	private:
 		Grid myGrid;
