@@ -14,14 +14,18 @@ namespace TerrainGeneration
 
 struct TerrainElement
 {
-	TerrainElement(float anElevation, const glm::vec3 aNormal):
+	TerrainElement(float anElevation, const glm::vec3 aNormal, const unsigned char aRainfall, const unsigned char aTemperature):
 		myElevation(anElevation),
-		myNormal(aNormal)
+		myNormal(aNormal),
+		myRainfall(aRainfall),
+		myTemperature(aTemperature)
 	{}
 
 	float myElevation;
 	//maybe store as short
 	glm::vec3 myNormal;
+	unsigned char myRainfall;
+	unsigned char myTemperature;
 };
 
 class TerrainTile

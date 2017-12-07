@@ -99,6 +99,8 @@ namespace Manager
 		auto rainfall = myWorldGrid->SampleGridRainfall(vec2f(aPlayerPosition.x, aPlayerPosition.z));
 		ImGui::Text("Rainfall at camera position : %03f", rainfall);
 
+		ImGui::Text("Current Biome : %s", TerrainGeneration::GetBiomeName(TerrainGeneration::DeduceBiome(temperature, rainfall)));
+
 		myTileBuilder->Update();
 
 		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myTileSize*myResolution), aPlayerPosition.z / (myTileSize*myResolution));

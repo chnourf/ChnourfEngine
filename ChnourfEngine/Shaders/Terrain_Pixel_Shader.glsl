@@ -2,10 +2,11 @@
 
 in VS_OUT
 {
+	vec2 rainfallAndTemperature;
 	vec2 texcoord;
-	vec3 normal;
-	vec3 fragPos;
 	vec4 fragPosLightSpace;
+	vec3 fragPos;
+	vec3 normal;
 } fs_in;
 
 struct Material {
@@ -21,7 +22,7 @@ uniform Material groundMaterial;
 uniform Material rockMaterial;
 uniform Material snowMaterial;
 uniform sampler2D normalMap;
-uniform vec3 debugBiomeCol;
+uniform sampler2D grassColor;
 
 void main()
 {    
@@ -55,6 +56,7 @@ void main()
 	iColor = mix( iColor, 0.80*vec3(0.45,.30,0.15)*(0.50+0.50*r),smoothstep(0.70,0.9,normTest.y) );
     iColor = mix( iColor, 0.65*vec3(0.30,.30,0.10)*(0.25+0.75*r),smoothstep(0.95,1.0,normTest.y) );
 	textureColor = vec4(1.2*iColor,1.0);
+	textureColor *= texture(grassColor, vec2(fs_in.rainfallAndTemperature));
 	
 	//snow
 	float h = smoothstep(450.0,600.0,fs_in.fragPos.y + 100.0*fbm(fs_in.fragPos.xz/250) );
@@ -79,6 +81,7 @@ void main()
 	//fog
 	result = Fog( result, fs_in.fragPos, viewDir, lightDir );
 
-    out_color = vec4(result, 1.0f);
+    //out_color = vec4(result, 1.0f);
+	out_color = texture(grassColor, vec2(fs_in.rainfallAndTemperature));
 }
   

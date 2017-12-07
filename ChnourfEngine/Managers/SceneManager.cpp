@@ -20,7 +20,9 @@ SceneManager::SceneManager()
 	myShaderManager = std::make_unique<ShaderManager>();
 	myModelManager = std::make_unique<ModelManager>();
 
-	myDirectionalLight = DirectionalLight(glm::vec3(1.f, -.5f, 1.f), glm::vec3(3.f, 3.f, 2.8f));
+	auto dir = glm::vec3(1.f, -.5f, 1.f);
+	dir = glm::normalize(dir);
+	myDirectionalLight = DirectionalLight(dir, glm::vec3(3.f, 3.f, 2.8f));
 }
 
 SceneManager::~SceneManager()
@@ -160,13 +162,15 @@ void SceneManager::NotifyDisplayFrame()
 	myModelManager->ResetCulling();
 
 	//float multiplier = 0.1f;
-	auto& lightDir = myDirectionalLight.GetDirection();
 	//if (lightDir.y > 0.01f)
 	//{
 	//	multiplier = 10.f;
 	//}
 	ImGui::SliderFloat("sun angle", &angle, -1.f, 1.f);
-	myDirectionalLight.SetDirection(glm::rotateX(glm::vec3(1.f, -.5f, 1.f), (float)M_PI * angle));
+	myDirectionalLight.SetDirection(glm::rotateX(glm::normalize(glm::vec3(1.f, -.5f, 1.f)), (float)M_PI * angle));
+	auto& lightDir = myDirectionalLight.GetDirection();
+
+	ImGui::Text("To sun direction : x %f, y %f, z%f", -lightDir.x, -lightDir.y, -lightDir.z);
 
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
 	glm::vec3 eye_position = glm::vec3(0.0f, 1.f-13.f/6400.f, 0.0f);

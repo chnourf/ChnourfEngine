@@ -33,8 +33,13 @@ namespace Rendering
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(0, 1, GL_FLOAT, GL_FALSE, sizeof(TerrainVertex), (GLvoid*)0);
 
+			// Normal
 			glEnableVertexAttribArray(1);
 			glVertexAttribIPointer(1, 1, GL_UNSIGNED_INT, sizeof(TerrainVertex), (GLvoid*)(GLvoid*)offsetof(TerrainVertex, normal));
+
+			// Rainfall and temperature
+			glEnableVertexAttribArray(2);
+			glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(TerrainVertex), (GLvoid*)(GLvoid*)offsetof(TerrainVertex, rainfallTemperature));
 
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -78,7 +83,9 @@ namespace Rendering
 					unsigned char z = element.myNormal.z * 128 + 127;
 					unsigned int normal = (x << 16) | (y << 8) | z;
 
-					TerrainVertex vertex = TerrainVertex(element.myElevation, normal);
+					unsigned int rainfallAndTemperature = (element.myRainfall << 8) | element.myTemperature;
+
+					TerrainVertex vertex = TerrainVertex(element.myElevation, normal, rainfallAndTemperature);
 					vertices.push_back(vertex);
 				}
 			}
@@ -237,7 +244,8 @@ namespace Rendering
 			AddTexture("Data/TerrainTest/terrain_n.jpg");
 			AddTexture("Data/TerrainTest/rock_d.jpg");
 			AddTexture("Data/TerrainTest/snow_d.jpg");
-			AddTexture("Data/Grass/grass.png");
+			AddTexture("Data/TerrainGenerator/grassColor.png");
+			//AddTexture("Data/Grass/grass.png");
 
 			//myGrass = new Grass(aTileSize, aResolution, myTerrainTile->GetGridIndex().x);
 		}
@@ -289,10 +297,6 @@ namespace Rendering
 			auto& tileIndex = myTerrainTile->GetGridIndex();
 			glUniform2i(tileIndexID, tileIndex.x, tileIndex.y);
 
-			GLuint debugBiomeColID = glGetUniformLocation(myProgram, "debugBiomeCol");
-			const auto& biomeColor = Debug::DeduceBiomeColor(myTerrainTile->myWorldCell->GetBiome());
-			glUniform3f(debugBiomeColID, biomeColor.x, biomeColor.y, biomeColor.z);
-
 			glUniform1i(glGetUniformLocation(myProgram, "groundMaterial.diffuse"), 0);
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, textures[0].myId);
@@ -305,6 +309,9 @@ namespace Rendering
 			glUniform1i(glGetUniformLocation(myProgram, "snowMaterial.diffuse"), 3);
 			glActiveTexture(GL_TEXTURE3);
 			glBindTexture(GL_TEXTURE_2D, textures[3].myId);
+			glUniform1i(glGetUniformLocation(myProgram, "grassColor"), 4);
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_2D, textures[4].myId);
 
 			glBindVertexArray(VAOs[myCurrentLOD]);
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);

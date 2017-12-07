@@ -12,14 +12,16 @@ struct TerrainVertex
 {
 	float elevation;
 	unsigned int normal;
+	unsigned int rainfallTemperature;
 
 	TerrainVertex()
 	{}
 
-	TerrainVertex(const float anElevation, const unsigned int aNormal)
+	TerrainVertex(const float anElevation, const unsigned int aNormal, const unsigned int aRainfallTemperature)
 	{
 		elevation = anElevation;
 		normal = aNormal;
+		rainfallTemperature = aRainfallTemperature;
 	}
 };
 
