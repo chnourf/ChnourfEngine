@@ -237,7 +237,7 @@ namespace TerrainGeneration
 			tempRandomness += perlinNoise.noise(5.f * pow(2, d) * x / locMapSize, 5.f * pow(2, d) * z / locMapSize, 0) / pow(2, d);
 		}
 		temperature = glm::clamp(temperature + 0.5f * (tempRandomness - 0.5f), 0.f, 1.f);
-		float altitudeInfluence = glm::clamp(y / locMultiplier , 0.f, 1.f);
+		float altitudeInfluence = glm::clamp(0.5f * y / locMultiplier , 0.f, 1.f);
 		temperature = glm::clamp(temperature - 0.5f * altitudeInfluence, 0.f, 1.f);
 
 		return temperature;

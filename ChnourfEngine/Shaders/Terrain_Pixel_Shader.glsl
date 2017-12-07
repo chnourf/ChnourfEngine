@@ -81,7 +81,6 @@ void main()
 	//fog
 	result = Fog( result, fs_in.fragPos, viewDir, lightDir );
 
-    //out_color = vec4(result, 1.0f);
-	out_color = texture(grassColor, vec2(fs_in.rainfallAndTemperature));
+    out_color = vec4(result, 1.0f);
 }
   

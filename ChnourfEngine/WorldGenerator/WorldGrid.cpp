@@ -422,6 +422,24 @@ namespace TerrainGeneration
 #endif
 	}
 
+	bool IsInCell(const Cell* aCell, const vec2f aPosition)
+	{
+		const auto& poly = aCell->myPoints;
+		//auto num = candidate.myPoints.size();
+		auto numPoints = 6u; // optimization for hexagon
+		auto inside = false;
+		for (int i = 0, j = numPoints - 1; i < numPoints; ++i)
+		{
+			if (((poly[i]->myPosition.y > aPosition.y) != (poly[j]->myPosition.y > aPosition.y)) && (aPosition.x < (poly[i]->myPosition.x + (poly[j]->myPosition.x - poly[i]->myPosition.x) * (aPosition.y - poly[i]->myPosition.y) / (poly[j]->myPosition.y - poly[i]->myPosition.y))))
+			{
+				inside = !inside;
+			}
+			j = i;
+		}
+
+		return inside;
+	}
+
 	const Cell* WorldGrid::SampleGridCell(const vec2f& aPosition) const
 	{
 		const auto adjustedPosition = midPos + aPosition;
@@ -444,20 +462,7 @@ namespace TerrainGeneration
 		auto currentCellId = 0u;
 		for (; currentCellId < candidates.size(); ++currentCellId)
 		{
-			const auto& poly = candidates[currentCellId]->myPoints;
-			//auto num = candidate.myPoints.size();
-			auto numPoints = 6u; // optimization for hexagon
-			auto inside = false;
-			for (int i = 0, j = numPoints - 1; i < numPoints; ++i)
-			{
-				if (((poly[i]->myPosition.y > adjustedPosition.y) != (poly[j]->myPosition.y > adjustedPosition.y)) && (adjustedPosition.x < (poly[i]->myPosition.x + (poly[j]->myPosition.x - poly[i]->myPosition.x) * (adjustedPosition.y - poly[i]->myPosition.y) / (poly[j]->myPosition.y - poly[i]->myPosition.y))))
-				{
-					inside = !inside;
-				}
-				j = i;
-			}
-
-			if (inside)
+			if (IsInCell(candidates[currentCellId], adjustedPosition))
 			{
 				break;
 			}
@@ -467,10 +472,13 @@ namespace TerrainGeneration
 		return candidates[currentCellId];
 	}
 
+	Cell* locLastFoundCell = nullptr;
+
 	float WorldGrid::SampleGridRainfall(const vec2f& aPosition) const
 	{
 		const auto adjustedPosition = midPos + aPosition;
-		auto sampledCell = SampleGridCell(aPosition);
+		auto sampledCell = (locLastFoundCell && IsInCell(locLastFoundCell, adjustedPosition)) ? locLastFoundCell : SampleGridCell(aPosition);
+		locLastFoundCell = const_cast<Cell*>(sampledCell);
 		float rainfall = -1.f;
 		auto center = sampledCell->GetCenter();
 		Vector2<float> CenterToPosition = Vector2<float>(adjustedPosition.x - center.x, adjustedPosition.y - center.y);
