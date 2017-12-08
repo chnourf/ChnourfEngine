@@ -53,7 +53,7 @@ namespace Manager
 
 		file.close();
 
-		mySeed = 0;// time(NULL);
+		mySeed = time(NULL);
 		srand(mySeed);
 
 		TerrainGeneration::Initialize(mySeed);
@@ -74,6 +74,7 @@ namespace Manager
 		}
 	}
 
+	const auto midPos = Vector2<float>(TerrainGeneration::GetMapSize() / 2.f, TerrainGeneration::GetMapSize() / 2.f);
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
 		ImGui::Begin("Terrain Generation");
@@ -91,6 +92,10 @@ namespace Manager
 		ImGui::Text("Tiles loaded : %d", myActiveTiles.size());
 		ImGui::Text("Tiles loading : %d", myTilesToLoad.size());
 		ImGui::End();
+
+		vec2f adjustedPostion = vec2f(aPlayerPosition.x + TerrainGeneration::GetMapSize() / 2.f, aPlayerPosition.z + TerrainGeneration::GetMapSize() / 2.f);
+		// swapping x and y until I fix issue with coordinates
+		ImGui::Text("Element on Grid : x %d, y %d", int(adjustedPostion.y)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()), int(adjustedPostion.x)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()));
 
 		auto temperature = TerrainGeneration::ComputeTemperature(aPlayerPosition.x, aPlayerPosition.y, aPlayerPosition.z);
 		auto temperatureInCelsius = int(70.f * temperature - 30.f);

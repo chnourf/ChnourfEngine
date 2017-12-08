@@ -196,12 +196,12 @@ void SceneManager::NotifyDisplayFrame()
 		GLuint lightSpaceMatrixLocation = glGetUniformLocation(programId, "lightSpaceMatrix");
 		glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
 
-		glUniform1i(glGetUniformLocation(programId, "noise"), 5);
-		glActiveTexture(GL_TEXTURE5);
+		glUniform1i(glGetUniformLocation(programId, "noise"), 6);
+		glActiveTexture(GL_TEXTURE6);
 		glBindTexture(GL_TEXTURE_2D, myNoiseTexture);
 
-		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 6);
-		glActiveTexture(GL_TEXTURE6);
+		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 7);
+		glActiveTexture(GL_TEXTURE7);
 		glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 	}
 

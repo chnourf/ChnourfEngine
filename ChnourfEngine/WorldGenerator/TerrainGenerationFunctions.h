@@ -43,6 +43,7 @@ namespace TerrainGeneration
 	};
 
 	float GetMapSize();
+	unsigned int GetMapTileAmount();
 	float GetMountainStartAltitude();
 	float GetMultiplier();
 

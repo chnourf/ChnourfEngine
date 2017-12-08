@@ -46,6 +46,11 @@ namespace TerrainGeneration
 		return locMapSize;
 	}
 
+	unsigned int GetMapTileAmount()
+	{
+		return locMapSizeInTiles;
+	}
+
 	float GetMountainStartAltitude()
 	{
 		return (locMountainStartAltitude - locSeaLevel) * locMultiplier;
@@ -204,7 +209,7 @@ namespace TerrainGeneration
 
 				if (lerpFactor < 1.f)
 				{
-					softNoise = perlinNoise.noise(detailFreq * x * scale / 384.f, detailFreq * y * scale / 384.f);
+					softNoise = perlinNoise.noise(detailFreq * x * scale / 384.f, detailFreq * y * scale / 384.f) - 0.5f;
 				}
 
 				if (lerpFactor > 0.f)

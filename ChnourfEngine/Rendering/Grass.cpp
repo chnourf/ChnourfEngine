@@ -142,8 +142,8 @@ void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTil
 	float time = Time::GetInstance()->GetTime();
 	glUniform1f(elapsedTimeID, time);
 
-	glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 4);
-	glActiveTexture(GL_TEXTURE4);
+	glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 5);
+	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, aGrassTexture);
 
 	glBindVertexArray(myVAO);

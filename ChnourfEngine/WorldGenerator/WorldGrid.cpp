@@ -7,7 +7,7 @@
 #include "../Debug/WorldGridGeneratorDebug.h"
 #include "TerrainGenerationFunctions.h"
 
-const unsigned int locPictureDimension = 512u;
+const unsigned int locPictureDimension = TerrainGeneration::GetMapTileAmount();
 const unsigned int MetersPerPixel = TerrainGeneration::GetMapSize()  / locPictureDimension;
 #ifndef NDEBUG
 const unsigned int locGridNumOfElements = 128;

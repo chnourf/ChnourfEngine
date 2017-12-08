@@ -245,9 +245,9 @@ namespace Rendering
 			AddTexture("Data/TerrainTest/rock_d.jpg");
 			AddTexture("Data/TerrainTest/snow_d.jpg");
 			AddTexture("Data/TerrainGenerator/grassColor.png");
-			//AddTexture("Data/Grass/grass.png");
+			AddTexture("Data/Grass/grass.png");
 
-			//myGrass = new Grass(aTileSize, aResolution, myTerrainTile->GetGridIndex().x);
+			myGrass = new Grass(aTileSize, aResolution, myTerrainTile->GetGridIndex().x);
 		}
 
 		void TerrainTileModel::AddTexture(const std::string& aString)
@@ -317,10 +317,10 @@ namespace Rendering
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
-			//if (myGrass->IsGenerated())
-			//{
-			//	myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[4].myId);
-			//}
+			if (myGrass->IsGenerated())
+			{
+				myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[5].myId);
+			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
@@ -366,7 +366,7 @@ namespace Rendering
 				myCurrentLOD = 3;
 			}
 
-			//myGrass->Update(mustGenerateGrassIfNotDone, myTerrainTile);
+			myGrass->Update(mustGenerateGrassIfNotDone, myTerrainTile);
 		}
 
 		void TerrainTileModel::SetProgram(GLuint aShaderName)
