@@ -180,8 +180,8 @@ namespace TerrainGeneration
 		// MOUNTAINS RANGES
 		const float locCoastalMountainsWidth = 0.08f;
 		float coastalMountains = exp(-pow((tileNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
-		float continentalMountains = 1.f / (1.f + exp(-50.f * (tileNoise - (locSeaLevel + 0.15f))));
-		float someRandomNoise = 1.f / (1 + exp(-40.f * (perlinNoise.noise((x + lowWarpX) / (locMapSize / 4.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f) - 0.6f)));
+		float continentalMountains = glm::smoothstep(locSeaLevel + 0.1f, locSeaLevel + 0.2f, tileNoise);
+		float someRandomNoise = glm::smoothstep(0.5f, 0.7f, float(perlinNoise.noise((x + lowWarpX) / (locMapSize / 10.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f)));
 		tileNoise += (coastalMountains + continentalMountains) * someRandomNoise;
 
 		if (needsDetail)
