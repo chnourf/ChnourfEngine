@@ -144,19 +144,18 @@ namespace TerrainGeneration
 
 	float ComputeElevation(const float x, const float y, bool needsDetail)
 	{
-		auto tileNoise = 0.f;
+		auto elevation = 0.f;
 
 		float lowDetailFreq = 1.f;
 		float lowDetailAmp = 1.f;
 
-
 		// points far away from the center will "sink" allowing a border ocean. Distance is artificially modified with Perlin noise to create more irregularity
-		float noiseDistAttenuation = 0.f;
+		float noiseDistanceAttenuation = 0.f;
 		for (int d = 1; d <= 6; d++)
 		{
-			noiseDistAttenuation += perlinNoise.noise(3.f * pow(2, d) * x / locMapSize, 3.f * pow(2, d) * y / locMapSize, 0) / pow(2, d);
+			noiseDistanceAttenuation += perlinNoise.noise(3.f * pow(2, d) * x / locMapSize, 3.f * pow(2, d) * y / locMapSize, 0) / pow(2, d);
 		}
-		float distToCenter = (std::max(abs(x), abs(y))) * (1.f + noiseDistAttenuation);
+		float distToCenter = (std::max(abs(x), abs(y))) * (1.f + noiseDistanceAttenuation);
 		const float distAttenuation = glm::clamp(10.f / locMapSize * (0.70f * locMapSize - abs(distToCenter)), 0.f, 1.0f);
 
 		// warped fractal Perlin noise
@@ -172,21 +171,21 @@ namespace TerrainGeneration
 
 			softNoise = perlinNoise.noise(lowDetailFreq * (x + lowWarpX) / (locMapSize / 4.f), lowDetailFreq * (y + lowWarpY) / (locMapSize / 4.f), 0.f);
 
-			tileNoise += softNoise*lowDetailAmp;
+			elevation += softNoise*lowDetailAmp;
 		}
 
-		tileNoise *= distAttenuation;
+		elevation *= distAttenuation;
 
 		// MOUNTAINS RANGES
 		const float locCoastalMountainsWidth = 0.08f;
-		float coastalMountains = exp(-pow((tileNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
-		float continentalMountains = glm::smoothstep(locSeaLevel + 0.1f, locSeaLevel + 0.2f, tileNoise);
+		float coastalMountains = exp(-pow((elevation - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
+		float continentalMountains = glm::smoothstep(locSeaLevel + 0.1f, locSeaLevel + 0.2f, elevation);
 		float someRandomNoise = glm::smoothstep(0.5f, 0.7f, float(perlinNoise.noise((x + lowWarpX) / (locMapSize / 10.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f)));
-		tileNoise += (coastalMountains + continentalMountains) * someRandomNoise;
+		elevation += (coastalMountains + continentalMountains) * someRandomNoise;
 
 		if (needsDetail)
 		{
-			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.1f, locMountainStartAltitude + 0.2f, tileNoise);
+			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.1f, locMountainStartAltitude + 0.2f, elevation);
 
 			// warping the mountains to mask the 8 axis of the perlin noise
 			const auto warpScale = 60.f / scale;
@@ -219,18 +218,18 @@ namespace TerrainGeneration
 					hardNoise = 0.5f - abs(60.f * n * n * n / (0.01f + 60.f * n * n));
 				}
 
-				tileNoise += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
+				elevation += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
 
 				detailWarpX *= 0.5f;
 				detailWarpY *= 0.5f;
 			}
 		}
 
-		tileNoise -= locSeaLevel;
-		tileNoise *= locMultiplier;
+		elevation -= locSeaLevel;
+		elevation *= locMultiplier;
 
 		// Water level is at 0.f
-		return tileNoise;
+		return elevation;
 	}
 
 	float ComputeTemperature(const float x, const float y, const float z)
@@ -267,6 +266,8 @@ namespace TerrainGeneration
 				float xo = x - xp;
 				float weight = 1.f / ((1.f + float(params.depositionRadius)) * (1.f + (xo*xo + zo2)));
 				elevationMap[x + aTileSize * z].myElevation += amount * weight;
+				auto& erodedCoeff = elevationMap[x + aTileSize * z].myErodedCoefficient;
+				erodedCoeff = (erodedCoeff + (10.f * abs(amount))) / (1.f + (erodedCoeff + (10.f * abs(amount))));
 			}
 		}
 

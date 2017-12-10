@@ -21,6 +21,8 @@ int locErosionRadius = 2;
 
 void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 {
+	auto startTime = ImGui::GetTime();
+
 	if (!aTile)
 	{
 		std::cout << "ERROR : tile given to build does not exist" << std::endl;
@@ -34,6 +36,7 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	temporaryElements.reserve(myTileSize * myTileSize);
 
 	//computing elevation
+	auto beforeElevationTime = ImGui::GetTime();
 	for (unsigned int i = 0; i < myTileSize; ++i) {     // y
 		for (unsigned int j = 0; j < myTileSize; ++j) {  // x
 			const float x = ((float)j / ((float)myTileSize-1) + aTile->GetGridIndex().y) * myTileSize * myTileResolution;
@@ -50,15 +53,17 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 				maxHeight = pointNoise;
 			}
 
-			temporaryElements.push_back(TerrainElement(pointNoise, glm::vec3(), 255 * Manager::TerrainManager::GetInstance()->SampleRainfallFromGrid(vec2f(x, y)) , 255 * TerrainGeneration::ComputeTemperature(x, pointNoise, y)));
+			temporaryElements.push_back(TerrainElement(pointNoise, glm::vec3(), 255 * Manager::TerrainManager::GetInstance()->SampleRainfallFromGrid(vec2f(x, y)) , 255 * TerrainGeneration::ComputeTemperature(x, pointNoise, y), 0));
 		}
 	}
+	aTile->myHeightmapBuildTime = ImGui::GetTime() - beforeElevationTime;
 
 	aTile->SetMinHeight(minHeight);
 	aTile->SetMaxHeight(maxHeight);
 
 	std::vector<TerrainElement> elementsBeforeErosion = temporaryElements;
 
+	auto timeBeforeErosion = ImGui::GetTime();
 	//computing erosion, could be moved to presets.txt
 	TerrainGeneration::ErosionParams params;
 	params.carryCapacity = locCarryCapacity;
@@ -66,6 +71,7 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	params.rockHardness = locRockHardness;
 	params.depositionRadius = locErosionRadius;
 	TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
+	aTile->myErosionBuildTime = ImGui::GetTime() - timeBeforeErosion;
 
 	const float erosionStrength = 0.7f;
 	const float lerpStrength = 3.f;
@@ -73,8 +79,8 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	for (unsigned int i = 0; i < myTileSize; ++i) {
 		for (unsigned int j = 0; j < myTileSize; ++j) {
 			auto index = i + j * myTileSize;
-			auto lerpFactor = glm::clamp(lerpStrength*0.95f - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
-			lerpFactor *= glm::clamp(lerpStrength*0.95f - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
+			auto lerpFactor = glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
+			lerpFactor *= glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
 			auto& el = temporaryElements[index].myElevation;
 			auto& bel = elementsBeforeErosion[index].myElevation;
 			el = bel + lerpFactor * (el - bel);
@@ -110,6 +116,7 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 		aTile->AddTerrainElement(element);
 	}
 
+	aTile->myTotalBuildTime = ImGui::GetTime() - startTime;
 	aTile->OnFinishBuild();
 }
 
