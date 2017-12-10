@@ -53,7 +53,7 @@ namespace Manager
 
 		file.close();
 
-		mySeed = time(NULL);
+		mySeed = 0;// time(NULL);
 		srand(mySeed);
 
 		TerrainGeneration::Initialize(mySeed);
@@ -91,6 +91,18 @@ namespace Manager
 		}
 		ImGui::Text("Tiles loaded : %d", myActiveTiles.size());
 		ImGui::Text("Tiles loading : %d", myTilesToLoad.size());
+		auto averageTotalTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, TerrainTile* b) {return a + b->myTotalBuildTime; });
+		auto averageErosionTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, TerrainTile* b) {return a + b->myErosionBuildTime; });
+		auto averageHeightmapTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, TerrainTile* b) {return a + b->myHeightmapBuildTime; });
+		if (myActiveTiles.size() > 0)
+		{
+			averageTotalTime /= float(myActiveTiles.size());
+			averageErosionTime /= float(myActiveTiles.size());
+			averageHeightmapTime /= float(myActiveTiles.size());
+			ImGui::Text("Avg Tile loading time : %f ms", 1000.f*averageTotalTime);
+			ImGui::Text("Avg Tile erosion computing time : %f ms", 1000.f*averageErosionTime);
+			ImGui::Text("Avg Tile heightmap/temperature/rainfall time : %f ms", 1000.f*averageHeightmapTime);
+		}
 		ImGui::End();
 
 		vec2f adjustedPostion = vec2f(aPlayerPosition.x + TerrainGeneration::GetMapSize() / 2.f, aPlayerPosition.z + TerrainGeneration::GetMapSize() / 2.f);
@@ -186,9 +198,8 @@ namespace Manager
 	void TerrainManager::LoadTile(const vec2i& aGridIndex)
 	{
 		auto tilePosition = vec2f((float) aGridIndex.x * (float) myTileSize * myResolution, (float) aGridIndex.y * (float) myTileSize * myResolution);
-		const auto cell = SampleGrid(tilePosition);
 
-		auto tile = new TerrainTile(aGridIndex, myTileSize, myResolution, cell);
+		auto tile = new TerrainTile(aGridIndex, myTileSize, myResolution);
 		myTilesToLoad.push_back(tile);
 		myTileBuilder->BuildTileRequest(tile);
 	}

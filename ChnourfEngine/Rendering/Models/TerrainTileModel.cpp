@@ -39,7 +39,7 @@ namespace Rendering
 
 			// Rainfall and temperature
 			glEnableVertexAttribArray(2);
-			glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(TerrainVertex), (GLvoid*)(GLvoid*)offsetof(TerrainVertex, rainfallTemperature));
+			glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(TerrainVertex), (GLvoid*)(GLvoid*)offsetof(TerrainVertex, rainfallTemperatureErosion));
 
 			glBindVertexArray(0);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -83,7 +83,8 @@ namespace Rendering
 					unsigned char z = element.myNormal.z * 128 + 127;
 					unsigned int normal = (x << 16) | (y << 8) | z;
 
-					unsigned int rainfallAndTemperature = (element.myRainfall << 8) | element.myTemperature;
+					const unsigned char erosion = 255 * element.myErodedCoefficient;
+					unsigned int rainfallAndTemperature = (element.myRainfall << 8) | element.myTemperature | (erosion << 16);
 
 					TerrainVertex vertex = TerrainVertex(element.myElevation, normal, rainfallAndTemperature);
 					vertices.push_back(vertex);
@@ -317,10 +318,10 @@ namespace Rendering
 			glDrawElements(GL_TRIANGLES, (GLsizei)(ourIndices[myCurrentLOD].size()), GL_UNSIGNED_INT, 0);
 			glBindVertexArray(0);
 
-			if (myGrass->IsGenerated())
-			{
-				myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[5].myId);
-			}
+			//if (myGrass->IsGenerated())
+			//{
+			//	myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[5].myId);
+			//}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}

@@ -14,11 +14,12 @@ namespace TerrainGeneration
 
 struct TerrainElement
 {
-	TerrainElement(float anElevation, const glm::vec3 aNormal, const unsigned char aRainfall, const unsigned char aTemperature):
+	TerrainElement(float anElevation, const glm::vec3 aNormal, const unsigned char aRainfall, const unsigned char aTemperature, const unsigned char anErodedCoeff):
 		myElevation(anElevation),
 		myNormal(aNormal),
 		myRainfall(aRainfall),
-		myTemperature(aTemperature)
+		myTemperature(aTemperature),
+		myErodedCoefficient(anErodedCoeff)
 	{}
 
 	float myElevation;
@@ -26,12 +27,13 @@ struct TerrainElement
 	glm::vec3 myNormal;
 	unsigned char myRainfall;
 	unsigned char myTemperature;
+	float myErodedCoefficient;
 };
 
 class TerrainTile
 {
 public:
-	TerrainTile(const vec2i& aGridIndex, int aTileSize, float aResolution, const TerrainGeneration::Cell* aWorldCell);
+	TerrainTile(const vec2i& aGridIndex, int aTileSize, float aResolution);
 	~TerrainTile() { }
 	inline const vec2i& GetGridIndex() const { return myGridIndex; }
 	__forceinline void AddTerrainElement(TerrainElement anElement) { myElements.push_back(anElement); }
@@ -50,7 +52,10 @@ public:
 	float GetY(float aX, float aZ) const;
 	vec3f GetNormal(float aX, float aZ) const;
 
-	const TerrainGeneration::Cell* myWorldCell;
+	float myTotalBuildTime;
+	float myHeightmapBuildTime;
+	float myErosionBuildTime;
+
 private:
 	vec2i myGridIndex;
 	bool myIsBuilt;
