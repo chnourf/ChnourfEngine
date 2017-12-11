@@ -342,11 +342,11 @@ namespace TerrainGeneration
 
 				if (i > 0 && i < verticalAmountOfPoints - 1)
 				{
-					adjustedY = glm::clamp(y + warp.x * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
+					adjustedY = glm::clamp(y + warp.y * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
 				}
 				if (j > 0 && j < horizontalAmountOfPoints - 1)
 				{
-					adjustedX = glm::clamp(x + warp.y * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
+					adjustedX = glm::clamp(x + warp.x * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
 				}
 
 				auto pointToAdd = Point(adjustedX, adjustedY);

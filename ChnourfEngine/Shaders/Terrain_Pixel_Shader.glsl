@@ -11,10 +11,10 @@ in VS_OUT
 } fs_in;
 
 struct Material {
-    vec3 ambient;
+	vec3 ambient;
 	sampler2D  diffuse;
-    sampler2D  specular;
-    float shininess;
+	sampler2D  specular;
+	float shininess;
 }; 
 
 out vec4 out_color;
@@ -37,8 +37,8 @@ void main()
 	norm = normalize((mat3(T,B,fs_in.normal)) * norm); 
 	
 	// difffuse
-    vec3 lightDir = normalize(-lightDirection);
-    float diff = max(dot(norm, lightDir), 0.0);
+	vec3 lightDir = normalize(-lightDirection);
+	float diff = max(dot(norm, lightDir), 0.0);
 	
 	// test
 	vec3 amb = clamp(0.5+0.5*norm.y,0.0,1.0)*vec3(0.40,0.60,0.80)*.3;
@@ -55,9 +55,9 @@ void main()
 	float r = texture( noise, (7.0/250)*fs_in.fragPos.xz/256.0 ).x;
 	vec3 iColor = (r*0.25+0.75)*mix( vec3(0.08,0.05,0.03), vec3(0.10,0.09,0.08), texture(noise,0.00007*vec2(fs_in.fragPos.x,fs_in.fragPos.y*48.0)/250).x );
 	iColor = mix( iColor, 0.80*vec3(0.45,.30,0.15)*(0.50+0.50*r),smoothstep(0.70,0.9,normTest.y) );
-    iColor = mix( iColor, 0.65*vec3(0.30,.30,0.10)*(0.25+0.75*r),smoothstep(0.95,1.0,normTest.y) );
+	iColor = mix( iColor, 0.65*vec3(0.30,.30,0.10)*(0.25+0.75*r),smoothstep(0.95,1.0,normTest.y) );
 	textureColor = vec4(1.2*iColor,1.0);
-	//textureColor *= texture(grassColor, vec2(fs_in.rainfallAndTemperature));
+	textureColor = texture(grassColor, vec2(fs_in.rainfallAndTemperature));
 	//textureColor *= fs_in.erosion;
 	
 	//snow
@@ -69,20 +69,20 @@ void main()
 	{
 		textureColor = vec4(0, 0.7, 1, 1);
 	}
-    vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
+	vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
 
 	// Specular
-    vec3 viewDir = normalize(viewPos - fs_in.fragPos);
+	vec3 viewDir = normalize(viewPos - fs_in.fragPos);
 	vec3 halfwayDir = normalize(lightDir + viewDir);
   
-    float spec = pow(max(dot(norm, halfwayDir), 0.0), 4.0);
-    vec3 specular = lightColor * spec * vec3(1.0,1.0,1.0);  
+	float spec = pow(max(dot(norm, halfwayDir), 0.0), 4.0);
+	vec3 specular = lightColor * spec * vec3(1.0,1.0,1.0);  
 	
-    vec3 result =  Shadow(fs_in.fragPos, norm) * (diffuse + 0.1 * specular) + ambient;
+	vec3 result =  Shadow(fs_in.fragPos, norm) * (diffuse + 0.1 * specular) + ambient;
 	
 	//fog
 	result = Fog( result, fs_in.fragPos, viewDir, lightDir );
 
-    out_color = vec4(result, 1.0f);
+	out_color = vec4(result, 1.0f);
 }
   

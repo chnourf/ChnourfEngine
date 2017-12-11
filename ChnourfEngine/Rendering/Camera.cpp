@@ -27,7 +27,7 @@ void Camera::UpdateFromKeyboard()
 	ImGui::Text("Camera Position : x %f, y %f, z %f", float(myCameraPos.x), float(myCameraPos.y), float(myCameraPos.z));
 	ImGui::Text("Camera Facing : x %f, y %f, z %f",  float(myCameraFront.x), float(myCameraFront.y), float(myCameraFront.z));
 
-	ImGui::SliderFloat("Camera Speed", &speedMultiplier, 0.01f, 500.f, "%.3f", 2.f);
+	ImGui::SliderFloat("Camera Speed", &speedMultiplier, 0.01f, 1000.f, "%.3f", 2.f);
 	
 	auto cameraSpeed = speedMultiplier;
 	cameraSpeed *= (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame();

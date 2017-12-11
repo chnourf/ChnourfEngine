@@ -106,8 +106,7 @@ namespace Manager
 		ImGui::End();
 
 		vec2f adjustedPostion = vec2f(aPlayerPosition.x + TerrainGeneration::GetMapSize() / 2.f, aPlayerPosition.z + TerrainGeneration::GetMapSize() / 2.f);
-		// swapping x and y until I fix issue with coordinates
-		ImGui::Text("Element on Grid : x %d, y %d", int(adjustedPostion.y)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()), int(adjustedPostion.x)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()));
+		ImGui::Text("Element on Grid : x %d, y %d", int(adjustedPostion.x)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()), int(adjustedPostion.y)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()));
 
 		auto temperature = TerrainGeneration::ComputeTemperature(aPlayerPosition.x, aPlayerPosition.y, aPlayerPosition.z);
 		auto temperatureInCelsius = int(70.f * temperature - 30.f);
