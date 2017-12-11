@@ -177,8 +177,8 @@ namespace TerrainGeneration
 		elevation *= distAttenuation;
 
 		// MOUNTAINS RANGES
-		const float locCoastalMountainsWidth = 0.12f;
-		float coastalMountains = exp(-pow((elevation - locSeaLevel) / (locCoastalMountainsWidth), 2));
+		const float locCoastalMountainsWidth = 0.08f;
+		float coastalMountains = 0.8f*exp(-pow((elevation - locSeaLevel) / (locCoastalMountainsWidth), 2));
 		float continentalMountains = glm::smoothstep(locSeaLevel + 0.1f, locSeaLevel + 0.2f, elevation);
 		float someRandomNoise = glm::smoothstep(0.5f, 0.7f, float(perlinNoise.noise((x + lowWarpX) / (locMapSize / 10.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f)));
 		elevation += (coastalMountains + continentalMountains) * someRandomNoise;
