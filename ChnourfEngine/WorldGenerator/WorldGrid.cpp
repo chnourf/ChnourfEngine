@@ -494,14 +494,14 @@ namespace TerrainGeneration
 			if (isInTriangle)
 			{
 				// calculate the areas and factors (order of parameters doesn't matter):
-				auto a = Vector2<float>::Cross(pointA->myPosition - center, pointB->myPosition - center); // main triangle area a
-				Vector2<float> posToA = Vector2<float>(pointA->myPosition.x - adjustedPosition.x, pointA->myPosition.y - adjustedPosition.y);
-				Vector2<float> posToB = Vector2<float>(pointB->myPosition.x - adjustedPosition.x, pointB->myPosition.y - adjustedPosition.y);
+				auto posToA = Vector2<float>(pointA->myPosition.x - adjustedPosition.x, pointA->myPosition.y - adjustedPosition.y);
+				auto posToB = Vector2<float>(pointB->myPosition.x - adjustedPosition.x, pointB->myPosition.y - adjustedPosition.y);
+				auto aTotal = Vector2<float>::Cross(center - pointA->myPosition, center - pointB->myPosition); // main triangle area a
 				auto aCenter = Vector2<float>::Cross(posToA, posToB); // p1's triangle area / a
 				auto aA = Vector2<float>::Cross(posToB, vec2f() -CenterToPosition); // p2's triangle area / a 
 				auto aB = Vector2<float>::Cross(vec2f() - CenterToPosition, posToA); // p3's triangle area / a
 				// find the uv corresponding to point f (uv1/uv2/uv3 are associated to p1/p2/p3):
-				rainfall = (sampledCell->GetRainfall() * aCenter + pointA->myRainfall * aA + pointB->myRainfall * aB)/a;
+				rainfall = (sampledCell->GetRainfall() * aCenter + pointA->myRainfall * aA + pointB->myRainfall * aB)/ aTotal;
 				break;
 			}
 		}
