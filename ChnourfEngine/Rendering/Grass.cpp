@@ -156,7 +156,7 @@ void Grass::Reset()
 {
 	myIsGenerated = false;
 	myIsGenerating = false;
-	myGrassData.erase(myGrassData.begin(), myGrassData.end());
+	myGrassData.clear();
 	glDeleteBuffers(1, &myVBO);
 }
 
