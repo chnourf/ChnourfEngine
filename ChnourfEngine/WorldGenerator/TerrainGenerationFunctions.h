@@ -11,6 +11,8 @@ namespace TerrainGeneration
 		float rockHardness; // erosion speed
 		int iterations; // number of iterations
 		int depositionRadius;
+		float gravity;
+		float evaporation;
 	};
 
 	enum class Biome

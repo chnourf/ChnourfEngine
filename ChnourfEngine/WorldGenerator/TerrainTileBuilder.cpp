@@ -17,7 +17,9 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 float locCarryCapacity = 10.f;
 float locRockHardness = 0.7f;
 int locIterations = 10000;
-int locErosionRadius = 2;
+int locErosionRadius = 1;
+float locGravity = 0.1f;
+float locEvaporation = 0.1f;
 
 void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 {
@@ -70,6 +72,8 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	params.iterations = locIterations;
 	params.rockHardness = locRockHardness;
 	params.depositionRadius = locErosionRadius;
+	params.evaporation = locEvaporation;
+	params.gravity = locGravity;
 	TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
 	aTile->myErosionBuildTime = ImGui::GetTime() - timeBeforeErosion;
 
@@ -149,6 +153,8 @@ void TerrainTileBuilder::Update()
 	ImGui::SliderFloat("rock Hardness : ", &locRockHardness, 0.f, 1.f, "%.3f", 2.f);
 	ImGui::SliderInt("iterations : ", &locIterations, 1000, 400000);
 	ImGui::SliderInt("Erosion Radius : ", &locErosionRadius, 0, 10);
+	ImGui::SliderFloat("gravity : ", &locGravity, 0.f, 20.f, "%.3f", 2.f);
+	ImGui::SliderFloat("evaportaion : ", &locEvaporation, 0.f, 1.f, "%.3f", 3.f);
 
 	auto it = myLoadingTasks.begin();
 	while (it < myLoadingTasks.end())
