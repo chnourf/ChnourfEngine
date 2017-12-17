@@ -9,6 +9,7 @@ namespace TerrainGeneration
 	{
 		float carryCapacity; // soil carry capacity
 		float rockHardness; // erosion speed
+		float depositionSpeed; // deposition speed
 		int iterations; // number of iterations
 		int depositionRadius;
 		float gravity;

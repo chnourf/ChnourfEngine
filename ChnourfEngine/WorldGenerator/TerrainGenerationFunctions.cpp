@@ -332,7 +332,10 @@ namespace TerrainGeneration
 
 				// the drop falls off the tile
 				if (newXi == aTileSize - 1 || newZi == aTileSize - 1 || newXi == 0 || newZi == 0)
+				{
+					Erode(elevationMap, params, aTileSize, -carriedSediment, carriedSediment, newXpos, newZpos);
 					break;
+				}
 
 				float newXf = newXpos - newXi;
 				float newZf = newZpos - newZi;
@@ -369,7 +372,7 @@ namespace TerrainGeneration
 					// deposit/erode (don't erode more than dh)
 					if (sedimentExcipient > 0.f)
 					{
-						Depose(elevationMap, aTileSize, sedimentExcipient * 0.1f, carriedSediment, xPos, zPos);
+						Erode(elevationMap, params, aTileSize, -sedimentExcipient * params.depositionSpeed, carriedSediment, xPos, zPos);
 					}
 					else
 					{

@@ -57,8 +57,7 @@ void main()
 	iColor = mix( iColor, 0.80*vec3(0.45,.30,0.15)*(0.50+0.50*r),smoothstep(0.70,0.9,normTest.y) );
 	iColor = mix( iColor, 0.65*vec3(0.30,.30,0.10)*(0.25+0.75*r),smoothstep(0.95,1.0,normTest.y) );
 	textureColor = vec4(1.2*iColor,1.0);
-	textureColor = texture(grassColor, vec2(fs_in.rainfallAndTemperature));
-	//textureColor *= fs_in.erosion;
+	//textureColor = texture(grassColor, vec2(fs_in.rainfallAndTemperature));
 	
 	//snow
 	float h = smoothstep(450.0,600.0,fs_in.fragPos.y + 100.0*fbm(fs_in.fragPos.xz/250) );
@@ -69,6 +68,7 @@ void main()
 	{
 		textureColor = vec4(0, 0.7, 1, 1);
 	}
+	textureColor *= (1.f - fs_in.erosion);
 	vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
 
 	// Specular

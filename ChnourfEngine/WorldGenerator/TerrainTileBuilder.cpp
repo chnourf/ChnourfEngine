@@ -16,7 +16,8 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 
 float locCarryCapacity = 5.f;
 float locRockHardness = 0.3f;
-int locIterations = 60000;
+float locDepositionSpeed = 0.1f;
+int locIterations = 30000;
 int locErosionRadius = 1;
 float locGravity = 0.007f;
 float locEvaporation = 0.01f;
@@ -74,10 +75,11 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	params.depositionRadius = locErosionRadius;
 	params.evaporation = locEvaporation;
 	params.gravity = locGravity;
+	params.depositionSpeed = locDepositionSpeed;
 	TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
 	aTile->myErosionBuildTime = ImGui::GetTime() - timeBeforeErosion;
 
-	const float erosionStrength = 0.7f;
+	const float erosionStrength = 0.8f;
 	const float lerpStrength = 3.f;
 	// lerping the edges of the tiles to ensure continuity after erosion
 	for (unsigned int i = 0; i < myTileSize; ++i) {
@@ -152,7 +154,8 @@ void TerrainTileBuilder::Update()
 {
 	ImGui::SliderFloat("carry capacity : ", &locCarryCapacity, 0.f, 100.f, "%.3f", 2.f);
 	ImGui::SliderFloat("rock Hardness : ", &locRockHardness, 0.f, 1.f, "%.3f", 2.f);
-	ImGui::SliderInt("iterations : ", &locIterations, 1000, 400000);
+	ImGui::SliderFloat("deposition speed : ", &locDepositionSpeed, 0.f, 1.f, "%.3f", 2.f);
+	ImGui::SliderInt("iterations : ", &locIterations, 1000, 200000);
 	ImGui::SliderInt("Erosion Radius : ", &locErosionRadius, 0, 10);
 	ImGui::SliderFloat("gravity : ", &locGravity, 0.f, 1.f, "%.3f", 2.f);
 	ImGui::SliderFloat("evaportaion : ", &locEvaporation, 0.f, 1.f, "%.3f", 3.f);
