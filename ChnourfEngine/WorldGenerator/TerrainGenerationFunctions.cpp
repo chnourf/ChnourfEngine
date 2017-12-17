@@ -247,9 +247,9 @@ namespace TerrainGeneration
 		return temperature;
 	}
 
-	void Depose(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float amount, float& carriedSediment, const int xi, const int zi, const float xp, const float zp)
+	void Erode(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float erodedSediment, float& carriedSediment, const float xp, const float zp)
 	{
-		for (int z = zi - params.depositionRadius; z <= zi + params.depositionRadius; ++z)
+		for (int z = floor(zp) - params.depositionRadius; z <= floor(zp) + 1 + params.depositionRadius; ++z)
 		{
 			if (z < 0 || z > aTileSize - 1)
 			{
@@ -257,21 +257,21 @@ namespace TerrainGeneration
 			}
 			float zo = z - zp;
 			float zo2 = zo*zo;
-			for (int x = xi - params.depositionRadius; x <= xi + params.depositionRadius; ++x)
+			for (int x = floor(xp) - params.depositionRadius; x <= floor(xp) + 1 + params.depositionRadius; ++x)
 			{
 				if (x < 0 || x > aTileSize - 1)
 				{
 					continue;
 				}
 				float xo = x - xp;
-				float weight = 1.f / ((1.f + float(params.depositionRadius)) * (1.f + (xo*xo + zo2)));
-				elevationMap[x + aTileSize * z].myElevation += amount * weight;
+				float weight = 1.f / ((1.f + float(params.depositionRadius) * float(params.depositionRadius)) * (1.f + (xo*xo + zo2)));
+				elevationMap[x + aTileSize * z].myElevation -= erodedSediment * weight;
 				auto& erodedCoeff = elevationMap[x + aTileSize * z].myErodedCoefficient;
-				erodedCoeff = (erodedCoeff + (10.f * abs(amount))) / (1.f + (erodedCoeff + (10.f * abs(amount))));
+				erodedCoeff = std::min(0.02f * abs(erodedSediment) + erodedCoeff, 1.f);
 			}
 		}
 
-		carriedSediment -= amount;
+		carriedSediment += erodedSediment;
 	}
 
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize)
@@ -289,6 +289,8 @@ namespace TerrainGeneration
 
 			float currentHeight = elevationMap[xi + aTileSize * zi].myElevation;
 			float carriedSediment = 0.f;
+			float speed = 0.f;
+			float water = 1.f;
 
 			float height00 = currentHeight;
 			float height10 = elevationMap[xi + 1 + aTileSize * zi].myElevation;
@@ -342,7 +344,7 @@ namespace TerrainGeneration
 
 				float newHeight = (newHeight00*(1 - newXf) + newHeight10 * newXf) * (1 - newZf) + (newHeight01 * (1 - newXf) + newHeight11 * newXf) * newZf;
 
-				float deltaHeight = currentHeight - newHeight + 0.001f;
+				float deltaHeight = currentHeight - newHeight;
 
 				// if higher than current, try to deposit sediment up to neighbour height
 				if (deltaHeight < 0.f)
@@ -350,28 +352,29 @@ namespace TerrainGeneration
 					if (-deltaHeight >= carriedSediment)
 					{
 						// deposit all sediment and stop
-						Depose(elevationMap, params, aTileSize, carriedSediment, carriedSediment, xi, zi, xPos, zPos);
+						Erode(elevationMap, params, aTileSize, -carriedSediment, carriedSediment, xPos, zPos);
 						break;
 					}
-					Depose(elevationMap, params, aTileSize, -deltaHeight, carriedSediment, xi, zi, xPos, zPos);
+					Erode(elevationMap, params, aTileSize, deltaHeight, carriedSediment, xPos, zPos);
+				
 				}
 				else
 				{
+					speed = sqrt(speed * speed + params.gravity * deltaHeight);
+
 					// compute transport capacity
-					float sedimentEroded = deltaHeight * (1.f - params.rockHardness);
-					carriedSediment += sedimentEroded;
-					//float sedimentExcipient = std::max(0.f, carriedSediment + sedimentEroded - params.carryCapacity);
-					float sedimentExcipient = std::max(0.f, carriedSediment - params.carryCapacity);
+					float carryCapacity = std::max(deltaHeight, 0.01f) * speed * water * params.carryCapacity;
+					float sedimentExcipient = carriedSediment - carryCapacity;
 
 					// deposit/erode (don't erode more than dh)
 					if (sedimentExcipient > 0.f)
 					{
-						Depose(elevationMap, params, aTileSize, sedimentExcipient, carriedSediment, xi, zi, xPos, zPos);
+						Depose(elevationMap, aTileSize, sedimentExcipient * 0.1f, carriedSediment, xPos, zPos);
 					}
 					else
 					{
-						// erode (deposing a negative amount)
-						Depose(elevationMap, params, aTileSize, -sedimentEroded, carriedSediment, xi, zi, xPos, zPos);
+						auto sedimentEroded = std::min(deltaHeight, -sedimentExcipient * (1.f - params.rockHardness));
+						Erode(elevationMap, params, aTileSize, sedimentEroded, carriedSediment, xPos, zPos);
 					}
 				}
 
@@ -384,6 +387,8 @@ namespace TerrainGeneration
 				height10 = newHeight10;
 				height01 = newHeight01;
 				height11 = newHeight11;
+
+				water *= (1.f - params.evaporation);
 			}
 		}
 	}

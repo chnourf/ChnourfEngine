@@ -14,12 +14,12 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 }
 
 
-float locCarryCapacity = 10.f;
-float locRockHardness = 0.7f;
-int locIterations = 10000;
+float locCarryCapacity = 5.f;
+float locRockHardness = 0.3f;
+int locIterations = 60000;
 int locErosionRadius = 1;
-float locGravity = 0.1f;
-float locEvaporation = 0.1f;
+float locGravity = 0.007f;
+float locEvaporation = 0.01f;
 
 void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 {
@@ -85,9 +85,10 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 			auto index = i + j * myTileSize;
 			auto lerpFactor = glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
 			lerpFactor *= glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, erosionStrength);
-			auto& el = temporaryElements[index].myElevation;
-			auto& bel = elementsBeforeErosion[index].myElevation;
-			el = bel + lerpFactor * (el - bel);
+			auto& el = temporaryElements[index];
+			auto& bel = elementsBeforeErosion[index];
+			el.myElevation = bel.myElevation + lerpFactor * (el.myElevation - bel.myElevation);
+			el.myErodedCoefficient = bel.myErodedCoefficient + lerpFactor * (el.myErodedCoefficient - bel.myErodedCoefficient);
 		}
 	}
 
@@ -153,7 +154,7 @@ void TerrainTileBuilder::Update()
 	ImGui::SliderFloat("rock Hardness : ", &locRockHardness, 0.f, 1.f, "%.3f", 2.f);
 	ImGui::SliderInt("iterations : ", &locIterations, 1000, 400000);
 	ImGui::SliderInt("Erosion Radius : ", &locErosionRadius, 0, 10);
-	ImGui::SliderFloat("gravity : ", &locGravity, 0.f, 20.f, "%.3f", 2.f);
+	ImGui::SliderFloat("gravity : ", &locGravity, 0.f, 1.f, "%.3f", 2.f);
 	ImGui::SliderFloat("evaportaion : ", &locEvaporation, 0.f, 1.f, "%.3f", 3.f);
 
 	auto it = myLoadingTasks.begin();
