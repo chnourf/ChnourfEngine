@@ -267,7 +267,7 @@ namespace TerrainGeneration
 				float weight = 1.f / ((1.f + float(params.depositionRadius) * float(params.depositionRadius)) * (1.f + (xo*xo + zo2)));
 				elevationMap[x + aTileSize * z].myElevation -= erodedSediment * weight;
 				auto& erodedCoeff = elevationMap[x + aTileSize * z].myErodedCoefficient;
-				erodedCoeff = std::min(0.02f * abs(erodedSediment) + erodedCoeff, 1.f);
+				erodedCoeff = std::min(0.05f * abs(erodedSediment) + erodedCoeff, 1.f);
 			}
 		}
 

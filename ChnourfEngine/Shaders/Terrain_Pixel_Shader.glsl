@@ -68,7 +68,7 @@ void main()
 	{
 		textureColor = vec4(0, 0.7, 1, 1);
 	}
-	textureColor *= (1.f - fs_in.erosion);
+	textureColor.rgb = mix(textureColor.rgb, vec3(0.45,.30,0.15), smoothstep(0.f, 1.f, fs_in.erosion));
 	vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
 
 	// Specular
