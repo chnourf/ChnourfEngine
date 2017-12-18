@@ -54,8 +54,8 @@ void main()
 	vec3 normTest = fs_in.normal + vec3(0.2*fbm(fs_in.texcoord/2.0));
 	float r = texture( noise, (7.0/250)*fs_in.fragPos.xz/256.0 ).x;
 	vec3 iColor = (r*0.25+0.75)*mix( vec3(0.08,0.05,0.03), vec3(0.10,0.09,0.08), texture(noise,0.00007*vec2(fs_in.fragPos.x,fs_in.fragPos.y*48.0)/250).x );
-	iColor = mix( iColor, 0.80*vec3(0.45,.30,0.15)*(0.50+0.50*r),smoothstep(0.70,0.9,normTest.y) );
-	iColor = mix( iColor, 0.65*vec3(0.30,.30,0.10)*(0.25+0.75*r),smoothstep(0.95,1.0,normTest.y) );
+	//iColor = mix( iColor, 0.80*vec3(0.45,.30,0.15)*(0.50+0.50*r),smoothstep(0.70,0.9,normTest.y) );
+	iColor = mix( iColor, 0.65*texture(grassColor, vec2(fs_in.rainfallAndTemperature)).rgb*(0.25+0.75*r),smoothstep(0.95,1.0,normTest.y) );
 	textureColor = vec4(1.2*iColor,1.0);
 	//textureColor = texture(grassColor, vec2(fs_in.rainfallAndTemperature));
 	
