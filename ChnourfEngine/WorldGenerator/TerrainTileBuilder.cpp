@@ -3,8 +3,10 @@
 #include"TerrainGenerationFunctions.h"
 #include <iostream>
 #include "../Core/Vector.h"
+#include "../Managers/SceneManager.h"
 #include "../WorldGenerator/TerrainManager.h"
 #include "../Dependencies/imgui/imgui.h"
+#include "../Dependencies/glew/glew.h"
 
 TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned int aTileSize, float aTileResolution, TerrainTile* anEmptyTile):
 	myTileSize(aTileSize),
@@ -65,6 +67,27 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	aTile->SetMaxHeight(maxHeight);
 
 	std::vector<TerrainElement> elementsBeforeErosion = temporaryElements;
+
+	//GLuint heightmapTextureID;
+	//glGenTextures(1, &heightmapTextureID);
+	//glBindTexture(GL_TEXTURE_2D, heightmapTextureID);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glGenerateMipmap(GL_TEXTURE_2D);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, myTileSize, myTileSize, 0, GL_R, GL_FLOAT, NULL);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+
+	//auto computeErosionShader = Manager::SceneManager::GetInstance()->GetShaderManager()->GetShader("computeErosionShader");
+	//glUseProgram(computeErosionShader);
+	//glBindTexture(GL_TEXTURE_2D, heightmapTextureID);
+	//glBindImageTexture(0, heightmapTextureID, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+	//glDispatchCompute(1, 1, 1);
+	//glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	//glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
+	//glBindTexture(GL_TEXTURE_2D, 0);
+	//glUseProgram(0);
 
 	auto timeBeforeErosion = ImGui::GetTime();
 	//computing erosion, could be moved to presets.txt

@@ -222,3 +222,36 @@ void ShaderManager::DeleteShader(const std::string& aShaderName)
 
 	assert(false);
 }
+
+void Manager::ShaderManager::CreateComputeProgram(const std::string& aShaderName, const std::string& aComputeShaderFilename)
+{
+	//read the shader files and save the code
+	std::string compute_shader_code = ReadShader(aComputeShaderFilename);
+	CreateComputeProgramFromSource(aShaderName, compute_shader_code);
+}
+
+void Manager::ShaderManager::CreateComputeProgramFromSource(const std::string& aShaderName, const std::string& aComputeShaderSource)
+{
+	GLuint compute_shader = CreateShader(GL_COMPUTE_SHADER, aComputeShaderSource, aShaderName);
+
+	int link_result = 0;
+	//create the program handle, attach the shaders and link it
+	GLuint program = glCreateProgram();
+	glAttachShader(program, compute_shader);
+
+	glLinkProgram(program);
+	glGetProgramiv(program, GL_LINK_STATUS, &link_result);
+	//check for link errors
+	if (link_result == GL_FALSE)
+	{
+		int info_log_length = 0;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &info_log_length);
+		std::vector<char> program_log(info_log_length);
+		glGetProgramInfoLog(program, info_log_length, NULL, &program_log[0]);
+		std::cout << "Shader Loader : LINK ERROR in shader " << aShaderName.c_str() << std::endl << &program_log[0] << std::endl;
+	}
+
+	glDeleteShader(compute_shader);
+
+	myPrograms.push_back(Program(aShaderName, program));
+}
