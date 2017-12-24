@@ -100,8 +100,8 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 			auto direction = distribution(myRandomEngine);
 			grassInstance.direction8 = direction * 128 + 127;
 
-			grassInstance.temperature8 = 255 * TerrainGeneration::ComputeTemperature(x, y, z);
-			grassInstance.rainfall8 = 255 * Manager::TerrainManager::GetInstance()->SampleRainfallFromGrid(vec2f(x, y));
+			grassInstance.rainfall8 = aTile->GetElement(floor(j / multiplier + 0.5f) * myTileSize + floor(i / multiplier + 0.5f)).myRainfall;
+			grassInstance.temperature8 = aTile->GetElement(floor(j / multiplier + 0.5f) * myTileSize + floor(i / multiplier + 0.5f)).myTemperature;
 
 			myGrassData.push_back(grassInstance);
 		}

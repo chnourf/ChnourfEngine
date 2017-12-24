@@ -11,11 +11,11 @@ struct GrassInstance
 {
 	float x, y, z;
 	char nx8, ny8, nz8;
-	char atlasIndex8;
-	char direction8;
-	char scale8;
-	char rainfall8;
-	char temperature8;
+	unsigned char atlasIndex8;
+	unsigned char direction8;
+	unsigned char scale8;
+	unsigned char rainfall8;
+	unsigned char temperature8;
 };
 
 class Grass
