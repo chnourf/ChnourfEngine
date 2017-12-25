@@ -73,12 +73,12 @@ void main()
 
 	// Specular
 	vec3 viewDir = normalize(viewPos - fs_in.fragPos);
-	vec3 halfwayDir = normalize(lightDir + viewDir);
-  
-	float spec = pow(max(dot(norm, halfwayDir), 0.0), 4.0);
-	vec3 specular = lightColor * spec * vec3(1.0,1.0,1.0);  
+	//vec3 halfwayDir = normalize(lightDir + viewDir);
+  	//
+	//float spec = pow(max(dot(norm, halfwayDir), 0.0), 4.0);
+	//vec3 specular = lightColor * spec * vec3(1.0,1.0,1.0);  
 	
-	vec3 result =  Shadow(fs_in.fragPos, norm) * (diffuse + 0.1 * specular) + ambient;
+	vec3 result =  Shadow(fs_in.fragPos, norm) * (diffuse) + ambient;
 	
 	//fog
 	result = Fog( result, fs_in.fragPos, viewDir, lightDir );

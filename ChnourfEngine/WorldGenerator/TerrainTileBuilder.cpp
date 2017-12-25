@@ -58,7 +58,7 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 				maxHeight = pointNoise;
 			}
 
-			temporaryElements.push_back(TerrainElement(pointNoise, glm::vec3(), 255 * Manager::TerrainManager::GetInstance()->SampleRainfallFromGrid(vec2f(x, y)) , 255 * TerrainGeneration::ComputeTemperature(x, pointNoise, y), 0));
+			temporaryElements.push_back(TerrainElement(pointNoise, glm::vec3(), 255 * TerrainGeneration::ComputeRainfallFromGridWithPerlinNoise(x, y), 255 * TerrainGeneration::ComputeTemperature(x, pointNoise, y), 0));
 		}
 	}
 	aTile->myHeightmapBuildTime = ImGui::GetTime() - beforeElevationTime;

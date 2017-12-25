@@ -56,6 +56,7 @@ namespace TerrainGeneration
 
 	float ComputeElevation(const float x, const float y, bool needsDetail);
 	float ComputeTemperature(const float x, const float y, const float z);
+	float ComputeRainfallFromGridWithPerlinNoise(const float x, const float z);
 
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
 
