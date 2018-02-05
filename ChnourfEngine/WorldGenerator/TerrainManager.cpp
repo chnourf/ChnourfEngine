@@ -53,7 +53,7 @@ namespace Manager
 
 		file.close();
 
-		mySeed = 0;// time(NULL);
+		mySeed = time(NULL);
 		srand(mySeed);
 
 		TerrainGeneration::Initialize(mySeed);

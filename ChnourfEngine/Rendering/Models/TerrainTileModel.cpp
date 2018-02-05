@@ -320,7 +320,7 @@ namespace Rendering
 
 			if (myGrass->IsGenerated())
 			{
-				myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[5].myId);
+				myGrass->Draw(aShaderManager, myTerrainTile->GetGridIndex(), textures[5].myId, textures[4].myId);
 			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
