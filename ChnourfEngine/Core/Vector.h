@@ -4,7 +4,10 @@
 
 template <class T> struct Vector2
 {
-	Vector2(){}
+	Vector2():
+		x(T(0)),
+		y(T(0))
+	{}
 
 	Vector2(const T& anX, const T& anY) :
 		x(anX),

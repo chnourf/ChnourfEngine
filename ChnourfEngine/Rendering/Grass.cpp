@@ -5,6 +5,13 @@
 #include "../Core/Math.h"
 #include "../Core/Time.h"
 
+#include "../WorldGenerator/TerrainGenerationFunctions.h"
+#include "../WorldGenerator/TerrainManager.h"
+
+
+const float locGrassMaxAltitude = 380.f;
+const float locGrassAltRandomAmplitude = 40.f;
+const float locGrassTotalMaxAltitude = locGrassMaxAltitude + locGrassAltRandomAmplitude;
 
 Grass::Grass(unsigned int aTileSize, float aResolution, int aSeed):
 	myTileSize(aTileSize),
@@ -33,6 +40,12 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 		return;
 	}
 
+	// no need to generate in that case, the tile is too high, or below sea level
+	if (aTile->GetMinHeight() > locGrassTotalMaxAltitude || aTile->GetMaxHeight() < 0.f)
+	{
+		return;
+	}
+
 	myIsGenerating = true;
 
 	// resetting engine
@@ -43,7 +56,7 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 	const float tileSizeInMeters = myTileSize * myResolution;
 	const vec2i& tileIndex = aTile->GetGridIndex();
 	const unsigned int numberOfInstancesPerSide = tileSizeInMeters * myDensityPerSqMeter;
-	myGrassData.reserve(numberOfInstancesPerSide * numberOfInstancesPerSide);
+	//myGrassData.reserve(numberOfInstancesPerSide * numberOfInstancesPerSide);
 
 	auto upperLimit = (float)(myTileSize - 1) * myResolution;
 
@@ -55,38 +68,50 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 			float x = tileIndex.x * tileSizeInMeters + glm::clamp((float)j / (float)myDensityPerSqMeter + offset * distribution(myRandomEngine), 0.f, upperLimit);
 			float z = tileIndex.y * tileSizeInMeters + glm::clamp((float)i / (float)myDensityPerSqMeter + offset * distribution(myRandomEngine), 0.f, upperLimit);
 
-			//float y = aTile->GetElement(floor(j/ multiplier + 0.5f) * myTileSize + floor(i/ multiplier + 0.5f)).myElevation;
 			float y = aTile->GetY(x, z);
+
+			if (y + distribution(myRandomEngine) * locGrassAltRandomAmplitude > locGrassMaxAltitude)
+			{
+				continue;
+			}
+
+			if (y < 0.f)
+			{
+				continue;
+			}
+
+			auto elementRainfall = aTile->GetElement(floor(j / multiplier + 0.5f) * myTileSize + floor(i / multiplier + 0.5f)).myRainfall;
+			if (float(elementRainfall)/255.f < (0.3f + 0.2f * distribution(myRandomEngine)))
+			{
+				continue;
+			}
+
+			auto norm = aTile->GetElement(floor(j / multiplier) * myTileSize + floor(i / multiplier)).myNormal;// aTile->GetNormal(x, z);
+
+			if (norm.y < 0.85f)
+			{
+				continue;
+			}
 
 			GrassInstance grassInstance;
 			grassInstance.x = x;
 			grassInstance.y = y;
 			grassInstance.z = z;
 
-			auto norm = aTile->GetElement(floor(j / multiplier) * myTileSize + floor(i / multiplier)).myNormal;// aTile->GetNormal(x, z);
-
-			if (norm.y < 0.8f)
-			{
-				continue;
-			}
-
-			if (y + distribution(myRandomEngine) * 20 > 200)
-			{
-				continue;
-			}
-
 			grassInstance.nx8 = norm.x * 128 + 127;
 			grassInstance.ny8 = norm.y * 128 + 127;
 			grassInstance.nz8 = norm.z * 128 + 127;
 
 			grassInstance.atlasIndex8 = 0;
-			grassInstance.colorLerp8 = distribution(myRandomEngine) * 128 + 127;
 
-			auto scale = 0.8f + 0.2f * distribution(myRandomEngine);
+			auto scale = 0.7f + 0.3f * distribution(myRandomEngine);
 			grassInstance.scale8 = scale * 128 + 127;
 
 			auto direction = distribution(myRandomEngine);
 			grassInstance.direction8 = direction * 128 + 127;
+
+			grassInstance.rainfall8 = elementRainfall;
+			grassInstance.temperature8 = aTile->GetElement(floor(j / multiplier + 0.5f) * myTileSize + floor(i / multiplier + 0.5f)).myTemperature;
 
 			myGrassData.push_back(grassInstance);
 		}
@@ -115,8 +140,10 @@ void Grass::Update(bool aMustGenerate, const TerrainTile* aTile)
 	}
 }
 
-void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture)
+void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTileIndex, GLuint aGrassTexture, GLuint aGrassColorTexture)
 {
+	//Use special mipmap for texture with alpha ? Or alpha blending
+
 	if (myGrassData.size() == 0)
 	{
 		return;
@@ -130,9 +157,13 @@ void Grass::Draw(const Manager::ShaderManager* aShaderManager, const vec2i& aTil
 	float time = Time::GetInstance()->GetTime();
 	glUniform1f(elapsedTimeID, time);
 
-	glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 4);
-	glActiveTexture(GL_TEXTURE4);
+	glUniform1i(glGetUniformLocation(grassProgram, "grassMaterial.diffuse"), 5);
+	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, aGrassTexture);
+
+	glUniform1i(glGetUniformLocation(grassProgram, "grassColorTexture"), 8);
+	glActiveTexture(GL_TEXTURE8);
+	glBindTexture(GL_TEXTURE_2D, aGrassColorTexture);
 
 	glBindVertexArray(myVAO);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 6, myGrassData.size());
@@ -144,7 +175,7 @@ void Grass::Reset()
 {
 	myIsGenerated = false;
 	myIsGenerating = false;
-	myGrassData.erase(myGrassData.begin(), myGrassData.end());
+	myGrassData.clear();
 	glDeleteBuffers(1, &myVBO);
 }
 
@@ -190,7 +221,7 @@ void Grass::OnGrassGenerationComplete()
 
 	// Misc
 	glEnableVertexAttribArray(3);
-	glVertexAttribIPointer(3, 4, GL_UNSIGNED_BYTE, sizeof(GrassInstance), (GLvoid*)offsetof(GrassInstance, atlasIndex8));
+	glVertexAttribIPointer(3, 4, GL_UNSIGNED_BYTE, sizeof(GrassInstance), (GLvoid*)offsetof(GrassInstance, direction8));
 	glVertexAttribDivisor(3, 1);
 
 	glBindVertexArray(0);

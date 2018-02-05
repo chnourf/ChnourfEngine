@@ -13,8 +13,8 @@ namespace TerrainGeneration
 		WorldGrid(unsigned int aSeed);
 
 		void Generate();
-		const Cell* SampleGridCell(const vec2f& aPosition);
-		const Triangle* SampleGridTriangle(const vec2f& aPosition);
+		const Cell* SampleGridCell(const vec2f& aPosition) const;
+		float SampleGridRainfall(const vec2f& aPosition) const;
 
 	private:
 		Grid myGrid;

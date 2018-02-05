@@ -1,12 +1,13 @@
 #include "TerrainTile.h"
 
 
-TerrainTile::TerrainTile(const vec2i& aGridIndex, int aTileSize, float aResolution, const TerrainGeneration::Cell* aWorldCell) :
+TerrainTile::TerrainTile(const vec2i& aGridIndex, int aTileSize, float aResolution) :
 	myGridIndex(aGridIndex),
 	myIsBuilt(false),
 	myTileSize(aTileSize),
 	myResolution(aResolution),
-	myWorldCell(aWorldCell)
+	myTotalBuildTime(0.f),
+	myErosionBuildTime(0.f)
 {
 	myElements.reserve((aTileSize)*(aTileSize));
 }

@@ -5,11 +5,11 @@
 #include "glm\gtx\rotate_vector.hpp"
 #include "../Dependencies/imgui/imgui.h"
 
-int locSpeedMultiplier = 1;
 
 Camera::Camera()
 {
-	myCameraPos = glm::vec3(0.0f, 200.0f, 5.0f);
+	//myCameraPos = glm::vec3(0.0f, 200.0f, 5.0f);
+	myCameraPos = glm::vec3(0.f, 400.0f, 2000.f);
 	myNextCameraPos = myCameraPos;
 	myCameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 	myCameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -19,25 +19,17 @@ void Camera::Initialize(int aWindowWidth, int aWindowHeight)
 {
 	myProjectionMatrix = glm::perspective(45.0f, (float)aWindowWidth / (float)aWindowHeight, 0.1f, 3000.f);
 	Manager::InputManager::GetInstance()->OnMouseMotionSlot.Connect(std::bind(&Camera::OnMouseMotion, this, std::placeholders::_1, std::placeholders::_2));
-	Manager::InputManager::GetInstance()->OnKeyPressedSlot.Connect(std::bind([](unsigned char c)
-	{	if (c == GLFW_KEY_1)
-	{
-		locSpeedMultiplier *= 10;
-		if (locSpeedMultiplier > 100)
-		{
-			locSpeedMultiplier = 1;
-		}
-	}
-	}, std::placeholders::_1));
 }
 
+auto speedMultiplier = 10.f;
 void Camera::UpdateFromKeyboard()
 {
 	ImGui::Text("Camera Position : x %f, y %f, z %f", float(myCameraPos.x), float(myCameraPos.y), float(myCameraPos.z));
 	ImGui::Text("Camera Facing : x %f, y %f, z %f",  float(myCameraFront.x), float(myCameraFront.y), float(myCameraFront.z));
+
+	ImGui::SliderFloat("Camera Speed", &speedMultiplier, 0.01f, 1000.f, "%.3f", 2.f);
 	
-	auto cameraSpeed = 10.f;
-	cameraSpeed *= locSpeedMultiplier;
+	auto cameraSpeed = speedMultiplier;
 	cameraSpeed *= (float) Time::GetInstance()->GetElapsedTimeSinceLastFrame();
 	auto cameraRight = glm::normalize(glm::cross(myCameraFront, myCameraUp));
 

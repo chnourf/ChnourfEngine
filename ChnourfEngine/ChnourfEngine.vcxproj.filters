@@ -93,9 +93,6 @@
     <ClCompile Include="Debug\ppm.cpp">
       <Filter>Fichiers sources\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="Debug\WorldGridGeneratorDebugDraw.cpp">
-      <Filter>Fichiers sources\Debug</Filter>
-    </ClCompile>
     <ClCompile Include="WorldGenerator\WorldGrid.cpp">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClCompile>
@@ -122,6 +119,9 @@
     </ClCompile>
     <ClCompile Include="Dependencies\imgui\imgui_impl_glfw_glew.cpp">
       <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\WorldGridGeneratorDebug.cpp">
+      <Filter>Fichiers sources\Debug</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -215,9 +215,6 @@
     <ClInclude Include="Debug\ppm.h">
       <Filter>Fichiers sources\Debug</Filter>
     </ClInclude>
-    <ClInclude Include="Debug\WorldGridGeneratorDebugDraw.h">
-      <Filter>Fichiers sources\Debug</Filter>
-    </ClInclude>
     <ClInclude Include="WorldGenerator\WorldGrid.h">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClInclude>
@@ -256,6 +253,9 @@
     </ClInclude>
     <ClInclude Include="Dependencies\imgui\imgui_impl_glfw_glew.h">
       <Filter>Fichiers sources\Debug\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug\WorldGridGeneratorDebug.h">
+      <Filter>Fichiers sources\Debug</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -5,15 +5,40 @@
 #include <array>
 #include <vector>
 #include <random>
+#include "../Core/Math.h"
+#include "../Core/PerlinNoise.h"
+#include "../WorldGenerator/TerrainManager.h"
 
 const float scale = .5f;
 const float locMultiplier = 250.f / scale; // noise result between 0 and this value (in meters)
 const float gain = 0.5f;
 const float lacunarity = 1.90f;
 const unsigned int locNoiseDepth = 8;
-const float locMapSize = 512.f * 128.f; // size in meters
+const unsigned int locMapSizeInTiles = 512u;
+const float locMapSize = locMapSizeInTiles * 128.f; // size in meters
 const float locSeaLevel = 0.45f;
 const float locMountainStartAltitude = locSeaLevel + 0.35f;
+
+PerlinNoise perlinNoise;
+std::default_random_engine randomEngine;
+
+
+static const char* biomeNames[static_cast<int>(TerrainGeneration::Biome::Count)] =
+{
+	"Snow",
+	"Tundra",
+	"Bare",
+	"Scorched",
+	"Taiga",
+	"Shrubland",
+	"TemperateDesert",
+	"TemperateRainForest",
+	"TemperateDeciduousForest",
+	"Grassland",
+	"TropicalRainForest",
+	"SubtropicalDesert",
+	"Sea",
+};
 
 namespace TerrainGeneration
 {
@@ -22,14 +47,19 @@ namespace TerrainGeneration
 		return locMapSize;
 	}
 
-	float GetSeaLevel()
+	unsigned int GetMapTileAmount()
 	{
-		return locSeaLevel;
+		return locMapSizeInTiles;
 	}
 
 	float GetMountainStartAltitude()
 	{
-		return locMountainStartAltitude;
+		return (locMountainStartAltitude - locSeaLevel) * locMultiplier;
+	}
+
+	float GetMultiplier()
+	{
+		return locMultiplier;
 	}
 
 	Biome DeduceBiome(const float aTemperature, const float aRainfall)
@@ -108,26 +138,30 @@ namespace TerrainGeneration
 		}
 	}
 
-	float ComputeElevation(const float x, const float y, const PerlinNoise& aPerlin, bool needsDetail)
+	const char* GetBiomeName(const Biome aBiome)
 	{
-		auto tileNoise = 0.f;
+		return biomeNames[static_cast<int>(aBiome)];
+	}
+
+	float ComputeElevation(const float x, const float y, bool needsDetail)
+	{
+		auto elevation = 0.f;
 
 		float lowDetailFreq = 1.f;
 		float lowDetailAmp = 1.f;
 
-
 		// points far away from the center will "sink" allowing a border ocean. Distance is artificially modified with Perlin noise to create more irregularity
-		float noiseDistAttenuation = 0.f;
+		float noiseDistanceAttenuation = 0.f;
 		for (int d = 1; d <= 6; d++)
 		{
-			noiseDistAttenuation += aPerlin.noise(3.f * pow(2, d) * x / locMapSize, 3.f * pow(2, d) * y / locMapSize, 0) / pow(2, d);
+			noiseDistanceAttenuation += perlinNoise.noise(3.f * pow(2, d) * x / locMapSize, 3.f * pow(2, d) * y / locMapSize, 0) / pow(2, d);
 		}
-		float distToCenter = (std::max(abs(x), abs(y))) * (1.f + noiseDistAttenuation);
+		float distToCenter = (std::max(abs(x), abs(y))) * (1.f + noiseDistanceAttenuation);
 		const float distAttenuation = glm::clamp(10.f / locMapSize * (0.70f * locMapSize - abs(distToCenter)), 0.f, 1.0f);
 
 		// warped fractal Perlin noise
-		auto lowWarpX = locMapSize / 6.f * (aPerlin.noise(x / (locMapSize / 4.f), y / (locMapSize / 4.f), 0.f) - 0.5f);
-		auto lowWarpY = locMapSize / 6.f * (aPerlin.noise(x / (locMapSize / 4.f), y / (locMapSize / 4.f), 3.f) - 0.5f);
+		auto lowWarpX = locMapSize / 6.f * (perlinNoise.noise(x / (locMapSize / 4.f), y / (locMapSize / 4.f), 0.f) - 0.5f);
+		auto lowWarpY = locMapSize / 6.f * (perlinNoise.noise(x / (locMapSize / 4.f), y / (locMapSize / 4.f), 3.f) - 0.5f);
 
 		for (int d = 1; d <= 8; d++)
 		{
@@ -136,30 +170,30 @@ namespace TerrainGeneration
 
 			auto softNoise = 0.f;
 
-			softNoise = aPerlin.noise(lowDetailFreq * (x + lowWarpX) / (locMapSize / 4.f), lowDetailFreq * (y + lowWarpY) / (locMapSize / 4.f), 0.f);
+			softNoise = perlinNoise.noise(lowDetailFreq * (x + lowWarpX) / (locMapSize / 4.f), lowDetailFreq * (y + lowWarpY) / (locMapSize / 4.f), 0.f);
 
-			tileNoise += softNoise*lowDetailAmp;
+			elevation += softNoise*lowDetailAmp;
 		}
 
-		tileNoise *= distAttenuation;
+		elevation *= distAttenuation;
 
-		// MOUNTAINS
+		// MOUNTAINS RANGES
 		const float locCoastalMountainsWidth = 0.08f;
-		float coastalMountains = exp(-pow((tileNoise - locSeaLevel - locCoastalMountainsWidth / 2.f) / (locCoastalMountainsWidth), 2));
-		float continentalMountains = 1.f / (1.f + exp(-50.f * (tileNoise - (locSeaLevel + 0.15f))));
-		float someRandomNoise = 1.f / (1 + exp(-40.f * (aPerlin.noise((x + lowWarpX) / (locMapSize / 4.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f) - 0.6f)));
-		tileNoise += (coastalMountains + continentalMountains) * someRandomNoise;
+		float coastalMountains = 0.8f*exp(-pow((elevation - locSeaLevel) / (locCoastalMountainsWidth), 2));
+		float continentalMountains = glm::smoothstep(locSeaLevel + 0.1f, locSeaLevel + 0.2f, elevation);
+		float someRandomNoise = glm::smoothstep(0.5f, 0.7f, float(perlinNoise.noise((x + lowWarpX) / (locMapSize / 10.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f)));
+		elevation += (coastalMountains + continentalMountains) * someRandomNoise;
 
 		if (needsDetail)
 		{
-			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.1f, locMountainStartAltitude + 0.1f, tileNoise);
+			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.1f, locMountainStartAltitude + 0.2f, elevation);
 
 			// warping the mountains to mask the 8 axis of the perlin noise
 			const auto warpScale = 60.f / scale;
-			auto detailWarpX = warpScale * aPerlin.noise(x*scale / 40.f, y*scale / 40.f) - 0.5f;
-			auto detailWarpY = warpScale * aPerlin.noise(x*scale / 40.f, y*scale / 40.f, 1.f) - 0.5f;
+			auto detailWarpX = warpScale * perlinNoise.noise(x*scale / 40.f, y*scale / 40.f) - 0.5f;
+			auto detailWarpY = warpScale * perlinNoise.noise(x*scale / 40.f, y*scale / 40.f, 1.f) - 0.5f;
 
-			auto hardNoiseModifier = .5f;
+			auto hardNoiseModifier = 1.f;
 			float detailFreq = 1.f;
 			float detailAmp = 0.2f;
 
@@ -168,226 +202,216 @@ namespace TerrainGeneration
 			{
 				detailFreq *= lacunarity;
 				detailAmp *= gain;
+				hardNoiseModifier *= 0.9f * gain;
 
 				auto softNoise = 0.f;
 				auto hardNoise = 0.f;
-				hardNoiseModifier *= 0.85f * gain;
 
 				if (lerpFactor < 1.f)
 				{
-					softNoise = aPerlin.noise(detailFreq * x * scale / 384.f, detailFreq * y * scale / 384.f);
+					softNoise = perlinNoise.noise(detailFreq * x * scale / 384.f, detailFreq * y * scale / 384.f) - 0.5f;
 				}
 
 				if (lerpFactor > 0.f)
 				{
-					auto n = aPerlin.noise(detailFreq * (x + detailWarpX) * scale / 256.f, detailFreq * (y + detailWarpY) * scale / 256.f) * 2.f - 1.f;
-					// C-infinity abs approximation
-					hardNoise = 1.f - abs(60.f * n * n * n / (0.1f + 60.f * n * n));
+					auto n = perlinNoise.noise(detailFreq * (x + detailWarpX) * scale / 800.f, detailFreq * (y + detailWarpY) * scale / 800.f) * 2.f - 1.f;
+					// C-infinity abs approximation, results between -0.5 and 0.5
+					hardNoise = 0.5f - abs(60.f * n * n * n / (0.01f + 60.f * n * n));
 				}
 
-				tileNoise += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
+				elevation += ((1.f - lerpFactor) * softNoise * detailAmp + hardNoise * hardNoiseModifier * lerpFactor);
 
-				detailWarpX *= 0.25f;
-				detailWarpY *= 0.25f;
+				detailWarpX *= 0.5f;
+				detailWarpY *= 0.5f;
 			}
-			tileNoise -= locSeaLevel;
-			tileNoise *= locMultiplier;
 		}
 
-		// result between 0.f and 2.f (water level at loc sea level)
-		return tileNoise;
+		elevation -= locSeaLevel;
+		elevation *= locMultiplier;
+
+		// Water level is at 0.f
+		return elevation;
 	}
 
-	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize, std::default_random_engine aRandomEngine)
-{
-	std::uniform_int_distribution<int> distribution(0, aTileSize - 2);
-
-	float Kq = params.Kq, Kevap = params.Kevap, Kerosion = params.Kerosion, Kdepos = params.Kdepos, Kinertia = params.Ki,
-		minSlope = params.minSlope, Kgravity = params.g;
-
-	const unsigned int MAX_PATH_LEN = aTileSize * 4;
-
-#define DEPOSIT_AT(X, Z, W) \
-	{ \
-	float delta=ds*(W); \
-	elevationMap [X + aTileSize * Z].myElevation  += delta; \
-	}
-
-#define DEPOSIT(H) \
-	for (int z = zi - 1; z <= zi + 2; ++z)\
-	{\
-		if (z < 0 || z > aTileSize - 1)\
-			continue;\
-		float zo = z - zp;\
-		float zo2 = zo*zo;\
-		for (int x = xi - 1; x <= xi + 2; ++x)\
-		{\
-			if (x < 0 || x > aTileSize - 1)\
-				continue;\
-			float xo = x - xp;\
-			float w = 1 - (xo*xo + zo2)*0.25f;\
-			if (w <= 0) continue;\
-			w *= 0.03978873577f;\
-			DEPOSIT_AT(x, z, w)\
-		}\
-	}\
-	(H)+=ds;
-
-	for (unsigned int iter = 0; iter < iterations; ++iter)
+	float ComputeTemperature(const float x, const float y, const float z)
 	{
-		int xi = distribution(aRandomEngine);
-		int zi = distribution(aRandomEngine);
-
-		float xp = xi, zp = zi;
-		float xf = 0, zf = 0;
-
-		float h = elevationMap[xi + aTileSize * zi].myElevation;
-		float carriedSoil = 0, speed = 1, water = 1;
-
-		float h00 = h;
-		float h10 = elevationMap[xi + 1 + aTileSize * zi].myElevation;
-		float h01 = elevationMap[xi + aTileSize * (zi + 1)].myElevation;
-		float h11 = elevationMap[(xi + 1) + aTileSize * (zi + 1)].myElevation;
-
-		float dx = 0, dz = 0;
-
-		unsigned numMoves = 0;
-		for (; numMoves < MAX_PATH_LEN; ++numMoves)
+		float temperature = cos(M_PI / locMapSize * z);
+		float tempRandomness = 0.f;
+		for (int d = 1; d <= 4; d++)
 		{
-			// calc gradient
-			float gx = h00 + h01 - h10 - h11;
-			float gz = h00 + h10 - h01 - h11;
+			tempRandomness += perlinNoise.noise(5.f * pow(2, d) * x / locMapSize, 5.f * pow(2, d) * z / locMapSize, 0) / pow(2, d);
+		}
+		temperature = glm::clamp(temperature + 0.5f * (tempRandomness - 0.5f), 0.f, 1.f);
+		float altitudeInfluence = glm::clamp(0.5f * y / locMultiplier , 0.f, 1.f);
+		temperature = glm::clamp(temperature - 0.5f * altitudeInfluence, 0.f, 1.f);
 
-			// calc next pos
-			dx = (dx - gx)*Kinertia + gx;
-			dz = (dz - gz)*Kinertia + gz;
+		return temperature;
+	}
 
-			float dl = sqrtf(dx*dx + dz*dz);
-			if (dl <= FLT_EPSILON)
+	float ComputeRainfallFromGridWithPerlinNoise(const float x, const float z)
+	{
+		auto rainfall = Manager::TerrainManager::GetInstance()->SampleRainfallFromGrid(vec2f(x, z));
+		for (int d = 1; d <= 2; d++)
+		{
+			rainfall += .2f * (perlinNoise.noise(500.f * pow(2, d) * x / locMapSize, 500.f * pow(2, d) * z / locMapSize, 0) - 0.5f) / pow(2, d);
+		}
+
+		return glm::clamp(rainfall, 0.f, 1.f);
+	}
+
+	void Erode(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float erodedSediment, float& carriedSediment, const float xp, const float zp)
+	{
+		for (int z = floor(zp) - params.depositionRadius; z <= floor(zp) + 1 + params.depositionRadius; ++z)
+		{
+			if (z < 0 || z > aTileSize - 1)
 			{
-				// pick random dir
-				float a = std::rand();
-				dx = cosf(a);
-				dz = sinf(a);
+				continue;
 			}
-			else
+			float zo = z - zp;
+			float zo2 = zo*zo;
+			for (int x = floor(xp) - params.depositionRadius; x <= floor(xp) + 1 + params.depositionRadius; ++x)
 			{
-				dx /= dl;
-				dz /= dl;
-			}
-
-			float nxp = xp + dx;
-			float nzp = zp + dz;
-
-			// sample next height
-			int nxi = glm::clamp((int)std::floor(nxp), 0, (int)aTileSize - 1);
-			int nzi = glm::clamp((int)std::floor(nzp), 0, (int)aTileSize - 1);
-
-			// the drop falls off the tile
-			if (nxi == aTileSize - 1 || nzi == aTileSize - 1 || nxi == 0 || nzi == 0)
-				break;
-
-			float nxf = nxp - nxi;
-			float nzf = nzp - nzi;
-
-			float nh00 = elevationMap[nxi + aTileSize * nzi].myElevation;
-			float nh10 = elevationMap[nxi + 1 + aTileSize * nzi].myElevation;
-			float nh01 = elevationMap[nxi + aTileSize * (nzi + 1)].myElevation;
-			float nh11 = elevationMap[nxi + 1 + aTileSize * (nzi + 1)].myElevation;
-
-			float nh = (nh00*(1 - nxf) + nh10*nxf)*(1 - nzf) + (nh01*(1 - nxf) + nh11*nxf)*nzf;
-
-			// if higher than current, try to deposit sediment up to neighbour height
-			if (nh >= h)
-			{
-				float ds = (nh - h) + 0.001f;
-
-				if (ds >= carriedSoil)
+				if (x < 0 || x > aTileSize - 1)
 				{
-					// deposit all sediment and stop
-					ds = carriedSoil;
-					DEPOSIT(h)
-						carriedSoil = 0;
+					continue;
+				}
+				float xo = x - xp;
+				float weight = 1.f / ((1.f + float(params.depositionRadius) * float(params.depositionRadius)) * (1.f + (xo*xo + zo2)));
+				elevationMap[x + aTileSize * z].myElevation -= erodedSediment * weight;
+				auto& erodedCoeff = elevationMap[x + aTileSize * z].myErodedCoefficient;
+				erodedCoeff = std::min(0.05f * abs(erodedSediment) + erodedCoeff, 1.f);
+			}
+		}
+
+		carriedSediment += erodedSediment;
+	}
+
+	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize)
+	{
+		std::uniform_int_distribution<int> distribution(0, aTileSize - 2);
+
+		const unsigned int MAX_PATH_LEN = aTileSize * 4;
+
+		for (unsigned int iter = 0; iter < params.iterations; ++iter)
+		{
+			int xi = distribution(randomEngine);
+			int zi = distribution(randomEngine);
+
+			float xPos = xi, zPos = zi;
+
+			float currentHeight = elevationMap[xi + aTileSize * zi].myElevation;
+			float carriedSediment = 0.f;
+			float speed = 0.f;
+			float water = 1.f;
+
+			float height00 = currentHeight;
+			float height10 = elevationMap[xi + 1 + aTileSize * zi].myElevation;
+			float height01 = elevationMap[xi + aTileSize * (zi + 1)].myElevation;
+			float height11 = elevationMap[(xi + 1) + aTileSize * (zi + 1)].myElevation;
+
+			float deltaX = 0, deltaZ = 0;
+
+			for (unsigned int numMoves = 0; numMoves < MAX_PATH_LEN; ++numMoves)
+			{
+				// calc gradient
+				float gradX = height00 + height01 - height10 - height11;
+				float gradZ = height00 + height10 - height01 - height11;
+
+				// calc next pos
+				deltaX = gradX;
+				deltaZ = gradZ;
+
+				float deltaLength = sqrtf(deltaX*deltaX + deltaZ*deltaZ);
+				if (deltaLength <= FLT_EPSILON)
+				{
+					// pick random dir
+					float a = std::rand();
+					deltaX = cosf(a);
+					deltaZ = sinf(a);
+				}
+				else
+				{
+					deltaX /= deltaLength;
+					deltaZ /= deltaLength;
+				}
+
+				float newXpos = xPos + deltaX;
+				float newZpos = zPos + deltaZ;
+
+				// sample next height
+				int newXi = glm::clamp(int(std::floor(newXpos)), 0, int(aTileSize) - 1);
+				int newZi = glm::clamp(int(std::floor(newZpos)), 0, int(aTileSize) - 1);
+
+				// the drop falls off the tile
+				if (newXi == aTileSize - 1 || newZi == aTileSize - 1 || newXi == 0 || newZi == 0)
+				{
+					Erode(elevationMap, params, aTileSize, -carriedSediment, carriedSediment, newXpos, newZpos);
 					break;
 				}
-				DEPOSIT(h)
-					carriedSoil -= ds;
-				speed = 0;
-			}
 
-			// compute transport capacity
-			float dh = h - nh;
+				float newXf = newXpos - newXi;
+				float newZf = newZpos - newZi;
 
-			speed += Kgravity * std::min(dh, 1.f);
+				float newHeight00 = elevationMap[newXi + aTileSize * newZi].myElevation;
+				float newHeight10 = elevationMap[newXi + 1 + aTileSize * newZi].myElevation;
+				float newHeight01 = elevationMap[newXi + aTileSize * (newZi + 1)].myElevation;
+				float newHeight11 = elevationMap[newXi + 1 + aTileSize * (newZi + 1)].myElevation;
 
-			float q = std::max(dh, minSlope)*speed*water*Kq;
+				float newHeight = (newHeight00*(1 - newXf) + newHeight10 * newXf) * (1 - newZf) + (newHeight01 * (1 - newXf) + newHeight11 * newXf) * newZf;
 
-			// deposit/erode (don't erode more than dh)
-			float ds = carriedSoil - q;
-			if (ds >= 0)
-			{
-				// deposit
-				ds *= Kdepos;
-				DEPOSIT(dh)
-					carriedSoil -= ds;
-			}
-			else
-			{
-				// erode
-				ds *= -Kerosion;
-				ds = std::min(ds, dh*0.99f);
+				float deltaHeight = currentHeight - newHeight;
 
-#define ERODE(X, Z, W) \
-        { \
-          float delta=ds*(W); \
-          elevationMap[X + aTileSize * Z].myElevation -=delta; \
-        }
-
-				for (int z = zi - 1; z <= zi + 2; ++z)
+				// if higher than current, try to deposit sediment up to neighbour height
+				if (deltaHeight < 0.f)
 				{
-					if (z < 0 || z > aTileSize - 1)
-						continue;
-
-					float zo = z - zp;
-					float zo2 = zo*zo;
-
-					for (int x = xi - 1; x <= xi + 2; ++x)
+					if (-deltaHeight >= carriedSediment)
 					{
-						if (x < 0 || x > aTileSize - 1)
-							continue;
+						// deposit all sediment and stop
+						Erode(elevationMap, params, aTileSize, -carriedSediment, carriedSediment, xPos, zPos);
+						break;
+					}
+					Erode(elevationMap, params, aTileSize, deltaHeight, carriedSediment, xPos, zPos);
+				
+				}
+				else
+				{
+					speed = sqrt(speed * speed + params.gravity * deltaHeight);
 
-						float xo = x - xp;
+					// compute transport capacity
+					float carryCapacity = std::max(deltaHeight, 0.01f) * speed * water * params.carryCapacity;
+					float sedimentExcipient = carriedSediment - carryCapacity;
 
-						float w = 1 - (xo*xo + zo2)*0.25f;
-						if (w <= 0) continue;
-						w *= 0.1591549430918953f;
-
-						ERODE(x, z, w)
+					// deposit/erode (don't erode more than dh)
+					if (sedimentExcipient > 0.f)
+					{
+						Erode(elevationMap, params, aTileSize, -sedimentExcipient * params.depositionSpeed, carriedSediment, xPos, zPos);
+					}
+					else
+					{
+						auto sedimentEroded = std::min(deltaHeight, -sedimentExcipient * (1.f - params.rockHardness));
+						Erode(elevationMap, params, aTileSize, sedimentEroded, carriedSediment, xPos, zPos);
 					}
 				}
 
-				dh -= ds;
-#undef ERODE
+				// move to the neighbour
+				xPos = newXpos; zPos = newZpos;
+				xi = newXi; zi = newZi;
 
-				carriedSoil += ds;
+				currentHeight = newHeight;
+				height00 = newHeight00;
+				height10 = newHeight10;
+				height01 = newHeight01;
+				height11 = newHeight11;
+
+				water *= (1.f - params.evaporation);
 			}
-
-			// move to the neighbour
-			water *= 1.f - Kevap;
-
-			xp = nxp; zp = nzp;
-			xi = nxi; zi = nzi;
-			xf = nxf; zf = nzf;
-
-			h = nh;
-			h00 = nh00;
-			h10 = nh10;
-			h01 = nh01;
-			h11 = nh11;
 		}
 	}
 
-#undef DEPOSIT
-#undef DEPOSIT_AT
-}
+	void Initialize(unsigned int aSeed)
+	{
+		perlinNoise = PerlinNoise(aSeed);
+		randomEngine.seed(aSeed);
+	}
+
 }

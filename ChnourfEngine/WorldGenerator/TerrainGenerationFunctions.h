@@ -2,19 +2,18 @@
 #include <vector>
 #include <random>
 struct TerrainElement;
-class PerlinNoise;
 
 namespace TerrainGeneration
 {
 	struct ErosionParams
 	{
-		float Kq; // soil carry capacity
-		float Kevap; // evaporation speed
-		float Kerosion; // erosion speed
-		float Kdepos; // deposition speed
-		float Ki; // inertia
-		float minSlope;
-		float g; // gravity
+		float carryCapacity; // soil carry capacity
+		float rockHardness; // erosion speed
+		float depositionSpeed; // deposition speed
+		int iterations; // number of iterations
+		int depositionRadius;
+		float gravity;
+		float evaporation;
 	};
 
 	enum class Biome
@@ -47,13 +46,19 @@ namespace TerrainGeneration
 	};
 
 	float GetMapSize();
-	float GetSeaLevel();
+	unsigned int GetMapTileAmount();
 	float GetMountainStartAltitude();
+	float GetMultiplier();
 
 	Biome DeduceBiome(const float aTemperature, const float aRainfall);
 
-	float ComputeElevation(const float x, const float y, const PerlinNoise& aPerlin, bool needsDetail);
+	const char* GetBiomeName(const Biome aBiome);
 
+	float ComputeElevation(const float x, const float y, bool needsDetail);
+	float ComputeTemperature(const float x, const float y, const float z);
+	float ComputeRainfallFromGridWithPerlinNoise(const float x, const float z);
 
-	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const unsigned int iterations, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize, std::default_random_engine aRandomEngine);
+	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
+
+	void Initialize(unsigned int aSeed);
 }

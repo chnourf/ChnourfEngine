@@ -20,7 +20,9 @@ SceneManager::SceneManager()
 	myShaderManager = std::make_unique<ShaderManager>();
 	myModelManager = std::make_unique<ModelManager>();
 
-	myDirectionalLight = DirectionalLight(glm::vec3(1.f, -.5f, 1.f), glm::vec3(3.f, 3.f, 2.8f));
+	auto dir = glm::vec3(1.f, -.5f, 1.f);
+	dir = glm::normalize(dir);
+	myDirectionalLight = DirectionalLight(dir, glm::vec3(3.f, 3.f, 2.8f));
 }
 
 SceneManager::~SceneManager()
@@ -160,13 +162,15 @@ void SceneManager::NotifyDisplayFrame()
 	myModelManager->ResetCulling();
 
 	//float multiplier = 0.1f;
-	auto& lightDir = myDirectionalLight.GetDirection();
 	//if (lightDir.y > 0.01f)
 	//{
 	//	multiplier = 10.f;
 	//}
 	ImGui::SliderFloat("sun angle", &angle, -1.f, 1.f);
-	myDirectionalLight.SetDirection(glm::rotateX(glm::vec3(1.f, -.5f, 1.f), (float)M_PI * angle));
+	myDirectionalLight.SetDirection(glm::rotateX(glm::normalize(glm::vec3(1.f, -.5f, 1.f)), (float)M_PI * angle));
+	auto& lightDir = myDirectionalLight.GetDirection();
+
+	ImGui::Text("To sun direction : x %f, y %f, z%f", -lightDir.x, -lightDir.y, -lightDir.z);
 
 	glm::vec3 Kr = glm::vec3(5.5e-6f, 13.0e-6f, 22.4e-6f);
 	glm::vec3 eye_position = glm::vec3(0.0f, 1.f-13.f/6400.f, 0.0f);
@@ -183,8 +187,8 @@ void SceneManager::NotifyDisplayFrame()
 		GLint viewPosLoc = glGetUniformLocation(programId, "viewPos");
 		glUniform3f(viewPosLoc, myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z);
 
-		GLuint lightPos = glGetUniformLocation(programId, "lightDirection");
-		glUniform3f(lightPos, lightDir.x, lightDir.y, lightDir.z);
+		GLuint lightDirectionId = glGetUniformLocation(programId, "lightDirection");
+		glUniform3f(lightDirectionId, lightDir.x, lightDir.y, lightDir.z);
 
 		GLuint lightCol = glGetUniformLocation(programId, "lightColor");
 		glUniform3f(lightCol, myDirectionalLight.GetIntensity().r, myDirectionalLight.GetIntensity().g, myDirectionalLight.GetIntensity().b);
@@ -192,12 +196,12 @@ void SceneManager::NotifyDisplayFrame()
 		GLuint lightSpaceMatrixLocation = glGetUniformLocation(programId, "lightSpaceMatrix");
 		glUniformMatrix4fv(lightSpaceMatrixLocation, 1, GL_FALSE, glm::value_ptr(myLightSpaceMatrix));
 
-		glUniform1i(glGetUniformLocation(programId, "noise"), 5);
-		glActiveTexture(GL_TEXTURE5);
+		glUniform1i(glGetUniformLocation(programId, "noise"), 6);
+		glActiveTexture(GL_TEXTURE6);
 		glBindTexture(GL_TEXTURE_2D, myNoiseTexture);
 
-		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 6);
-		glActiveTexture(GL_TEXTURE6);
+		glUniform1i(glGetUniformLocation(programId, "shadowMap"), 7);
+		glActiveTexture(GL_TEXTURE7);
 		glBindTexture(GL_TEXTURE_2D, shadowMapTexture);
 	}
 

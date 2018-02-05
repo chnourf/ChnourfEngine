@@ -31,6 +31,7 @@ namespace Manager
 		glm::vec3 GetCamPos() const { return myCurrentCamera.myCameraPos; }
 
 		inline ModelManager* GetModelManager() { return myModelManager.get(); }
+		inline const ShaderManager* GetShaderManager() const { return myShaderManager.get(); }
 
 	private:
 		SceneManager();

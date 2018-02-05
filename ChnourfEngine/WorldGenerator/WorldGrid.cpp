@@ -4,10 +4,10 @@
 #include <algorithm>
 #include "glm\glm.hpp"
 #include <iostream>
-#include "../Debug/WorldGridGeneratorDebugDraw.h"
+#include "../Debug/WorldGridGeneratorDebug.h"
 #include "TerrainGenerationFunctions.h"
 
-const unsigned int locPictureDimension = 512u;
+const unsigned int locPictureDimension = TerrainGeneration::GetMapTileAmount();
 const unsigned int MetersPerPixel = TerrainGeneration::GetMapSize()  / locPictureDimension;
 #ifndef NDEBUG
 const unsigned int locGridNumOfElements = 128;
@@ -234,6 +234,13 @@ namespace TerrainGeneration
 		// don't know yet how to link iterations number and resolution
 		const int iterations = locGridNumOfElements / 2;
 		//const int iterations = pow(locGridNumOfElements / 16, 2);
+
+		for (auto& point : myGrid.myPoints)
+		{
+			auto isSea = (point.myFlags & (int)PointTypeFlags::Land) == 0;
+			point.myRainfall = isSea ? 1.f : 0.f;
+		}
+
 		for (int i = 0; i < iterations; ++i)
 		{
 			for (auto& point : myGrid.myPoints)
@@ -291,19 +298,8 @@ namespace TerrainGeneration
 	{
 		for (auto& point : myGrid.myPoints)
 		{
-			auto isSea = (point.myFlags & (int)PointTypeFlags::Land) == 0;
-			point.myRainfall = isSea ? 1.f : 0.f;
-
-			//point.myTemperature = 1 - abs(2.f / locMapSize * (point.myPosition.y - locMapSize / 2.f));
-			point.myTemperature = sin(M_PI / TerrainGeneration::GetMapSize()*(TerrainGeneration::GetMapSize() - point.myPosition.y));
-			float tempRandomness = 0.f;
-			for (int d = 1; d <= 4; d++)
-			{
-				tempRandomness += myPerlin.noise(5.f * pow(2, d) * point.myPosition.x / TerrainGeneration::GetMapSize(), 5.f * pow(2, d) * point.myPosition.y / TerrainGeneration::GetMapSize(), 0) / pow(2, d);
-			}
-			point.myTemperature = glm::clamp(point.myTemperature + 0.5f * (tempRandomness - 0.5f), 0.f, 1.f);
-			float altitudeInfluence = glm::clamp((point.myHeight - TerrainGeneration::GetSeaLevel()) * 0.5f, 0.f, 1.f);
-			point.myTemperature = glm::clamp(point.myTemperature - altitudeInfluence, 0.f, 1.f);
+			const auto& adjustedPost = point.myPosition - midPos;
+			point.myTemperature = TerrainGeneration::ComputeTemperature(adjustedPost.x, point.myHeight, adjustedPost.y);
 		}
 	}
 
@@ -346,11 +342,11 @@ namespace TerrainGeneration
 
 				if (i > 0 && i < verticalAmountOfPoints - 1)
 				{
-					adjustedY = glm::clamp(y + warp.x * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
+					adjustedY = glm::clamp(y + warp.y * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
 				}
 				if (j > 0 && j < horizontalAmountOfPoints - 1)
 				{
-					adjustedX = glm::clamp(x + warp.y * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
+					adjustedX = glm::clamp(x + warp.x * locDistanceBetweenElements / 3.f, 0.f, TerrainGeneration::GetMapSize());
 				}
 
 				auto pointToAdd = Point(adjustedX, adjustedY);
@@ -390,8 +386,8 @@ namespace TerrainGeneration
 		{
 			const auto& adjustedPost = point.myPosition - midPos;
 
-			point.myHeight = TerrainGeneration::ComputeElevation(adjustedPost.x, adjustedPost.y, myPerlin, false);
-			if (point.myHeight > TerrainGeneration::GetSeaLevel())
+			point.myHeight = TerrainGeneration::ComputeElevation(adjustedPost.x, adjustedPost.y, false);
+			if (point.myHeight > 0.f)
 			{
 				point.myFlags |= (int)PointTypeFlags::Land;
 			}
@@ -426,7 +422,25 @@ namespace TerrainGeneration
 #endif
 	}
 
-	const Cell* WorldGrid::SampleGridCell(const vec2f& aPosition)
+	bool IsInCell(const Cell* aCell, const vec2f aPosition)
+	{
+		const auto& poly = aCell->myPoints;
+		//auto num = candidate.myPoints.size();
+		auto numPoints = 6u; // optimization for hexagon
+		auto inside = false;
+		for (int i = 0, j = numPoints - 1; i < numPoints; ++i)
+		{
+			if (((poly[i]->myPosition.y > aPosition.y) != (poly[j]->myPosition.y > aPosition.y)) && (aPosition.x < (poly[i]->myPosition.x + (poly[j]->myPosition.x - poly[i]->myPosition.x) * (aPosition.y - poly[i]->myPosition.y) / (poly[j]->myPosition.y - poly[i]->myPosition.y))))
+			{
+				inside = !inside;
+			}
+			j = i;
+		}
+
+		return inside;
+	}
+
+	const Cell* WorldGrid::SampleGridCell(const vec2f& aPosition) const
 	{
 		const auto adjustedPosition = midPos + aPosition;
 
@@ -448,20 +462,7 @@ namespace TerrainGeneration
 		auto currentCellId = 0u;
 		for (; currentCellId < candidates.size(); ++currentCellId)
 		{
-			const auto& poly = candidates[currentCellId]->myPoints;
-			//auto num = candidate.myPoints.size();
-			auto numPoints = 6u; // optimization for hexagon
-			auto inside = false;
-			for (int i = 0, j = numPoints - 1; i < numPoints; ++i)
-			{
-				if (((poly[i]->myPosition.y > adjustedPosition.y) != (poly[j]->myPosition.y > adjustedPosition.y)) && (adjustedPosition.x < (poly[i]->myPosition.x + (poly[j]->myPosition.x - poly[i]->myPosition.x) * (adjustedPosition.y - poly[i]->myPosition.y) / (poly[j]->myPosition.y - poly[i]->myPosition.y))))
-				{
-					inside = !inside;
-				}
-				j = i;
-			}
-
-			if (inside)
+			if (IsInCell(candidates[currentCellId], adjustedPosition))
 			{
 				break;
 			}
@@ -471,28 +472,42 @@ namespace TerrainGeneration
 		return candidates[currentCellId];
 	}
 
-	//const Triangle* WorldGrid::SampleGridTriangle(const vec2f& aPosition)
-	//{
-	//	const auto adjustedPosition = midPos + aPosition;
+	Cell* locLastFoundCell = nullptr;
 
-	//	std::vector<const Cell*> candidates;
+	float WorldGrid::SampleGridRainfall(const vec2f& aPosition) const
+	{
+		const auto adjustedPosition = midPos + aPosition;
+		auto sampledCell = (locLastFoundCell && IsInCell(locLastFoundCell, adjustedPosition)) ? locLastFoundCell : SampleGridCell(aPosition);
+		assert(sampledCell);
+		locLastFoundCell = const_cast<Cell*>(sampledCell);
+		float rainfall = -1.f;
+		auto center = sampledCell->GetCenter();
+		Vector2<float> CenterToPosition = Vector2<float>(adjustedPosition.x - center.x, adjustedPosition.y - center.y);
+		for (int i = 0; i < sampledCell->myPoints.size(); ++i)
+		{
+			auto pointA = sampledCell->myPoints[i];
+			auto pointB = sampledCell->myPoints[(i + 1) % (sampledCell->myPoints.size())];
 
-	//	for (const auto& cell : myGrid.myCells)
-	//	{
-	//		if (IsPointInsideAABB(cell.myAABB, vec3f(adjustedPosition)))
-	//		{
-	//			candidates.push_back(&cell);
-	//		}
-	//	}
+			auto centerToA = Vector2<float>(pointA->myPosition.x - center.x, pointA->myPosition.y - center.y);
+			auto centerToB = Vector2<float>(pointB->myPosition.x - center.x, pointB->myPosition.y - center.y);
 
-	//	if (candidates.size() == 0)
-	//	{
-	//		return nullptr;
-	//	}
+			bool isInTriangle = (Vector2<float>::Cross(CenterToPosition, centerToA) <= 0.f && Vector2<float>::Cross(CenterToPosition, centerToB) >= 0.f);
+			if (isInTriangle)
+			{
+				// calculate the areas and factors (order of parameters doesn't matter):
+				auto posToA = Vector2<float>(pointA->myPosition.x - adjustedPosition.x, pointA->myPosition.y - adjustedPosition.y);
+				auto posToB = Vector2<float>(pointB->myPosition.x - adjustedPosition.x, pointB->myPosition.y - adjustedPosition.y);
+				auto aTotal = Vector2<float>::Cross(center - pointA->myPosition, center - pointB->myPosition); // main triangle area a
+				auto aCenter = Vector2<float>::Cross(posToA, posToB); // p1's triangle area / a
+				auto aA = Vector2<float>::Cross(posToB, vec2f() -CenterToPosition); // p2's triangle area / a 
+				auto aB = Vector2<float>::Cross(vec2f() - CenterToPosition, posToA); // p3's triangle area / a
+				// find the uv corresponding to point f (uv1/uv2/uv3 are associated to p1/p2/p3):
+				rainfall = (sampledCell->GetRainfall() * aCenter + pointA->myRainfall * aA + pointB->myRainfall * aB)/ aTotal;
+				break;
+			}
+		}
 
-	//	for (auto currentCellId = 0u; currentCellId < candidates.size(); ++currentCellId)
-	//	{
-	//		for 
-	//	}
-	//}
+		return rainfall;
+	}
+
 }
