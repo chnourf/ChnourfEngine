@@ -478,6 +478,7 @@ namespace TerrainGeneration
 	{
 		const auto adjustedPosition = midPos + aPosition;
 		auto sampledCell = (locLastFoundCell && IsInCell(locLastFoundCell, adjustedPosition)) ? locLastFoundCell : SampleGridCell(aPosition);
+		assert(sampledCell);
 		locLastFoundCell = const_cast<Cell*>(sampledCell);
 		float rainfall = -1.f;
 		auto center = sampledCell->GetCenter();

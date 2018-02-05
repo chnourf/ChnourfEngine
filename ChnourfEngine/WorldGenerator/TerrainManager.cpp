@@ -112,7 +112,7 @@ namespace Manager
 		auto temperatureInCelsius = int(70.f * temperature - 30.f);
 		ImGui::Text("Temperature at camera position : %03f, or %d Celsius", temperature, temperatureInCelsius);
 
-		auto rainfall = myWorldGrid->SampleGridRainfall(vec2f(aPlayerPosition.x, aPlayerPosition.z));
+		auto rainfall = TerrainGeneration::ComputeRainfallFromGridWithPerlinNoise(aPlayerPosition.x, aPlayerPosition.z);
 		ImGui::Text("Rainfall at camera position : %03f", rainfall);
 
 		ImGui::Text("Current Biome : %s", TerrainGeneration::GetBiomeName(TerrainGeneration::DeduceBiome(temperature, rainfall)));

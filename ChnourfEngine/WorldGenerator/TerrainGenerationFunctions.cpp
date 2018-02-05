@@ -7,6 +7,7 @@
 #include <random>
 #include "../Core/Math.h"
 #include "../Core/PerlinNoise.h"
+#include "../WorldGenerator/TerrainManager.h"
 
 const float scale = .5f;
 const float locMultiplier = 250.f / scale; // noise result between 0 and this value (in meters)
@@ -245,6 +246,17 @@ namespace TerrainGeneration
 		temperature = glm::clamp(temperature - 0.5f * altitudeInfluence, 0.f, 1.f);
 
 		return temperature;
+	}
+
+	float ComputeRainfallFromGridWithPerlinNoise(const float x, const float z)
+	{
+		auto rainfall = Manager::TerrainManager::GetInstance()->SampleRainfallFromGrid(vec2f(x, z));
+		for (int d = 1; d <= 2; d++)
+		{
+			rainfall += .2f * (perlinNoise.noise(500.f * pow(2, d) * x / locMapSize, 500.f * pow(2, d) * z / locMapSize, 0) - 0.5f) / pow(2, d);
+		}
+
+		return glm::clamp(rainfall, 0.f, 1.f);
 	}
 
 	void Erode(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int aTileSize, const float erodedSediment, float& carriedSediment, const float xp, const float zp)

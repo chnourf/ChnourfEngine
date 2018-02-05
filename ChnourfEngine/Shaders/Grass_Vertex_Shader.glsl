@@ -4,6 +4,8 @@ layout (location = 1) in vec3 in_position;
 layout (location = 2) in ivec4 in_normal;
 layout (location = 3) in ivec4 misc;
 
+uniform sampler2D grassColorTexture;
+
 layout (std140) uniform ViewConstants
 {
 	mat4 projection;
@@ -25,7 +27,7 @@ void main()
 {	
 	vs_out.normal = normalize(vec3(in_normal.x - 128, in_normal.y - 128, in_normal.z - 128));
 
-	float direction = misc.g / 128.0 * 3.141592;
+	float direction = misc.x / 128.0 * 3.141592;
 	vec3 offset = vec3((in_quad_position.x - 0.5) * cos(direction), in_quad_position.y * vs_out.normal.y, (in_quad_position.x - 0.5) * sin(direction));
 
 	float param = in_position.x + in_position.z;
@@ -44,5 +46,7 @@ void main()
 	
 	vs_out.texcoord = - in_quad_position + vec2(0.5, 0.0);
 
-	vs_out.colorModifier = mix(vec3(1.0), vec3(1.0, 1.0, 0.5), misc.w / 255.0);
+	vec2 rainfallAndTemperature = vec2(misc.z/255.0, misc.w/255.0);
+
+	vs_out.colorModifier = textureLod(grassColorTexture, rainfallAndTemperature, 0.0).rgb;
 }
