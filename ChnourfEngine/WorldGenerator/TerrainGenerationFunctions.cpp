@@ -192,7 +192,7 @@ namespace TerrainGeneration
 			auto detailWarpX = warpScale * perlinNoise.noise(x*scale / 40.f, y*scale / 40.f) - 0.5f;
 			auto detailWarpY = warpScale * perlinNoise.noise(x*scale / 40.f, y*scale / 40.f, 1.f) - 0.5f;
 
-			auto hardNoiseModifier = 1.5f;
+			auto hardNoiseModifier = 1.f;
 			float detailFreq = 1.f;
 			float detailAmp = 0.2f;
 
@@ -201,7 +201,7 @@ namespace TerrainGeneration
 			{
 				detailFreq *= lacunarity;
 				detailAmp *= gain;
-				hardNoiseModifier *= 0.85f * gain;
+				hardNoiseModifier *= 0.9f * gain;
 
 				auto softNoise = 0.f;
 				auto hardNoise = 0.f;
