@@ -3,6 +3,7 @@
 uniform sampler2D noise;
 uniform sampler2D shadowMap;
 
+uniform float invShadowMapResolution;
 uniform vec3 viewPos;
 uniform vec3 lightDirection;
 uniform vec3 lightColor;
@@ -44,9 +45,8 @@ float Shadow(vec3 aPosition, vec3 aNormal)
 	for (int i = 0; i < 9; ++i)
 	{
 		//gaussian blur
-
 		ivec2 offset = ivec2(-1 + i / 3, -1 + i % 3);
-		float closestDepth = texture(shadowMap, projCoords.xy + 0.001f * vec2(offset)).r;
+		float closestDepth = texture2D(shadowMap, projCoords.xy + invShadowMapResolution * vec2(offset)).r;
 
 		// Check whether current frag pos is in shadow
 		float isInShadow = (currentDepth - bias) > closestDepth ? 0.1f : 1.0f;
