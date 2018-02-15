@@ -117,8 +117,6 @@ namespace Manager
 
 		ImGui::Text("Current Biome : %s", TerrainGeneration::GetBiomeName(TerrainGeneration::DeduceBiome(temperature, rainfall)));
 
-		myTileBuilder->Update();
-
 		const vec2i positionOnGrid = vec2i(aPlayerPosition.x / (myTileSize*myResolution), aPlayerPosition.z / (myTileSize*myResolution));
 
 		// detection square
@@ -153,6 +151,7 @@ namespace Manager
 				myActiveTiles.push_back(*loadingTilesIt);
 				SceneManager::GetInstance()->GetModelManager()->AddTerrainTile(*loadingTilesIt, myTileSize, myResolution);
 				//std::cout << "adding a tile " << myActiveTiles.size() << std::endl;
+				//loadingTilesIt = myTilesToLoad.erase(loadingTilesIt);
 				std::iter_swap(loadingTilesIt, myTilesToLoad.end() - 1);
 				myTilesToLoad.pop_back();
 			}
@@ -161,8 +160,9 @@ namespace Manager
 				const vec2i tileIndex = (*loadingTilesIt)->GetGridIndex();
 				if (pow(tileIndex.x - positionOnGrid.x, 2) + pow(tileIndex.y - positionOnGrid.y, 2) > pow(myCachedRadius, 2) && !(*loadingTilesIt)->IsBuilding())
 				{
-					SceneManager::GetInstance()->GetModelManager()->RemoveTerrainTile(tileIndex);
+					myTileBuilder->CancelBuildRequest(*loadingTilesIt);
 					delete *loadingTilesIt;
+					//loadingTilesIt = myTilesToLoad.erase(loadingTilesIt);
 					std::iter_swap(loadingTilesIt, myTilesToLoad.end() - 1);
 					myTilesToLoad.pop_back();
 				}
@@ -181,6 +181,7 @@ namespace Manager
 			{
 				SceneManager::GetInstance()->GetModelManager()->RemoveTerrainTile(tileIndex);
 				delete *activeTilesIt;
+				//activeTilesIt = myActiveTiles.erase(activeTilesIt);
 				std::iter_swap(activeTilesIt, myActiveTiles.end() - 1);
 				myActiveTiles.pop_back();
 			}
@@ -189,6 +190,8 @@ namespace Manager
 				++activeTilesIt;
 			}
 		}
+
+		myTileBuilder->Update();
 	}
 
 	bool TerrainManager::IsTileLoaded(const vec2i& aTileIndex)

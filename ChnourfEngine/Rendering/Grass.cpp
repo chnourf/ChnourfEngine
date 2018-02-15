@@ -80,7 +80,7 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 				continue;
 			}
 
-			auto elementRainfall = aTile->GetElement(floor(j / multiplier + 0.5f) * myTileSize + floor(i / multiplier + 0.5f)).myRainfall;
+			auto elementRainfall = aTile->GetElement(floor(j / multiplier) * myTileSize + floor(i / multiplier)).myRainfall;
 			if (float(elementRainfall)/255.f < (0.3f + 0.2f * distribution(myRandomEngine)))
 			{
 				continue;
@@ -111,7 +111,7 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 			grassInstance.direction8 = direction * 128 + 127;
 
 			grassInstance.rainfall8 = elementRainfall;
-			grassInstance.temperature8 = aTile->GetElement(floor(j / multiplier + 0.5f) * myTileSize + floor(i / multiplier + 0.5f)).myTemperature;
+			grassInstance.temperature8 = aTile->GetElement(floor(j / multiplier) * myTileSize + floor(i / multiplier)).myTemperature;
 
 			myGrassData.push_back(grassInstance);
 		}

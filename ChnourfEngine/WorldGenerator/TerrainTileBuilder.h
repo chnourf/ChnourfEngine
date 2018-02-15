@@ -36,13 +36,14 @@ public:
 	TerrainTileBuilder(const int aTileSize,const float aResolution, unsigned int aSeed);
 
 	void BuildTileRequest(TerrainTile* aTile);
+	void CancelBuildRequest(const TerrainTile* aTile);
 
 	void Update();
 
 private:
 	std::vector<TerrainTileBuildingTask*> myLoadingTasks;
 	const int myMaximumThreadLoad = 4;
-	std::queue<TerrainTile*> myLoadingQueue;
+	std::deque<TerrainTile*> myLoadingQueue;
 
 	unsigned int myTileSize;
 	unsigned int mySeed;

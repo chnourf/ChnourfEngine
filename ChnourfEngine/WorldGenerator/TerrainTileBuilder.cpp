@@ -12,6 +12,7 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 	myTileSize(aTileSize),
 	myTileResolution(aTileResolution)
 {
+	assert(!anEmptyTile->IsBuilt() && !anEmptyTile->IsBuilding());
 	myHandle = std::async(std::launch::async, [this, anEmptyTile]() {BuildTile(anEmptyTile);});
 }
 
@@ -175,19 +176,24 @@ void TerrainTileBuilder::BuildTileRequest(TerrainTile* aTile)
 	}
 	else
 	{
-		myLoadingQueue.push(aTile);
+		myLoadingQueue.push_back(aTile);
 	}
+}
+
+void TerrainTileBuilder::CancelBuildRequest(const TerrainTile * aTile)
+{
+	myLoadingQueue.erase(std::remove(myLoadingQueue.begin(), myLoadingQueue.end(), aTile));
 }
 
 void TerrainTileBuilder::Update()
 {
-	ImGui::SliderFloat("carry capacity : ", &locCarryCapacity, 0.f, 100.f, "%.3f", 2.f);
-	ImGui::SliderFloat("rock Hardness : ", &locRockHardness, 0.f, 1.f, "%.3f", 2.f);
-	ImGui::SliderFloat("deposition speed : ", &locDepositionSpeed, 0.f, 1.f, "%.3f", 2.f);
-	ImGui::SliderInt("iterations : ", &locIterations, 1000, 200000);
+	ImGui::SliderFloat("Carry capacity : ", &locCarryCapacity, 0.f, 100.f, "%.3f", 2.f);
+	ImGui::SliderFloat("Rock Hardness : ", &locRockHardness, 0.f, 1.f, "%.3f", 2.f);
+	ImGui::SliderFloat("Deposition speed : ", &locDepositionSpeed, 0.f, 1.f, "%.3f", 2.f);
+	ImGui::SliderInt("Iterations : ", &locIterations, 0, 200000);
 	ImGui::SliderInt("Erosion Radius : ", &locErosionRadius, 0, 10);
-	ImGui::SliderFloat("gravity : ", &locGravity, 0.f, 1.f, "%.3f", 2.f);
-	ImGui::SliderFloat("evaportaion : ", &locEvaporation, 0.f, 1.f, "%.3f", 3.f);
+	ImGui::SliderFloat("Gravity : ", &locGravity, 0.f, 1.f, "%.3f", 2.f);
+	ImGui::SliderFloat("Evaportaion : ", &locEvaporation, 0.f, 1.f, "%.3f", 3.f);
 
 	auto it = myLoadingTasks.begin();
 	while (it < myLoadingTasks.end())
@@ -208,7 +214,7 @@ void TerrainTileBuilder::Update()
 		if (!myLoadingQueue.empty())
 		{
 			myLoadingTasks.push_back(new TerrainTileBuildingTask(mySeed, myTileSize, myTileResolution, myLoadingQueue.front()));
-			myLoadingQueue.pop();
+			myLoadingQueue.pop_front();
 		}
 	}
 }
