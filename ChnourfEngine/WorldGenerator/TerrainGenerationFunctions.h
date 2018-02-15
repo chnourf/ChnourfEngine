@@ -61,4 +61,6 @@ namespace TerrainGeneration
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
 
 	void Initialize(unsigned int aSeed);
+
+	const float seaLevel = 0.f;
 }

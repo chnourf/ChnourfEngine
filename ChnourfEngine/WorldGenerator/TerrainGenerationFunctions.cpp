@@ -300,6 +300,10 @@ namespace TerrainGeneration
 			float xPos = xi, zPos = zi;
 
 			float currentHeight = elevationMap[xi + aTileSize * zi].myElevation;
+			if (currentHeight < seaLevel)
+			{
+				continue;
+			}
 			float carriedSediment = 0.f;
 			float speed = 0.f;
 			float water = 1.f;

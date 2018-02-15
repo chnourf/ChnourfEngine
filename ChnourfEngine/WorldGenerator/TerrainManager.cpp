@@ -153,11 +153,23 @@ namespace Manager
 				myActiveTiles.push_back(*loadingTilesIt);
 				SceneManager::GetInstance()->GetModelManager()->AddTerrainTile(*loadingTilesIt, myTileSize, myResolution);
 				//std::cout << "adding a tile " << myActiveTiles.size() << std::endl;
-				loadingTilesIt = myTilesToLoad.erase(loadingTilesIt);
+				std::iter_swap(loadingTilesIt, myTilesToLoad.end() - 1);
+				myTilesToLoad.pop_back();
 			}
 			else
 			{
-				++loadingTilesIt;
+				const vec2i tileIndex = (*loadingTilesIt)->GetGridIndex();
+				if (pow(tileIndex.x - positionOnGrid.x, 2) + pow(tileIndex.y - positionOnGrid.y, 2) > pow(myCachedRadius, 2) && !(*loadingTilesIt)->IsBuilding())
+				{
+					SceneManager::GetInstance()->GetModelManager()->RemoveTerrainTile(tileIndex);
+					delete *loadingTilesIt;
+					std::iter_swap(loadingTilesIt, myTilesToLoad.end() - 1);
+					myTilesToLoad.pop_back();
+				}
+				else
+				{
+					++loadingTilesIt;
+				}
 			}
 		}
 
@@ -169,7 +181,8 @@ namespace Manager
 			{
 				SceneManager::GetInstance()->GetModelManager()->RemoveTerrainTile(tileIndex);
 				delete *activeTilesIt;
-				activeTilesIt = myActiveTiles.erase(activeTilesIt);
+				std::iter_swap(activeTilesIt, myActiveTiles.end() - 1);
+				myActiveTiles.pop_back();
 			}
 			else
 			{

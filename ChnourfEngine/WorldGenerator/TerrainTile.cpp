@@ -4,6 +4,7 @@
 TerrainTile::TerrainTile(const vec2i& aGridIndex, int aTileSize, float aResolution) :
 	myGridIndex(aGridIndex),
 	myIsBuilt(false),
+	myHasBuildStarted(false),
 	myTileSize(aTileSize),
 	myResolution(aResolution),
 	myTotalBuildTime(0.f),
@@ -82,6 +83,12 @@ vec3f TerrainTile::GetNormal(float aX, float aZ) const
 		height2 * factor2 +
 		height3 * factor3);
 }
+
+void TerrainTile::OnStartBuild()
+{
+	myHasBuildStarted = true;
+}
+
 
 void TerrainTile::OnFinishBuild()
 {

@@ -26,6 +26,8 @@ float locEvaporation = 0.01f;
 
 void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 {
+	aTile->OnStartBuild();
+
 	auto startTime = ImGui::GetTime();
 
 	if (!aTile)
@@ -99,24 +101,27 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	params.evaporation = locEvaporation;
 	params.gravity = locGravity;
 	params.depositionSpeed = locDepositionSpeed;
-	TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
-	aTile->myErosionBuildTime = ImGui::GetTime() - timeBeforeErosion;
+	if (maxHeight >= TerrainGeneration::seaLevel)
+	{
+		TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
 
-	const float erosionStrength = 0.7f;
-	const float lerpStrength = 3.f;
-	// lerping the edges of the tiles to ensure continuity after erosion
-	for (unsigned int i = 0; i < myTileSize; ++i) {
-		for (unsigned int j = 0; j < myTileSize; ++j) {
-			auto index = i + j * myTileSize;
-			auto lerpFactor = glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, 1.f);
-			lerpFactor *= glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, 1.f);
-			auto& el = temporaryElements[index];
-			auto& bel = elementsBeforeErosion[index];
-			el.myErodedCoefficient = bel.myErodedCoefficient + lerpFactor * (el.myErodedCoefficient - bel.myErodedCoefficient);
-			lerpFactor = glm::clamp(lerpFactor, 0.f, erosionStrength);
-			el.myElevation = bel.myElevation + lerpFactor * (el.myElevation - bel.myElevation);
+		const float erosionStrength = 0.7f;
+		const float lerpStrength = 3.f;
+		// lerping the edges of the tiles to ensure continuity after erosion
+		for (unsigned int i = 0; i < myTileSize; ++i) {
+			for (unsigned int j = 0; j < myTileSize; ++j) {
+				auto index = i + j * myTileSize;
+				auto lerpFactor = glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, 1.f);
+				lerpFactor *= glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, 1.f);
+				auto& el = temporaryElements[index];
+				auto& bel = elementsBeforeErosion[index];
+				el.myErodedCoefficient = bel.myErodedCoefficient + lerpFactor * (el.myErodedCoefficient - bel.myErodedCoefficient);
+				lerpFactor = glm::clamp(lerpFactor, 0.f, erosionStrength);
+				el.myElevation = bel.myElevation + lerpFactor * (el.myElevation - bel.myElevation);
+			}
 		}
 	}
+	aTile->myErosionBuildTime = ImGui::GetTime() - timeBeforeErosion;
 
 	//computing normals based on elevation
 	for (unsigned int i = 0; i < myTileSize; ++i) {     // y

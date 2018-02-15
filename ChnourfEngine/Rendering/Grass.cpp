@@ -41,7 +41,7 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 	}
 
 	// no need to generate in that case, the tile is too high, or below sea level
-	if (aTile->GetMinHeight() > locGrassTotalMaxAltitude || aTile->GetMaxHeight() < 0.f)
+	if (aTile->GetMinHeight() > locGrassTotalMaxAltitude || aTile->GetMaxHeight() < TerrainGeneration::seaLevel)
 	{
 		return;
 	}
@@ -75,7 +75,7 @@ void Grass::GenerateGrass(const TerrainTile* aTile)
 				continue;
 			}
 
-			if (y < 0.f)
+			if (y < TerrainGeneration::seaLevel)
 			{
 				continue;
 			}
@@ -181,6 +181,11 @@ void Grass::Reset()
 
 void Grass::OnGrassGenerationComplete()
 {
+	if (myGrassData.size() == 0)
+	{
+		return;
+	}
+
 	glGenBuffers(1, &myInstanceVBO);
 	glBindBuffer(GL_ARRAY_BUFFER, myInstanceVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GrassInstance) * myGrassData.size(), &myGrassData[0], GL_STATIC_DRAW);

@@ -39,6 +39,8 @@ public:
 	__forceinline void AddTerrainElement(TerrainElement anElement) { myElements.push_back(anElement); }
 	__forceinline const TerrainElement GetElement(const unsigned int anIndex) const { return *(myElements.begin() + anIndex); }
 	__forceinline bool IsBuilt() { return myIsBuilt; }
+	__forceinline bool IsBuilding() { return myHasBuildStarted; }
+	void OnStartBuild();
 	void OnFinishBuild();
 
 	__forceinline float GetTileSizeInMeters() const { return (float)myTileSize * myResolution; }
@@ -59,6 +61,7 @@ public:
 private:
 	vec2i myGridIndex;
 	bool myIsBuilt;
+	bool myHasBuildStarted;
 	std::vector<TerrainElement> myElements;
 	int myMoisture;
 	int myTemperature;
