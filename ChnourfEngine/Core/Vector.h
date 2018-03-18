@@ -1,7 +1,6 @@
 #pragma once
 #include "glm\glm.hpp"
 
-
 template <class T> struct Vector2
 {
 	Vector2():
@@ -30,14 +29,25 @@ template <class T> struct Vector2
 		}
 	}
 
-	inline static T Distance(const Vector2<T> aVector, const Vector2<T> anOther)
+	inline static T Distance(const Vector2<T>& aVector, const Vector2<T>& anOther)
 	{
 		return sqrt(pow(aVector.x - anOther.x, 2) + pow(aVector.y - anOther.y, 2));
 	}
 
-	inline static float Cross(const Vector2<T> aVector, const Vector2<T> anOther)
+	inline static float Cross(const Vector2<T>& aVector, const Vector2<T>& anOther)
 	{
 		return aVector.x * anOther.y - anOther.x * aVector.y;
+	}
+
+	inline static float Dot(const Vector2<T>& aVector, const Vector2<T>& anOther)
+	{
+		return aVector.x * anOther.x + aVector.y * anOther.y;
+	}
+
+	void operator=(const Vector2<T>& anOther)
+	{
+		x = anOther.x;
+		y = anOther.y;
 	}
 
 	T x;
@@ -50,9 +60,26 @@ Vector2<T> operator+(const Vector2<T>& l, const Vector2<T>& r)
 	return Vector2<T>(l.x + r.x, l.y + r.y);
 }
 
+template <class T>
+Vector2<T> operator-(const Vector2<T>& l, const Vector2<T>& r)
+{
+	return Vector2<T>(l.x - r.x, l.y - r.y);
+}
+
+template <class T>
+bool operator==(const Vector2<T>& l, const Vector2<T>& r)
+{
+	return l.x == r.x && l.y == r.y;
+}
+
 template <class T> struct Vector3
 {
-	Vector3() {}
+	Vector3():
+		x(T(0)),
+		y(T(0)),
+		z(T(0))
+	{}
+
 	Vector3(const T& anX, const T& anY, const T& aZ) :
 		x(anX),
 		y(anY),
@@ -89,22 +116,17 @@ template <class T> struct Vector3
 		}
 	}
 
+	void operator=(const Vector3<T>& anOther)
+	{
+		x = anOther.x;
+		y = anOther.y;
+		z = anOther.z;
+	}
+
 	T x;
 	T y;
 	T z;
 };
-
-template <class T>
-bool operator==(const Vector2<T>& l, const Vector2<T>& r)
-{
-	return l.x == r.x && l.y == r.y;
-}
-
-template <class T>
-Vector2<T> operator-(const Vector2<T>& l, const Vector2<T>& r)
-{
-	return Vector2<T>(l.x - r.x, l.y - r.y);
-}
 
 template <class T>
 Vector3<T> operator+(const Vector3<T>& l, const Vector3<T>& r)
@@ -116,6 +138,12 @@ template <class T>
 Vector3<T> operator-(const Vector3<T>& l, const Vector3<T>& r)
 {
 	return Vector3<T>(l.x - r.x, l.y - r.y, l.z - r.z);
+}
+
+template <class T>
+bool operator==(const Vector3<T>& l, const Vector3<T>& r)
+{
+	return l.x == r.x && l.y == r.y && l.z == r.z;
 }
 
 typedef Vector2<float>  vec2f;

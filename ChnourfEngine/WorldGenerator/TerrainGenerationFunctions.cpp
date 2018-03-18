@@ -1,10 +1,10 @@
-#include "TerrainGenerationFunctions.h"
-#include "TerrainTile.h"
-#include "../Core/PerlinNoise.h"
 #include <algorithm>
 #include <array>
 #include <vector>
 #include <random>
+#include "TerrainGenerationFunctions.h"
+#include "TerrainTile.h"
+#include "../Core/PerlinNoise.h"
 #include "../Core/Math.h"
 #include "../Core/PerlinNoise.h"
 #include "../WorldGenerator/TerrainManager.h"
@@ -17,11 +17,11 @@ const unsigned int locNoiseDepth = 8;
 const unsigned int locMapSizeInTiles = 512u;
 const float locMapSize = locMapSizeInTiles * 128.f; // size in meters
 const float locSeaLevel = 0.45f;
-const float locMountainStartAltitude = locSeaLevel + 0.35f;
+const float locMountainRelativeStartAltitude = locSeaLevel + 0.35f;
+const float locMountainAbsoluteStartAltitude = (locMountainRelativeStartAltitude - locSeaLevel) * locMultiplier;
 
 PerlinNoise perlinNoise;
 std::default_random_engine randomEngine;
-
 
 static const char* biomeNames[static_cast<int>(TerrainGeneration::Biome::Count)] =
 {
@@ -54,7 +54,7 @@ namespace TerrainGeneration
 
 	float GetMountainStartAltitude()
 	{
-		return (locMountainStartAltitude - locSeaLevel) * locMultiplier;
+		return locMountainAbsoluteStartAltitude;
 	}
 
 	float GetMultiplier()
@@ -98,7 +98,7 @@ namespace TerrainGeneration
 				return Biome::TemperateDesert;
 			}
 		}
-		else if (aTemperature < 0.75)
+		else if (aTemperature < 0.75f)
 		{
 			if (aRainfall > 0.85f) // temperate rain forest
 			{
@@ -168,17 +168,15 @@ namespace TerrainGeneration
 			lowDetailFreq *= lacunarity;
 			lowDetailAmp *= gain;
 
-			auto softNoise = 0.f;
+			const auto softNoise = perlinNoise.noise(lowDetailFreq * (x + lowWarpX) / (locMapSize / 4.f), lowDetailFreq * (y + lowWarpY) / (locMapSize / 4.f), 0.f);
 
-			softNoise = perlinNoise.noise(lowDetailFreq * (x + lowWarpX) / (locMapSize / 4.f), lowDetailFreq * (y + lowWarpY) / (locMapSize / 4.f), 0.f);
-
-			elevation += softNoise*lowDetailAmp;
+			elevation += softNoise * lowDetailAmp;
 		}
 
 		elevation *= distAttenuation;
 
 		// MOUNTAINS RANGES
-		const float locCoastalMountainsWidth = 0.08f;
+		static const float locCoastalMountainsWidth = 0.08f;
 		float coastalMountains = 0.8f*exp(-pow((elevation - locSeaLevel) / (locCoastalMountainsWidth), 2));
 		float continentalMountains = glm::smoothstep(locSeaLevel + 0.1f, locSeaLevel + 0.2f, elevation);
 		float someRandomNoise = glm::smoothstep(0.5f, 0.7f, float(perlinNoise.noise((x + lowWarpX) / (locMapSize / 10.f), (y + lowWarpY) / (locMapSize / 10.f), 0.f)));
@@ -186,7 +184,9 @@ namespace TerrainGeneration
 
 		if (needsDetail)
 		{
-			auto lerpFactor = glm::smoothstep(locMountainStartAltitude - 0.1f, locMountainStartAltitude + 0.2f, elevation);
+			static const float mountainRelativeStartAltitudeLowRange = locMountainRelativeStartAltitude - 0.1f;
+			static const float mountainRelativeStartAltitudeHighRange = locMountainRelativeStartAltitude + 0.2f;
+			const auto lerpFactor = glm::smoothstep(mountainRelativeStartAltitudeLowRange, mountainRelativeStartAltitudeHighRange, elevation);
 
 			// warping the mountains to mask the 8 axis of the perlin noise
 			const auto warpScale = 60.f / scale;
@@ -242,7 +242,7 @@ namespace TerrainGeneration
 			tempRandomness += perlinNoise.noise(5.f * pow(2, d) * x / locMapSize, 5.f * pow(2, d) * z / locMapSize, 0) / pow(2, d);
 		}
 		temperature = glm::clamp(temperature + 0.5f * (tempRandomness - 0.5f), 0.f, 1.f);
-		float altitudeInfluence = glm::clamp(0.5f * y / locMultiplier , 0.f, 1.f);
+		const float altitudeInfluence = glm::clamp(0.5f * y / locMultiplier , 0.f, 1.f);
 		temperature = glm::clamp(temperature - 0.5f * altitudeInfluence, 0.f, 1.f);
 
 		return temperature;
@@ -251,6 +251,8 @@ namespace TerrainGeneration
 	float ComputeRainfallFromGridWithPerlinNoise(const float x, const float z)
 	{
 		auto rainfall = Manager::TerrainManager::GetInstance()->SampleRainfallFromGrid(vec2f(x, z));
+
+		// high frequency perlin noise
 		for (int d = 1; d <= 2; d++)
 		{
 			rainfall += .2f * (perlinNoise.noise(500.f * pow(2, d) * x / locMapSize, 500.f * pow(2, d) * z / locMapSize, 0) - 0.5f) / pow(2, d);
@@ -292,7 +294,7 @@ namespace TerrainGeneration
 
 		const unsigned int MAX_PATH_LEN = aTileSize * 4;
 
-		for (unsigned int iter = 0; iter < params.iterations; ++iter)
+		for (unsigned int iter = 0u; iter < params.iterations; ++iter)
 		{
 			int xi = distribution(randomEngine);
 			int zi = distribution(randomEngine);

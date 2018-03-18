@@ -31,7 +31,7 @@ namespace Manager
 		inline float SampleRainfallFromGrid(const vec2f& aPosition) const { return myWorldGrid->SampleGridRainfall(aPosition); }
 
 	private:
-		std::vector<TerrainTile*> myActiveTiles;
+		std::vector<const TerrainTile*> myActiveTiles;
 		std::vector<TerrainTile*> myTilesToLoad;
 		std::vector<vec2i> myTilesToRemove;
 
@@ -40,8 +40,8 @@ namespace Manager
 
 		void LoadTile(const vec2i& aGridIndex);
 
-		bool IsTileLoaded(const vec2i& aTileIndex);
-		bool IsTileLoading(const vec2i& aTileIndex);
+		bool IsTileLoaded(const vec2i& aTileIndex) const;
+		bool IsTileLoading(const vec2i& aTileIndex) const;
 
 		unsigned int myTileSize;
 		float myResolution;

@@ -54,13 +54,13 @@ namespace TerrainGeneration
 
 	const char* GetBiomeName(const Biome aBiome);
 
-	float ComputeElevation(const float x, const float y, bool needsDetail);
+	float ComputeElevation(const float x, const float y, const bool needsDetail);
 	float ComputeTemperature(const float x, const float y, const float z);
 	float ComputeRainfallFromGridWithPerlinNoise(const float x, const float z);
 
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
 
-	void Initialize(unsigned int aSeed);
+	void Initialize(const unsigned int aSeed);
 
 	const float seaLevel = 0.f;
 }

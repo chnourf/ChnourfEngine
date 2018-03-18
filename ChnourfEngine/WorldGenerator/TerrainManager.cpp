@@ -19,9 +19,9 @@
 namespace Manager
 {
 	TerrainManager::TerrainManager() :
-		myTileSize(0),
-		myResolution(0),
-		myDetectionRadius(0)
+		myTileSize{ 0 },
+		myResolution{ 0 },
+		myDetectionRadius{ 0 }
 	{
 		std::ifstream file("Data/TerrainGenerator/Presets.txt");
 		if (file)
@@ -37,12 +37,12 @@ namespace Manager
 			{
 				if (strcmp(field.c_str(), "DetectionRadius") == 0)
 				{
-					myDetectionRadius = (unsigned int) value;
-					myCachedRadius = (unsigned int) (value + 1);
+					myDetectionRadius = unsigned(value);
+					myCachedRadius = unsigned(value + 1);
 				}
 				else if (strcmp(field.c_str(), "TileSize") == 0)
 				{
-					myTileSize = (unsigned int) value;
+					myTileSize = unsigned(value);
 				}
 				else if (strcmp(field.c_str(), "TileResolution") == 0)
 				{
@@ -63,7 +63,7 @@ namespace Manager
 		myTileBuilder = std::make_unique<TerrainTileBuilder>(myTileSize, myResolution, mySeed);
 		myWorldGrid = std::make_unique<TerrainGeneration::WorldGrid> (mySeed);
 
-		myWorldGrid.get()->Generate();
+		myWorldGrid->Generate();
 	}
 
 	TerrainManager::~TerrainManager()
@@ -74,7 +74,8 @@ namespace Manager
 		}
 	}
 
-	const auto midPos = Vector2<float>(TerrainGeneration::GetMapSize() / 2.f, TerrainGeneration::GetMapSize() / 2.f);
+	static const auto midPos = Vector2<float>(TerrainGeneration::GetMapSize() / 2.f, TerrainGeneration::GetMapSize() / 2.f);
+
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
 		ImGui::Begin("Terrain Generation");
@@ -91,9 +92,9 @@ namespace Manager
 		}
 		ImGui::Text("Tiles loaded : %d", myActiveTiles.size());
 		ImGui::Text("Tiles loading : %d", myTilesToLoad.size());
-		auto averageTotalTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, TerrainTile* b) {return a + b->myTotalBuildTime; });
-		auto averageErosionTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, TerrainTile* b) {return a + b->myErosionBuildTime; });
-		auto averageHeightmapTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, TerrainTile* b) {return a + b->myHeightmapBuildTime; });
+		auto averageTotalTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, const TerrainTile* b) {return a + b->myTotalBuildTime; });
+		auto averageErosionTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, const TerrainTile* b) {return a + b->myErosionBuildTime; });
+		auto averageHeightmapTime = std::accumulate(myActiveTiles.begin(), myActiveTiles.end(), 0.f, [](float a, const TerrainTile* b) {return a + b->myHeightmapBuildTime; });
 		if (myActiveTiles.size() > 0)
 		{
 			averageTotalTime /= float(myActiveTiles.size());
@@ -124,14 +125,17 @@ namespace Manager
 		const int maxX = positionOnGrid.x + myDetectionRadius;
 		const int minY = positionOnGrid.y - myDetectionRadius;
 		const int maxY = positionOnGrid.y + myDetectionRadius;
+
+		const auto squaredDetectionRadius = pow(myDetectionRadius, 2);
+
 		for (int x = minX; x < maxX; x++)
 		{
 			for (int y = minY; y < maxY; y++)
 			{
-				auto tile = vec2i(x, y);
+				const auto tile = vec2i(x, y);
 
 				// detection circle
-				if (pow(x - positionOnGrid.x, 2) + pow(y - positionOnGrid.y, 2) > pow(myDetectionRadius, 2))
+				if (pow(x - positionOnGrid.x, 2) + pow(y - positionOnGrid.y, 2) > squaredDetectionRadius)
 				{
 					continue;
 				}
@@ -143,6 +147,8 @@ namespace Manager
 			}
 		}
 
+		const auto squaredCacheRadius = pow(myCachedRadius, 2);
+
 		auto loadingTilesIt = myTilesToLoad.begin();
 		while (loadingTilesIt < myTilesToLoad.end())
 		{
@@ -150,19 +156,17 @@ namespace Manager
 			{
 				myActiveTiles.push_back(*loadingTilesIt);
 				SceneManager::GetInstance()->GetModelManager()->AddTerrainTile(*loadingTilesIt, myTileSize, myResolution);
-				//std::cout << "adding a tile " << myActiveTiles.size() << std::endl;
-				//loadingTilesIt = myTilesToLoad.erase(loadingTilesIt);
+
 				std::iter_swap(loadingTilesIt, myTilesToLoad.end() - 1);
 				myTilesToLoad.pop_back();
 			}
 			else
 			{
 				const vec2i tileIndex = (*loadingTilesIt)->GetGridIndex();
-				if (pow(tileIndex.x - positionOnGrid.x, 2) + pow(tileIndex.y - positionOnGrid.y, 2) > pow(myCachedRadius, 2) && !(*loadingTilesIt)->IsBuilding())
+				if (pow(tileIndex.x - positionOnGrid.x, 2) + pow(tileIndex.y - positionOnGrid.y, 2) > squaredCacheRadius && !(*loadingTilesIt)->IsBuilding())
 				{
 					myTileBuilder->CancelBuildRequest(*loadingTilesIt);
 					delete *loadingTilesIt;
-					//loadingTilesIt = myTilesToLoad.erase(loadingTilesIt);
 					std::iter_swap(loadingTilesIt, myTilesToLoad.end() - 1);
 					myTilesToLoad.pop_back();
 				}
@@ -177,11 +181,10 @@ namespace Manager
 		while (activeTilesIt < myActiveTiles.end())
 		{
 			const vec2i tileIndex = (*activeTilesIt)->GetGridIndex();
-			if (pow(tileIndex.x - positionOnGrid.x, 2) + pow(tileIndex.y - positionOnGrid.y, 2) > pow(myCachedRadius, 2))
+			if (pow(tileIndex.x - positionOnGrid.x, 2) + pow(tileIndex.y - positionOnGrid.y, 2) > squaredCacheRadius)
 			{
 				SceneManager::GetInstance()->GetModelManager()->RemoveTerrainTile(tileIndex);
 				delete *activeTilesIt;
-				//activeTilesIt = myActiveTiles.erase(activeTilesIt);
 				std::iter_swap(activeTilesIt, myActiveTiles.end() - 1);
 				myActiveTiles.pop_back();
 			}
@@ -194,15 +197,15 @@ namespace Manager
 		myTileBuilder->Update();
 	}
 
-	bool TerrainManager::IsTileLoaded(const vec2i& aTileIndex)
+	bool TerrainManager::IsTileLoaded(const vec2i& aTileIndex) const
 	{
 		return std::find_if(myActiveTiles.begin(), myActiveTiles.end(),
-			[aTileIndex](TerrainTile* aLoadedTile)
+			[aTileIndex](const TerrainTile* aLoadedTile)
 		{return aLoadedTile->GetGridIndex() == aTileIndex; })
 			!= myActiveTiles.end();
 	}
 
-	bool TerrainManager::IsTileLoading(const vec2i& aTileIndex)
+	bool TerrainManager::IsTileLoading(const vec2i& aTileIndex) const
 	{
 		return std::find_if(myTilesToLoad.begin(), myTilesToLoad.end(),
 			[aTileIndex](TerrainTile* aTileToLoad) 
@@ -212,8 +215,6 @@ namespace Manager
 
 	void TerrainManager::LoadTile(const vec2i& aGridIndex)
 	{
-		auto tilePosition = vec2f((float) aGridIndex.x * (float) myTileSize * myResolution, (float) aGridIndex.y * (float) myTileSize * myResolution);
-
 		auto tile = new TerrainTile(aGridIndex, myTileSize, myResolution);
 		myTilesToLoad.push_back(tile);
 		myTileBuilder->BuildTileRequest(tile);

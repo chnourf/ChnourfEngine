@@ -9,8 +9,8 @@
 #include "../Dependencies/glew/glew.h"
 
 TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned int aTileSize, float aTileResolution, TerrainTile* anEmptyTile):
-	myTileSize(aTileSize),
-	myTileResolution(aTileResolution)
+	myTileSize{ aTileSize },
+	myTileResolution{ aTileResolution }
 {
 	assert(!anEmptyTile->IsBuilt() && !anEmptyTile->IsBuilding());
 	myHandle = std::async(std::launch::async, [this, anEmptyTile]() {BuildTile(anEmptyTile);});
@@ -47,8 +47,8 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	auto beforeElevationTime = ImGui::GetTime();
 	for (unsigned int i = 0; i < myTileSize; ++i) {     // y
 		for (unsigned int j = 0; j < myTileSize; ++j) {  // x
-			const float x = ((float)i / ((float)myTileSize-1) + aTile->GetGridIndex().x) * myTileSize * myTileResolution;
-			const float y = ((float)j / ((float)myTileSize-1) + aTile->GetGridIndex().y) * myTileSize * myTileResolution;
+			const float x = (float(i) / float(myTileSize-1) + aTile->GetGridIndex().x) * myTileSize * myTileResolution;
+			const float y = (float(j) / float(myTileSize-1) + aTile->GetGridIndex().y) * myTileSize * myTileResolution;
 
 			const auto pointNoise = TerrainGeneration::ComputeElevation(x, y, true);
 
@@ -61,7 +61,7 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 				maxHeight = pointNoise;
 			}
 
-			temporaryElements.push_back(TerrainElement(pointNoise, glm::vec3(), 255 * TerrainGeneration::ComputeRainfallFromGridWithPerlinNoise(x, y), 255 * TerrainGeneration::ComputeTemperature(x, pointNoise, y), 0));
+			temporaryElements.push_back(TerrainElement{ pointNoise, glm::vec3(), unsigned char(255 * TerrainGeneration::ComputeRainfallFromGridWithPerlinNoise(x, y)),  unsigned char(255 * TerrainGeneration::ComputeTemperature(x, pointNoise, y)), 0 });
 		}
 	}
 	aTile->myHeightmapBuildTime = ImGui::GetTime() - beforeElevationTime;
@@ -94,28 +94,31 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 
 	auto timeBeforeErosion = ImGui::GetTime();
 	//computing erosion, could be moved to presets.txt
-	TerrainGeneration::ErosionParams params;
-	params.carryCapacity = locCarryCapacity;
-	params.iterations = locIterations;
-	params.rockHardness = locRockHardness;
-	params.depositionRadius = locErosionRadius;
-	params.evaporation = locEvaporation;
-	params.gravity = locGravity;
-	params.depositionSpeed = locDepositionSpeed;
+	TerrainGeneration::ErosionParams params
+	{
+		locCarryCapacity,
+		locRockHardness,
+		locDepositionSpeed,
+		locIterations,
+		locErosionRadius,
+		locGravity,
+		locEvaporation,
+	};
+
 	if (maxHeight >= TerrainGeneration::seaLevel)
 	{
 		TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
 
-		const float erosionStrength = 0.7f;
-		const float lerpStrength = 3.f;
+		static const float erosionStrength = 0.7f;
+		static const float lerpStrength = 3.f;
 		// lerping the edges of the tiles to ensure continuity after erosion
 		for (unsigned int i = 0; i < myTileSize; ++i) {
 			for (unsigned int j = 0; j < myTileSize; ++j) {
-				auto index = i + j * myTileSize;
-				auto lerpFactor = glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)i / (float)myTileSize - lerpStrength), 0.f, 1.f);
-				lerpFactor *= glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * (float)j / (float)myTileSize - lerpStrength), 0.f, 1.f);
+				const auto index = i + j * myTileSize;
+				auto lerpFactor = glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * float(i) / float(myTileSize) - lerpStrength), 0.f, 1.f);
+				lerpFactor *= glm::clamp(lerpStrength * 0.95f - abs(2.f * lerpStrength * float(j) / float(myTileSize) - lerpStrength), 0.f, 1.f);
 				auto& el = temporaryElements[index];
-				auto& bel = elementsBeforeErosion[index];
+				const auto& bel = elementsBeforeErosion[index];
 				el.myErodedCoefficient = bel.myErodedCoefficient + lerpFactor * (el.myErodedCoefficient - bel.myErodedCoefficient);
 				lerpFactor = glm::clamp(lerpFactor, 0.f, erosionStrength);
 				el.myElevation = bel.myElevation + lerpFactor * (el.myElevation - bel.myElevation);
@@ -128,9 +131,9 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	for (unsigned int i = 0; i < myTileSize; ++i) {     // y
 		for (unsigned int j = 0; j < myTileSize; ++j) {  // x
 
-			auto delta = 1.f / ((float)myTileSize - 1);
-			const float x = ((float)i * delta + aTile->GetGridIndex().x) * myTileSize * myTileResolution;
-			const float y = ((float)j * delta + aTile->GetGridIndex().y) * myTileSize * myTileResolution;
+			static const auto delta = 1.f / (float(myTileSize) - 1);
+			const float x = (float(i) * delta + aTile->GetGridIndex().x) * myTileSize * myTileResolution;
+			const float y = (float(j) * delta + aTile->GetGridIndex().y) * myTileSize * myTileResolution;
 
 			const auto index = j + i * myTileSize;
 
@@ -148,7 +151,7 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	}
 
 	// should not take long as size was already reserved
-	for (auto element : temporaryElements)
+	for (const auto& element : temporaryElements)
 	{
 		aTile->AddTerrainElement(element);
 	}
@@ -158,15 +161,13 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 }
 
 TerrainTileBuildingTask::~TerrainTileBuildingTask()
-{
-}
+{}
 
 TerrainTileBuilder::TerrainTileBuilder(const int aTileSize, const float aResolution, unsigned int aSeed):
-	myTileSize(aTileSize),
-	myTileResolution(aResolution),
-	mySeed(aSeed)
-{
-}
+	myTileSize{ unsigned(aTileSize) },
+	myTileResolution{ aResolution },
+	mySeed{ aSeed }
+{}
 
 void TerrainTileBuilder::BuildTileRequest(TerrainTile* aTile)
 {
@@ -198,7 +199,8 @@ void TerrainTileBuilder::Update()
 	auto it = myLoadingTasks.begin();
 	while (it < myLoadingTasks.end())
 	{
-		if ((*it)->myHandle.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+		static auto waitTime{ std::chrono::seconds(0) };
+		if ((*it)->myHandle.wait_for(waitTime) == std::future_status::ready)
 		{
 			delete *it;
 			it = myLoadingTasks.erase(it);

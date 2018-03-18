@@ -32,6 +32,11 @@ namespace TerrainGeneration
 			myTemperature = 0.f;
 		}
 
+		inline bool IsFlag(PointTypeFlags aFlag) const
+		{
+			return ((myFlags & static_cast<int>(aFlag)) != 0);
+		}
+
 		Vector2<float> myPosition;
 		std::vector<Point*> myNeighbours;
 		int myFlags;

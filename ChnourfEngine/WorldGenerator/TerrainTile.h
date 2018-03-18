@@ -1,11 +1,8 @@
 #pragma once
+#include <iostream>
 #include <vector>
 #include "glm\glm.hpp"
 #include "../Core/Vector.h"
-
-#include <iostream>
-
-typedef unsigned short ushort;
 
 namespace TerrainGeneration
 {
@@ -15,25 +12,25 @@ namespace TerrainGeneration
 struct TerrainElement
 {
 	TerrainElement(float anElevation, const glm::vec3 aNormal, const unsigned char aRainfall, const unsigned char aTemperature, const unsigned char anErodedCoeff):
-		myElevation(anElevation),
-		myNormal(aNormal),
-		myRainfall(aRainfall),
-		myTemperature(aTemperature),
-		myErodedCoefficient(anErodedCoeff)
+		myElevation{ anElevation },
+		myNormal{ aNormal },
+		myRainfall{ aRainfall },
+		myTemperature{ aTemperature },
+		myErodedCoefficient{ float(anErodedCoeff) }
 	{}
 
 	float myElevation;
 	//maybe store as short
 	glm::vec3 myNormal;
-	unsigned char myRainfall;
-	unsigned char myTemperature;
+	const unsigned char myRainfall;
+	const unsigned char myTemperature;
 	float myErodedCoefficient;
 };
 
 class TerrainTile
 {
 public:
-	TerrainTile(const vec2i& aGridIndex, int aTileSize, float aResolution);
+	TerrainTile(const vec2i& aGridIndex, unsigned int aTileSize, float aResolution);
 	~TerrainTile() { }
 	inline const vec2i& GetGridIndex() const { return myGridIndex; }
 	__forceinline void AddTerrainElement(TerrainElement anElement) { myElements.push_back(anElement); }
@@ -43,7 +40,7 @@ public:
 	void OnStartBuild();
 	void OnFinishBuild();
 
-	__forceinline float GetTileSizeInMeters() const { return (float)myTileSize * myResolution; }
+	__forceinline float GetTileSizeInMeters() const { return float(myTileSize * myResolution); }
 
 	__forceinline float GetMinHeight() const { return myMinHeight; }
 	__forceinline float GetMaxHeight() const { return myMaxHeight; }
@@ -72,7 +69,4 @@ private:
 
 	float myMinHeight;
 	float myMaxHeight;
-
-
-	int myCurrentLOD;
 };

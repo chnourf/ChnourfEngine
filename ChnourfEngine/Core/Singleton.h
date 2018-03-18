@@ -5,19 +5,15 @@ template <class T> class Singleton
 public:
 	inline static void Create()
 	{
-		if (!ourInstance)
-		{
-			ourInstance = new T;
-		}
+		assert(!ourInstance);
+		ourInstance = new T;
 	}
 
 	inline static void Destroy()
 	{
-		if (ourInstance)
-		{
-			delete ourInstance;
-			ourInstance = nullptr;
-		}
+		assert(ourInstance);
+		delete ourInstance;
+		ourInstance = nullptr;
 	}
 
 	inline static T* GetInstance()
@@ -31,7 +27,6 @@ public:
 protected:
 	Singleton() {};
 	static T* ourInstance;
-
 };
 
 template <class T> T* Singleton<T>::ourInstance = nullptr;

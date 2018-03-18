@@ -22,8 +22,8 @@ struct TerrainTileBuildingTask
 	TerrainTileBuildingTask(const int aSeed, const unsigned int aTileSize, float aTileResolution, TerrainTile* anEmptyTile);
 	~TerrainTileBuildingTask();
 
-	unsigned int myTileSize;
-	float myTileResolution;
+	const unsigned int myTileSize;
+	const float myTileResolution;
 
 	std::future<void> myHandle;
 
