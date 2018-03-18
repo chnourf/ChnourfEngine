@@ -466,13 +466,13 @@ namespace TerrainGeneration
 		return candidates[currentCellId];
 	}
 
-	const Cell* locLastFoundCell = nullptr;
 
 	float WorldGrid::SampleGridRainfall(const vec2f& aPosition) const
 	{
 		const auto adjustedPosition = midPos + aPosition;
 
 		// this quick test saves us a lot of time
+		static thread_local const Cell* locLastFoundCell = nullptr;
 		auto sampledCell = (locLastFoundCell && IsInCell(*locLastFoundCell, adjustedPosition)) ? locLastFoundCell : SampleGridCell(aPosition);
 
 		assert(sampledCell);
