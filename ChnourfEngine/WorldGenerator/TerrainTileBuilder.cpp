@@ -16,7 +16,6 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 	myHandle = std::async(std::launch::async, [this, anEmptyTile]() {BuildTile(anEmptyTile);});
 }
 
-
 float locCarryCapacity = 5.f;
 float locRockHardness = 0.3f;
 float locDepositionSpeed = 0.1f;

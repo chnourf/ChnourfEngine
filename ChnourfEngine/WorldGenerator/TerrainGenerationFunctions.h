@@ -14,6 +14,18 @@ namespace TerrainGeneration
 		int depositionRadius;
 		float gravity;
 		float evaporation;
+
+		float waterRainfall = 0.1f;
+	};
+
+	struct ErosionData
+	{
+		float elevation;
+		float water;
+		float sediment;
+		std::array<float, 4> outputFlow;
+		vec2f velocity;
+		float depositedSediment;
 	};
 
 	enum class Biome
@@ -59,6 +71,7 @@ namespace TerrainGeneration
 	float ComputeRainfallFromGridWithPerlinNoise(const float x, const float z);
 
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
+	void ComputeErosionNew(std::vector<ErosionData>& cellData, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
 
 	void Initialize(const unsigned int aSeed);
 

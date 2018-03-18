@@ -265,12 +265,14 @@ namespace TerrainGeneration
 	{
 		for (int z = floor(zp) - params.depositionRadius; z <= floor(zp) + 1 + params.depositionRadius; ++z)
 		{
+			const auto OnePlusSquaredDepositionRadius = 1.f + float(params.depositionRadius) * float(params.depositionRadius);
+
 			if (z < 0 || z > aTileSize - 1)
 			{
 				continue;
 			}
-			float zo = z - zp;
-			float zo2 = zo*zo;
+			const float zo = z - zp;
+			const float zo2 = zo*zo;
 			for (int x = floor(xp) - params.depositionRadius; x <= floor(xp) + 1 + params.depositionRadius; ++x)
 			{
 				if (x < 0 || x > aTileSize - 1)
@@ -278,9 +280,10 @@ namespace TerrainGeneration
 					continue;
 				}
 				float xo = x - xp;
-				float weight = 1.f / ((1.f + float(params.depositionRadius) * float(params.depositionRadius)) * (1.f + (xo*xo + zo2)));
-				elevationMap[x + aTileSize * z].myElevation -= erodedSediment * weight;
-				auto& erodedCoeff = elevationMap[x + aTileSize * z].myErodedCoefficient;
+				float weight = 1.f / (OnePlusSquaredDepositionRadius * (1.f + (xo*xo + zo2)));
+				auto& element = elevationMap[x + aTileSize * z];
+				element.myElevation -= erodedSediment * weight;
+				auto& erodedCoeff = element.myErodedCoefficient;
 				erodedCoeff = std::min(0.05f * abs(erodedSediment) + erodedCoeff, 1.f);
 			}
 		}
@@ -290,7 +293,7 @@ namespace TerrainGeneration
 
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize)
 	{
-		std::uniform_int_distribution<int> distribution(0, aTileSize - 2);
+		std::uniform_int_distribution<int> distribution{ 0, int(aTileSize) - 2 };
 
 		const unsigned int MAX_PATH_LEN = aTileSize * 4;
 
@@ -315,7 +318,7 @@ namespace TerrainGeneration
 			float height01 = elevationMap[xi + aTileSize * (zi + 1)].myElevation;
 			float height11 = elevationMap[(xi + 1) + aTileSize * (zi + 1)].myElevation;
 
-			float deltaX = 0, deltaZ = 0;
+			float deltaX = 0.f, deltaZ = 0.f;
 
 			for (unsigned int numMoves = 0; numMoves < MAX_PATH_LEN; ++numMoves)
 			{
@@ -331,7 +334,7 @@ namespace TerrainGeneration
 				if (deltaLength <= FLT_EPSILON)
 				{
 					// pick random dir
-					float a = std::rand();
+					float a = std::rand() * float(M_PI);
 					deltaX = cosf(a);
 					deltaZ = sinf(a);
 				}
@@ -349,7 +352,7 @@ namespace TerrainGeneration
 				int newZi = glm::clamp(int(std::floor(newZpos)), 0, int(aTileSize) - 1);
 
 				// the drop falls off the tile
-				if (newXi == aTileSize - 1 || newZi == aTileSize - 1 || newXi == 0 || newZi == 0)
+				if (water < 0.0001f || newXi == aTileSize - 1 || newZi == aTileSize - 1 || newXi == 0 || newZi == 0)
 				{
 					Erode(elevationMap, params, aTileSize, -carriedSediment, carriedSediment, newXpos, newZpos);
 					break;
@@ -384,8 +387,8 @@ namespace TerrainGeneration
 					speed = sqrt(speed * speed + params.gravity * deltaHeight);
 
 					// compute transport capacity
-					float carryCapacity = std::max(deltaHeight, 0.01f) * speed * water * params.carryCapacity;
-					float sedimentExcipient = carriedSediment - carryCapacity;
+					const float carryCapacity = std::max(deltaHeight, 0.01f) * speed * water * params.carryCapacity;
+					const float sedimentExcipient = carriedSediment - carryCapacity;
 
 					// deposit/erode (don't erode more than dh)
 					if (sedimentExcipient > 0.f)
@@ -411,6 +414,17 @@ namespace TerrainGeneration
 
 				water *= (1.f - params.evaporation);
 			}
+		}
+	}
+
+	void ComputeErosionNew(std::vector<ErosionData>& cellData, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize)
+	{
+		assert(cellData.size() == aTileSize * aTileSize);
+
+		// adding rain water
+		for (auto& element : cellData)
+		{
+			element.water += params.waterRainfall;
 		}
 	}
 

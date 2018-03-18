@@ -145,7 +145,7 @@ void SceneManager::NotifyBeginFrame()
 
 	static const int samplesSize{ 10 };
 	static int i{ 0 };
-	static std::array<int, 10> TMUpdateTimes;
+	static std::array<int, samplesSize> TMUpdateTimes;
 	const auto start = std::chrono::system_clock::now();
 
 	TerrainManager::GetInstance()->Update(vec3f(myCurrentCamera.myCameraPos.x, myCurrentCamera.myCameraPos.y, myCurrentCamera.myCameraPos.z));
