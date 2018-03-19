@@ -291,6 +291,14 @@ namespace TerrainGeneration
 		carriedSediment += erodedSediment;
 	}
 
+	enum
+	{
+		left,
+		right,
+		top,
+		bottom
+	};
+
 	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize)
 	{
 		std::uniform_int_distribution<int> distribution{ 0, int(aTileSize) - 2 };
@@ -419,12 +427,45 @@ namespace TerrainGeneration
 
 	void ComputeErosionNew(std::vector<ErosionData>& cellData, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize)
 	{
+		const auto deltaTime = 0.01f;
+		const auto pipeArea = 20.f;
+
 		assert(cellData.size() == aTileSize * aTileSize);
 
 		// adding rain water
 		for (auto& element : cellData)
 		{
-			element.water += params.waterRainfall;
+			element.water += deltaTime * params.waterRainfall;
+		}
+		
+		for (unsigned i = 1; i < aTileSize - 1u; ++i)
+		{
+			for (unsigned j = 1; j < aTileSize - 1u; ++j)
+			{
+				const auto index = i + j * aTileSize;
+				auto& element = cellData[index];
+				auto& leftElement = cellData[index - 1];
+				auto& rightElement = cellData[index + 1];
+				auto& topElement = cellData[index - aTileSize];
+				auto& bottomElement = cellData[index + aTileSize];
+
+				// compute flow between element -----------------------------------------------------------------------------------------------
+				auto deltaHeightLeft = element.elevation + element.water - leftElement.elevation - leftElement.water;
+				auto outputFlowLeft = std::max(0.f, element.outputFlow[left] + deltaTime * deltaHeightLeft * params.gravity * pipeArea);
+				auto deltaHeightRight = element.elevation + element.water - rightElement.elevation - rightElement.water;
+				auto outputFlowRight = std::max(0.f, element.outputFlow[right] + deltaTime * deltaHeightRight * params.gravity * pipeArea);
+				auto deltaHeightTop = element.elevation + element.water - topElement.elevation - topElement.water;
+				auto outputFlowTop = std::max(0.f, element.outputFlow[top] + deltaTime * deltaHeightTop * params.gravity * pipeArea);
+				auto deltaHeightBottom = element.elevation + element.water - bottomElement.elevation - bottomElement.water;
+				auto outputFlowBottom = std::max(0.f, element.outputFlow[bottom] + deltaTime * deltaHeightBottom * params.gravity * pipeArea);
+
+				auto conservationFactor = std::max(1.f, element.water / (deltaTime * (outputFlowLeft + outputFlowRight + outputFlowTop + outputFlowBottom)));
+
+				element.outputFlow[left] = conservationFactor * outputFlowLeft;
+				element.outputFlow[right] = conservationFactor * outputFlowRight;
+				element.outputFlow[top] = conservationFactor * outputFlowTop;
+				element.outputFlow[bottom] = conservationFactor * outputFlowBottom;
+			}
 		}
 	}
 
