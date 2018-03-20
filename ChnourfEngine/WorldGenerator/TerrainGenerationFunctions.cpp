@@ -431,12 +431,6 @@ namespace TerrainGeneration
 		const auto pipeArea = 20.f;
 
 		assert(cellData.size() == aTileSize * aTileSize);
-
-		// adding rain water
-		for (auto& element : cellData)
-		{
-			element.water += deltaTime * params.waterRainfall;
-		}
 		
 		for (unsigned i = 1; i < aTileSize - 1u; ++i)
 		{
@@ -444,10 +438,13 @@ namespace TerrainGeneration
 			{
 				const auto index = i + j * aTileSize;
 				auto& element = cellData[index];
-				auto& leftElement = cellData[index - 1];
-				auto& rightElement = cellData[index + 1];
-				auto& topElement = cellData[index - aTileSize];
-				auto& bottomElement = cellData[index + aTileSize];
+				const auto& leftElement = cellData[index - 1];
+				const auto& rightElement = cellData[index + 1];
+				const auto& topElement = cellData[index - aTileSize];
+				const auto& bottomElement = cellData[index + aTileSize];
+
+				// adding rain water -----------------------------------------------------------------------------------------------
+				element.water += deltaTime * params.waterRainfall;
 
 				// compute flow between element -----------------------------------------------------------------------------------------------
 				auto deltaHeightLeft = element.elevation + element.water - leftElement.elevation - leftElement.water;
@@ -465,6 +462,28 @@ namespace TerrainGeneration
 				element.outputFlow[right] = conservationFactor * outputFlowRight;
 				element.outputFlow[top] = conservationFactor * outputFlowTop;
 				element.outputFlow[bottom] = conservationFactor * outputFlowBottom;
+			}
+		}
+
+		for (unsigned i = 1; i < aTileSize - 1u; ++i)
+		{
+			for (unsigned j = 1; j < aTileSize - 1u; ++j)
+			{
+				const auto index = i + j * aTileSize;
+				auto& element = cellData[index];
+				const auto& leftElement = cellData[index - 1];
+				const auto& rightElement = cellData[index + 1];
+				const auto& topElement = cellData[index - aTileSize];
+				const auto& bottomElement = cellData[index + aTileSize];
+
+				// update water level -----------------------------------------------------------------------------------------------
+				const float deltaV =  deltaTime * (leftElement.outputFlow[right] + rightElement.outputFlow[left] + topElement.outputFlow[bottom] + bottomElement.outputFlow[top] - std::accumulate(element.outputFlow.begin(), element.outputFlow.end(), 0.f));
+				element.water += deltaV;
+
+				// update velocity --------------------------------------------------------------------------------------------------
+				const float deltaWx = 0.5f * (leftElement.outputFlow[right] - element.outputFlow[left] + element.outputFlow[right] - rightElement.outputFlow[left]);
+				const float deltaWy = 0.5f * (topElement.outputFlow[bottom] - element.outputFlow[top] + element.outputFlow[bottom] - bottomElement.outputFlow[top]);
+				element.velocity = element.velocity + vec2f(deltaWx, deltaWy);
 			}
 		}
 	}
