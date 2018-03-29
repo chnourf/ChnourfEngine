@@ -158,7 +158,13 @@ namespace Manager
 				SceneManager::GetInstance()->GetModelManager()->AddTerrainTile(*loadingTilesIt, myTileSize, myResolution);
 
 				std::iter_swap(loadingTilesIt, myTilesToLoad.end() - 1);
+				auto isEnd = loadingTilesIt == myTilesToLoad.end() - 1;
+				//pb si on supprime le end - 1 alors que loadingTilesIt est dessus
 				myTilesToLoad.pop_back();
+				if (isEnd)
+				{
+					break;
+				}
 			}
 			else
 			{
@@ -168,7 +174,13 @@ namespace Manager
 					myTileBuilder->CancelBuildRequest(*loadingTilesIt);
 					delete *loadingTilesIt;
 					std::iter_swap(loadingTilesIt, myTilesToLoad.end() - 1);
+					auto isEnd = loadingTilesIt == myTilesToLoad.end() - 1;
+					//pb si on supprime le end - 1 alors que loadingTilesIt est dessus
 					myTilesToLoad.pop_back();
+					if (isEnd)
+					{
+						break;
+					}
 				}
 				else
 				{
