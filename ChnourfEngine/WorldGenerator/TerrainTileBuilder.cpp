@@ -16,13 +16,19 @@ TerrainTileBuildingTask::TerrainTileBuildingTask(const int aSeed, const unsigned
 	myHandle = std::async(std::launch::async, [this, anEmptyTile]() {BuildTile(anEmptyTile);});
 }
 
-float locCarryCapacity = 5.f;
-float locRockHardness = 0.3f;
-float locDepositionSpeed = 0.1f;
-int locIterations = 30000;
-int locErosionRadius = 1;
-float locGravity = 0.007f;
-float locEvaporation = 0.01f;
+auto locdeltaTime = 0.035f;
+auto locmaxErosionDepth = 10.f;
+auto locpipeArea = 20.f;
+auto locwaterRainfall = 0.03f;
+float locCarryCapacity = 1.f;
+float locRockHardness = 0.65f;
+float locDepositionSpeed = 0.5f;
+auto locminAngle = 0.01f;
+int locIterations = 100;
+float locGravity = 9.81f;
+float locEvaporation = 0.015f;
+float locTalusAngle = 0.8f;
+float locThermalErosionRate = 0.15f;
 
 void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 {
@@ -95,18 +101,45 @@ void TerrainTileBuildingTask::BuildTile(TerrainTile* aTile)
 	//computing erosion, could be moved to presets.txt
 	TerrainGeneration::ErosionParams params
 	{
+		locdeltaTime,
+		locmaxErosionDepth,
+		locpipeArea,
+		locwaterRainfall,
 		locCarryCapacity,
 		locRockHardness,
 		locDepositionSpeed,
+		locminAngle,
 		locIterations,
-		locErosionRadius,
 		locGravity,
 		locEvaporation,
+		locTalusAngle,
+		locThermalErosionRate
 	};
 
 	if (maxHeight >= TerrainGeneration::seaLevel)
 	{
-		TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
+		std::vector<TerrainGeneration::ErosionData> erosionData;
+		erosionData.reserve(myTileSize * myTileSize);
+		erosionData.assign(myTileSize * myTileSize, TerrainGeneration::ErosionData());
+
+		for (unsigned int i = 0; i < myTileSize; ++i) {     // y
+			for (unsigned int j = 0; j < myTileSize; ++j){
+				erosionData[i + j*myTileSize].elevation = temporaryElements[i + j*myTileSize].myElevation;
+				erosionData[i + j*myTileSize].rockSoftness = params.rockHardness;
+			}
+		}
+
+		//TerrainGeneration::ComputeErosion(temporaryElements, params, myTileSize);
+		TerrainGeneration::ComputeErosionNew(erosionData, params, myTileSize, myTileResolution);
+
+
+		for (unsigned int i = 0; i < myTileSize; ++i) {     // y
+			for (unsigned int j = 0; j < myTileSize; ++j) {
+				temporaryElements[i + j*myTileSize].myElevation = erosionData[i + j*myTileSize].elevation;
+				const auto movedSediment = erosionData[i + j*myTileSize].movedSediment;
+				temporaryElements[i + j*myTileSize].myErodedCoefficient = movedSediment / (1.f + movedSediment);
+			}
+		}
 
 		static const float erosionStrength = 0.7f;
 		static const float lerpStrength = 3.f;
@@ -187,13 +220,17 @@ void TerrainTileBuilder::CancelBuildRequest(const TerrainTile * aTile)
 
 void TerrainTileBuilder::Update()
 {
-	ImGui::SliderFloat("Carry capacity : ", &locCarryCapacity, 0.f, 100.f, "%.3f", 2.f);
+	ImGui::SliderFloat("Delta Time : ", &locdeltaTime, 0.001f, 0.05f, "%.3f");
+	ImGui::SliderFloat("Max Erosion Depth : ", &locmaxErosionDepth, 0.f, 40.f, "%.3f");
+	ImGui::SliderFloat("Pipe Area : ", &locpipeArea, 0.1f, 60.f, "%.3f", 2.f);
+	ImGui::SliderFloat("Water Rainfall : ", &locwaterRainfall, 0.001f, .05f, "%.3f", 2.f);
+	ImGui::SliderFloat("Carry capacity : ", &locCarryCapacity, 0.001f, 3.f, "%.3f", 2.f);
 	ImGui::SliderFloat("Rock Hardness : ", &locRockHardness, 0.f, 1.f, "%.3f", 2.f);
-	ImGui::SliderFloat("Deposition speed : ", &locDepositionSpeed, 0.f, 1.f, "%.3f", 2.f);
-	ImGui::SliderInt("Iterations : ", &locIterations, 0, 200000);
-	ImGui::SliderInt("Erosion Radius : ", &locErosionRadius, 0, 10);
-	ImGui::SliderFloat("Gravity : ", &locGravity, 0.f, 1.f, "%.3f", 2.f);
-	ImGui::SliderFloat("Evaportaion : ", &locEvaporation, 0.f, 1.f, "%.3f", 3.f);
+	ImGui::SliderFloat("Suspension rate : ", &locDepositionSpeed, 0.1f, 2.f, "%.3f", 2.f);
+	ImGui::SliderFloat("Min Angle : ", &locminAngle, 0.f, 1.f);
+	ImGui::SliderInt("Iterations : ", &locIterations, 0, 500);
+	ImGui::SliderFloat("Gravity : ", &locGravity, 0.1f, 10.f, "%.3f", 2.f);
+	ImGui::SliderFloat("Evaporation : ", &locEvaporation, 0.f, 1.f, "%.3f", 3.f);
 
 	auto it = myLoadingTasks.begin();
 	while (it < myLoadingTasks.end())

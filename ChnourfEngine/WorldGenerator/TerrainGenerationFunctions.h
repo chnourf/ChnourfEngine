@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include "../Core/Vector.h"
+#include <array>
 #include <random>
 struct TerrainElement;
 
@@ -7,25 +9,30 @@ namespace TerrainGeneration
 {
 	struct ErosionParams
 	{
+		float deltaTime;
+		float maxErosionDepth;
+		float pipeArea;
+		float waterRainfall;
 		float carryCapacity; // soil carry capacity
 		float rockHardness; // erosion speed
-		float depositionSpeed; // deposition speed
+		float soilSuspensionRate; // deposition speed
+		float minAngle;
 		int iterations; // number of iterations
-		int depositionRadius;
 		float gravity;
 		float evaporation;
-
-		float waterRainfall = 0.1f;
+		float talusAngle;
+		float thermalErosionRate;
 	};
 
 	struct ErosionData
 	{
-		float elevation;
-		float water;
-		float sediment;
-		std::array<float, 4> outputFlow;
+		float elevation = 0.f;
+		float water = 0.f;
+		float sediment = 0.f;
+		std::array<float, 4> outputFlow = { 0.f, 0.f, 0.f, 0.f };
 		vec2f velocity;
-		float depositedSediment;
+		float movedSediment = 0.f;
+		float rockSoftness = 0.f;
 	};
 
 	enum class Biome
@@ -70,8 +77,8 @@ namespace TerrainGeneration
 	float ComputeTemperature(const float x, const float y, const float z);
 	float ComputeRainfallFromGridWithPerlinNoise(const float x, const float z);
 
-	void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
-	void ComputeErosionNew(std::vector<ErosionData>& cellData, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
+	//void ComputeErosion(std::vector<TerrainElement>& elevationMap, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize);
+	void ComputeErosionNew(std::vector<ErosionData>& cellData, const TerrainGeneration::ErosionParams& params, const unsigned int& aTileSize, const float aTileResolution);
 
 	void Initialize(const unsigned int aSeed);
 
