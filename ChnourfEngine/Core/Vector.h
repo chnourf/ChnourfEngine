@@ -44,6 +44,16 @@ template <class T> struct Vector2
 		return aVector.x * anOther.x + aVector.y * anOther.y;
 	}
 
+	inline float SquareNorm() const
+	{
+		return x*x + y*y;
+	}
+
+	inline float Norm() const
+	{
+		return sqrt(SquareNorm());
+	}
+
 	void operator=(const Vector2<T>& anOther)
 	{
 		x = anOther.x;
@@ -116,11 +126,26 @@ template <class T> struct Vector3
 		}
 	}
 
+	inline float SquareNorm() const
+	{
+		return x*x + y*y + z*z;
+	}
+
+	inline float Norm() const
+	{
+		return sqrt(SquareNorm());
+	}
+
 	void operator=(const Vector3<T>& anOther)
 	{
 		x = anOther.x;
 		y = anOther.y;
 		z = anOther.z;
+	}
+
+	inline static float Dot(const Vector3<T>& aVector, const Vector3<T>& anOther)
+	{
+		return aVector.x * anOther.x + aVector.y * anOther.y + aVector.z * anOther.z;
 	}
 
 	T x;
@@ -138,6 +163,12 @@ template <class T>
 Vector3<T> operator-(const Vector3<T>& l, const Vector3<T>& r)
 {
 	return Vector3<T>(l.x - r.x, l.y - r.y, l.z - r.z);
+}
+
+template <class T>
+Vector3<T> operator*(T l, const Vector3<T>& r)
+{
+	return Vector3<T>(l + r.x, l + r.y, l + r.z);
 }
 
 template <class T>

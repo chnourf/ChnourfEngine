@@ -14,6 +14,7 @@ namespace TerrainGeneration
 		void Generate();
 		const Cell* SampleGridCell(const vec2f& aPosition) const;
 		float SampleGridRainfall(const vec2f& aPosition) const;
+		const std::vector<std::vector<Point*>>& GetRivers() const;
 
 	private:
 		Grid myGrid;

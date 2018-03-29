@@ -208,7 +208,7 @@ namespace Debug
 		}
 	}
 
-	void DrawGrid(const TerrainGeneration::Grid& aGrid, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	void DrawGrid(const TerrainGeneration::WorldGrid& aGrid, const unsigned int anImageSize, const unsigned int metersPerPixel)
 	{
 		// Create an empty PPM image
 		auto biomeImage = new ppm(anImageSize, anImageSize);
@@ -216,14 +216,32 @@ namespace Debug
 		auto rainfallImage = new ppm(anImageSize, anImageSize);
 		auto temperatureImage = new ppm(anImageSize, anImageSize);
 
-		for (auto cell : aGrid.myCells)
+		//for (auto cell : aGrid.myCells)
+		//{
+		//	DrawCellBiome(biomeImage, cell, anImageSize, metersPerPixel);
+		//	DrawCellElevation(elevationImage, cell, anImageSize, metersPerPixel);
+		//	DrawCellRainfall(rainfallImage, cell, anImageSize, metersPerPixel);
+		//	DrawCellTemperature(temperatureImage, cell, anImageSize, metersPerPixel);
+		//}
+		for (int i = 0; i < anImageSize; ++i)
 		{
-			DrawCellBiome(biomeImage, cell, anImageSize, metersPerPixel);
-			DrawCellElevation(elevationImage, cell, anImageSize, metersPerPixel);
-			DrawCellRainfall(rainfallImage, cell, anImageSize, metersPerPixel);
-			DrawCellTemperature(temperatureImage, cell, anImageSize, metersPerPixel);
+			for (int j = 0; j < anImageSize; ++j)
+			{
+				const float x = float(metersPerPixel) * float(i - int(anImageSize)/2);
+				const float y = float(metersPerPixel) * float(j - int(anImageSize)/2);
+				const auto elevation = TerrainGeneration::ComputeElevation(x, y, true);
+				auto elevationCol = elevation < 0.f ? locWaterCol : vec3i(255 * 0.5f * (elevation / TerrainGeneration::GetMultiplier()));
+				const auto temperature = TerrainGeneration::ComputeTemperature(x, elevation, y);
+				const auto rainfall = aGrid.SampleGridRainfall(vec2f(x, y));
+				auto tempCol = vec3i(200 * temperature, 0 , 200 * (1.f - temperature));
+				elevationImage->setPixel(vec2i(i, j), elevationCol);
+				rainfallImage->setPixel(vec2i(i, j), vec3i(255 * rainfall));
+				auto biomeCol = elevation < 0.f ? vec3f(locWaterCol.x/255.f, locWaterCol.y/255.f, locWaterCol.z/255.f) : DeduceBiomeColor(TerrainGeneration::DeduceBiome(temperature, rainfall));
+				biomeImage->setPixel(vec2i(i, j), vec3i(255 * biomeCol.x, 255 * biomeCol.y, 255 * biomeCol.z));
+				temperatureImage->setPixel(vec2i(i, j), tempCol);
+			}
 		}
-		for (auto river : aGrid.myRivers)
+		for (const auto& river : aGrid.GetRivers())
 		{
 			DrawRiver(biomeImage, river, anImageSize, metersPerPixel);
 			DrawRiver(elevationImage, river, anImageSize, metersPerPixel);

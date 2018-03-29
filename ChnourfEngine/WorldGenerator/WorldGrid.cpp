@@ -7,12 +7,12 @@
 #include "../Debug/WorldGridGeneratorDebug.h"
 #include "TerrainGenerationFunctions.h"
 
-const unsigned int locPictureDimension{ TerrainGeneration::GetMapTileAmount() };
+const unsigned int locPictureDimension{ 512 };// TerrainGeneration::GetMapTileAmount() };
 const unsigned int MetersPerPixel{ unsigned(TerrainGeneration::GetMapSize()) / locPictureDimension };
 #ifndef NDEBUG
 const unsigned int locGridNumOfElements{ 128 };
 #else
-const unsigned int locGridNumOfElements{ 64 };
+const unsigned int locGridNumOfElements{ 32 };
 #endif
 const float locDistanceBetweenElements{ TerrainGeneration::GetMapSize() / float(locGridNumOfElements) };
 const float rainfallDiffusionCoefficient{ 0.1f };
@@ -411,7 +411,7 @@ namespace TerrainGeneration
 #ifndef NDEBUG
 		// DRAWING
 		std::cout << "drawing debug images..." << std::endl;
-		Debug::DrawGrid(myGrid, locPictureDimension, MetersPerPixel);
+		Debug::DrawGrid(*this, locPictureDimension, MetersPerPixel);
 #endif
 	}
 
@@ -453,17 +453,20 @@ namespace TerrainGeneration
 			return nullptr;
 		}
 
-		auto currentCellId = 0u;
-		for (; currentCellId < candidates.size(); ++currentCellId)
+		const Cell* result = nullptr;
+
+		for (auto currentCellId = 0u; currentCellId < candidates.size(); ++currentCellId)
 		{
-			if (IsInCell(*candidates[currentCellId], adjustedPosition))
+			const auto currentCell = candidates[currentCellId];
+			if (IsInCell(*currentCell, adjustedPosition))
 			{
+				result = currentCell;
 				break;
 			}
 		}
 
 		// this is the cell where the point is
-		return candidates[currentCellId];
+		return result;
 	}
 
 
@@ -475,7 +478,12 @@ namespace TerrainGeneration
 		static thread_local const Cell* locLastFoundCell = nullptr;
 		auto sampledCell = (locLastFoundCell && IsInCell(*locLastFoundCell, adjustedPosition)) ? locLastFoundCell : SampleGridCell(aPosition);
 
-		assert(sampledCell);
+		if (!sampledCell)
+		{
+			return 0.f;
+		}
+
+		//assert(sampledCell);
 		locLastFoundCell = sampledCell;
 		float rainfall = -1.f;
 		const auto center = sampledCell->GetCenter();
@@ -506,6 +514,11 @@ namespace TerrainGeneration
 		}
 
 		return rainfall;
+	}
+
+	const std::vector<std::vector<Point*>>& WorldGrid::GetRivers() const
+	{
+		return myGrid.myRivers;
 	}
 
 }
