@@ -19,6 +19,7 @@ const float riverInfluenceOnRainfall{ 0.3f };
 const float windNoisePatternSize{ TerrainGeneration::GetMapSize() / 5.f };
 const unsigned int riverNumber{ unsigned(pow(locGridNumOfElements / 16u, 2u))};
 const auto midPos{ Vector2<float>(TerrainGeneration::GetMapSize() / 2.f, TerrainGeneration::GetMapSize() / 2.f) };
+const auto rainfallMapBlurIterations{ 3u };
 
 namespace TerrainGeneration
 {
@@ -256,11 +257,30 @@ namespace TerrainGeneration
 			float rainRandomness = 0.f;
 			auto warpX = TerrainGeneration::GetMapSize() / 6.f * (myPerlin.noise(point.myPosition.x / (TerrainGeneration::GetMapSize() / 4.f) + 0.3f, point.myPosition.y / (TerrainGeneration::GetMapSize() / 4.f) + 0.3f, 0.f) - 0.5f);
 			auto warpY = TerrainGeneration::GetMapSize() / 6.f * (myPerlin.noise(point.myPosition.x / (TerrainGeneration::GetMapSize() / 4.f) + 0.3f, point.myPosition.y / (TerrainGeneration::GetMapSize() / 4.f) + 0.3f, 1.f) - 0.5f);
-			for (int d = 1; d <= 4; d++)
+			for (int d = 1; d <= 2; d++)
 			{
 				rainRandomness += myPerlin.noise(4.f * pow(2, d) * (point.myPosition.x + warpX) / TerrainGeneration::GetMapSize(), 4.f * pow(2, d) * (point.myPosition.y + warpY) / TerrainGeneration::GetMapSize(), 1) / pow(2, d);
 			}
 			point.myRainfall = glm::clamp(point.myRainfall + (rainRandomness - 0.5f), 0.f, 1.f);
+		}
+
+		// blurring grid
+		for (int blurStep = 0u; blurStep < rainfallMapBlurIterations; blurStep++)
+		{
+			auto gridOldState = myGrid;
+
+			for (auto i = 0; i < myGrid.myPoints.size(); ++i)
+			{
+				auto& point = myGrid.myPoints[i];
+				const auto& oldPoint = gridOldState.myPoints[i];
+
+				point.myRainfall = 0.5f * oldPoint.myRainfall;
+
+				for (const auto& neighbourOldState : oldPoint.myNeighbours)
+				{
+					point.myRainfall += 0.5f / float(oldPoint.myNeighbours.size()) * neighbourOldState->myRainfall;
+				}
+			}
 		}
 	}
 
