@@ -1,9 +1,13 @@
 #include "WorldGridGeneratorDebug.h"
-#include "ppm.h"
+
 #include "../Core/Vector.h"
 #include <algorithm>
 #include <future>
+#include <vector>
+#include "../Dependencies/SOIL/SOIL.h"
 #include "../WorldGenerator/TerrainGenerationFunctions.h"
+
+#include <iostream>
 
 namespace Debug
 {
@@ -11,6 +15,16 @@ namespace Debug
 	const unsigned int MetersPerPixel{ unsigned(TerrainGeneration::GetMapSize()) / locPictureDimension };
 	const auto locWaterCol = vec3i(37, 125, 177);
 	const auto locWaterColFloat = vec3f(locWaterCol.x / 255.f, locWaterCol.y / 255.f, locWaterCol.z / 255.f);
+	const int locNumThreads = 4;
+
+	void SetPixel(std::vector<unsigned char>& anImage, const vec2i& pixelPosition, const vec3i& aColor)
+	{
+		auto id = 4 * (pixelPosition.x + locPictureDimension * pixelPosition.y);
+		auto it = anImage.begin() + id;
+		*it = aColor.x; ++it;
+		*it = aColor.y; ++it;
+		*it = aColor.z; ++it;
+	}
 
 	vec2i PositionToPixel(vec2f aPostion)
 	{
@@ -77,7 +91,7 @@ namespace Debug
 		}
 	}
 
-	void DrawLine(ppm* anImage, const vec2i& aStart, const vec2i& aEnd, const vec3i& aCol)
+	void DrawLine(std::vector<unsigned char>& anImage, const vec2i& aStart, const vec2i& aEnd, const vec3i& aCol)
 	{
 		unsigned int distance = Vector2<int>::Distance(aStart, aEnd);
 		for (unsigned int i = 0; i <= distance; ++i)
@@ -85,11 +99,11 @@ namespace Debug
 			float r = (float)i / (float)distance;
 			auto point = Vector2<int>(glm::mix(aStart.x, aEnd.x, r), glm::mix(aStart.y, aEnd.y, r));
 
-			anImage->setPixel(point, aCol);
+			SetPixel(anImage, point, aCol);
 		}
 	}
 
-	void DrawTriangle(ppm* anImage, const TerrainGeneration::Triangle& triangle, vec3i color)
+	void DrawTriangle(std::vector<unsigned char>& anImage, const TerrainGeneration::Triangle& triangle, vec3i color)
 	{
 		auto& a = *triangle.myA;
 		auto& b = *triangle.myB;
@@ -117,13 +131,13 @@ namespace Debug
 
 				if (isInTriangle)
 				{
-					anImage->setPixel(PositionToPixel(vec2f(i, j)), color);
+					SetPixel(anImage, PositionToPixel(vec2f(i, j)), color);
 				}
 			}
 		}
 	}
 
-	void DrawCellBiome(ppm* anImage, const TerrainGeneration::Cell& cell)
+	void DrawCellBiome(std::vector<unsigned char>& anImage, const TerrainGeneration::Cell& cell)
 	{
 		auto biomeCol = locWaterCol;
 
@@ -143,7 +157,7 @@ namespace Debug
 		}
 	}
 
-	void DrawCellRainfall(ppm* anImage, const TerrainGeneration::Cell& cell)
+	void DrawCellRainfall(std::vector<unsigned char>& anImage, const TerrainGeneration::Cell& cell)
 	{
 		auto rainfallCol = vec3i(255 * cell.GetRainfall());
 
@@ -162,7 +176,7 @@ namespace Debug
 		}
 	}
 
-	void DrawCellTemperature(ppm* anImage, const TerrainGeneration::Cell& cell)
+	void DrawCellTemperature(std::vector<unsigned char>& anImage, const TerrainGeneration::Cell& cell)
 	{
 		auto tempColor = vec3i(255 * cell.GetTemperature());
 
@@ -176,7 +190,7 @@ namespace Debug
 		}
 	}
 
-	void DrawCellElevation(ppm* anImage, const TerrainGeneration::Cell& cell)
+	void DrawCellElevation(std::vector<unsigned char>& anImage, const TerrainGeneration::Cell& cell)
 	{
 		auto elevationCol = vec3i(255 * ( 0.3f + 0.5f*cell.GetElevation()/ TerrainGeneration::GetMultiplier()));
 
@@ -200,7 +214,7 @@ namespace Debug
 		}
 	}
 
-	void DrawRiver(ppm* anImage, std::vector<TerrainGeneration::Point*> aRiver)
+	void DrawRiver(std::vector<unsigned char>& anImage, std::vector<TerrainGeneration::Point*> aRiver)
 	{
 		for (auto it = aRiver.begin(); it < aRiver.end() - 1; ++it)
 		{
@@ -211,23 +225,27 @@ namespace Debug
 		}
 	}
 
-	const int numThreads = 4;
-
 	void DrawGrid(const TerrainGeneration::WorldGrid& aGrid)
 	{
-		// Create an empty PPM image
-		auto biomeImage = new ppm(locPictureDimension, locPictureDimension);
-		auto elevationImage = new ppm(locPictureDimension, locPictureDimension);
-		auto rainfallImage = new ppm(locPictureDimension, locPictureDimension);
-		auto temperatureImage = new ppm(locPictureDimension, locPictureDimension);
+		std::chrono::time_point<std::chrono::system_clock> start, end;
+		start = std::chrono::system_clock::now();
+
+		std::vector<unsigned char> biomeImageData;
+		biomeImageData.assign(locPictureDimension * locPictureDimension * 4, 255);
+		std::vector<unsigned char> elevationImageData;
+		elevationImageData.assign(locPictureDimension * locPictureDimension * 4, 255);
+		std::vector<unsigned char> rainfallImageData;
+		rainfallImageData.assign(locPictureDimension * locPictureDimension * 4, 255);
+		std::vector<unsigned char> temperatureImageData;
+		temperatureImageData.assign(locPictureDimension * locPictureDimension * 4, 255);
 
 		std::vector<std::future<void>> handles;
-		auto linesProcessedPerThread = locPictureDimension / numThreads;
+		auto linesProcessedPerThread = locPictureDimension / locNumThreads;
 		auto currentMin = 0;
 
-		for (auto thread = 0; thread < numThreads; thread++)
+		for (auto thread = 0; thread < locNumThreads; thread++)
 		{
-			handles.push_back(std::async(std::launch::async, [currentMin, linesProcessedPerThread, &aGrid, elevationImage, rainfallImage, biomeImage, temperatureImage]() {
+			handles.push_back(std::async(std::launch::async, [currentMin, linesProcessedPerThread, &aGrid, &biomeImageData, &elevationImageData, &rainfallImageData, &temperatureImageData]() {
 				for (int i = currentMin; i < currentMin + linesProcessedPerThread; ++i)
 				{
 					for (int j = 0; j < locPictureDimension; ++j)
@@ -239,11 +257,11 @@ namespace Debug
 						const auto temperature = TerrainGeneration::ComputeTemperature(x, elevation, y);
 						const auto rainfall = aGrid.SampleGridRainfall(vec2f(x, y));
 						auto tempCol = vec3i(200 * temperature, 0, 200 * (1.f - temperature));
-						elevationImage->setPixel(vec2i(i, j), elevationCol);
-						rainfallImage->setPixel(vec2i(i, j), vec3i(255 * rainfall));
+						SetPixel(elevationImageData, vec2i(i, j), elevationCol);
+						SetPixel(rainfallImageData, vec2i(i, j), vec3i(255 * rainfall));
 						auto biomeCol = elevation < 0.f ? vec3f(locWaterCol.x / 255.f, locWaterCol.y / 255.f, locWaterCol.z / 255.f) : DeduceBiomeColor(TerrainGeneration::DeduceBiome(temperature, rainfall));
-						biomeImage->setPixel(vec2i(i, j), vec3i(255 * biomeCol.x, 255 * biomeCol.y, 255 * biomeCol.z));
-						temperatureImage->setPixel(vec2i(i, j), tempCol);
+						SetPixel(biomeImageData, vec2i(i, j), vec3i(255 * biomeCol.x, 255 * biomeCol.y, 255 * biomeCol.z));
+						SetPixel(temperatureImageData, vec2i(i, j), tempCol);
 					}
 				}
 			}));
@@ -256,21 +274,31 @@ namespace Debug
 			handle.get();
 		}
 
+		end = std::chrono::system_clock::now();
+
+		int elapsed_seconds = std::chrono::duration_cast<std::chrono::milliseconds>
+			(end - start).count();
+
+		std::cout << "elapsed time: " << elapsed_seconds << "ms\n";
+
 		for (const auto& river : aGrid.GetRivers())
 		{
-			DrawRiver(biomeImage, river);
-			DrawRiver(elevationImage, river);
+			DrawRiver(biomeImageData, river);
+			DrawRiver(elevationImageData, river);
 		}
 
-		biomeImage->write("Biomes.ppm");
-		elevationImage->write("Elevation.ppm");
-		rainfallImage->write("Rainfall.ppm");
-		temperatureImage->write("Temperature.ppm");
-		
-		delete biomeImage;
-		delete elevationImage;
-		delete rainfallImage;
-		delete temperatureImage;
+		SOIL_save_image("biomes.bmp", SOIL_SAVE_TYPE_BMP,
+			locPictureDimension, locPictureDimension, 4,
+			&biomeImageData[0]);
+		SOIL_save_image("rainfall.bmp", SOIL_SAVE_TYPE_BMP,
+			locPictureDimension, locPictureDimension, 4,
+			&rainfallImageData[0]);
+		SOIL_save_image("temperature.bmp", SOIL_SAVE_TYPE_BMP,
+			locPictureDimension, locPictureDimension, 4,
+			&temperatureImageData[0]);
+		SOIL_save_image("elevation.bmp", SOIL_SAVE_TYPE_BMP,
+			locPictureDimension, locPictureDimension, 4,
+			&elevationImageData[0]);
 	}
 
 }

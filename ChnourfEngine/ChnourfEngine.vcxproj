@@ -121,7 +121,6 @@
     <ClCompile Include="Core\PerlinNoise.cpp" />
     <ClCompile Include="Core\Time.cpp" />
     <ClCompile Include="Core\UID.cpp" />
-    <ClCompile Include="Debug\ppm.cpp" />
     <ClCompile Include="Debug\WorldGridGeneratorDebug.cpp" />
     <ClCompile Include="Dependencies\imgui\imgui.cpp" />
     <ClCompile Include="Dependencies\imgui\imgui_demo.cpp" />
@@ -157,7 +156,6 @@
     <ClInclude Include="Core\Time.h" />
     <ClInclude Include="Core\UID.h" />
     <ClInclude Include="Core\Vector.h" />
-    <ClInclude Include="Debug\ppm.h" />
     <ClInclude Include="Debug\WorldGridGeneratorDebug.h" />
     <ClInclude Include="Dependencies\imgui\imconfig.h" />
     <ClInclude Include="Dependencies\imgui\imgui.h" />

@@ -90,9 +90,6 @@
     <ClCompile Include="WorldGenerator\TerrainGenerationFunctions.cpp">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClCompile>
-    <ClCompile Include="Debug\ppm.cpp">
-      <Filter>Fichiers sources\Debug</Filter>
-    </ClCompile>
     <ClCompile Include="WorldGenerator\WorldGrid.cpp">
       <Filter>Fichiers sources\WorldGenerator</Filter>
     </ClCompile>
@@ -211,9 +208,6 @@
     </ClInclude>
     <ClInclude Include="WorldGenerator\Geometry.h">
       <Filter>Fichiers sources\WorldGenerator</Filter>
-    </ClInclude>
-    <ClInclude Include="Debug\ppm.h">
-      <Filter>Fichiers sources\Debug</Filter>
     </ClInclude>
     <ClInclude Include="WorldGenerator\WorldGrid.h">
       <Filter>Fichiers sources\WorldGenerator</Filter>
