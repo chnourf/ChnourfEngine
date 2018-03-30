@@ -7,8 +7,6 @@
 #include "../Debug/WorldGridGeneratorDebug.h"
 #include "TerrainGenerationFunctions.h"
 
-const unsigned int locPictureDimension{ 512 };// TerrainGeneration::GetMapTileAmount() };
-const unsigned int MetersPerPixel{ unsigned(TerrainGeneration::GetMapSize()) / locPictureDimension };
 #ifndef NDEBUG
 const unsigned int locGridNumOfElements{ 128 };
 #else
@@ -152,7 +150,7 @@ namespace TerrainGeneration
 		return river;
 	}
 
-	void PropagateRainfall(Point& aPoint, const Vector2<float>& aWindDirection, PerlinNoise pn)
+	void PropagateRainfall(Point& aPoint, const Vector2<float>& aWindDirection, const PerlinNoise& pn)
 	{
 		if (aPoint.myRainfall < 0.001f)
 		{
@@ -168,7 +166,7 @@ namespace TerrainGeneration
 		// calculating where the rainfall will go
 		std::vector<float> rainfallTransmissions;
 		float totalTransmission{ 0.f };
-		for (auto& neighbour : aPoint.myNeighbours)
+		for (const auto& neighbour : aPoint.myNeighbours)
 		{
 			Vector2<float> pointToNeighbour{ neighbour->myPosition - aPoint.myPosition };
 			pointToNeighbour.Normalize();
@@ -204,6 +202,7 @@ namespace TerrainGeneration
 				// mountains influence rainfall, we symbolize it by reducing the quantity of rainfall transmitted by an arbitrary coefficient
 				rainfallDropped *= rainfallMountainTransmissionRate;
 			}
+
 			if (!pointIsSea)
 			{
 				aPoint.myRainfall -= rainfallDropped;
@@ -218,7 +217,7 @@ namespace TerrainGeneration
 	void WorldGrid::GenerateRainfallForGrid()
 	{
 		const float phase{ 2.f * float(M_PI) * myFloatDistribution(myEngine) };
-		Vector2<float> windVector{ sin(phase), cos(phase) };
+		const Vector2<float> windVector{ sin(phase), cos(phase) };
 
 		// intializing rainfall
 		for (auto& point : myGrid.myPoints)
@@ -411,7 +410,7 @@ namespace TerrainGeneration
 #ifndef NDEBUG
 		// DRAWING
 		std::cout << "drawing debug images..." << std::endl;
-		Debug::DrawGrid(*this, locPictureDimension, MetersPerPixel);
+		Debug::DrawGrid(*this);
 #endif
 	}
 

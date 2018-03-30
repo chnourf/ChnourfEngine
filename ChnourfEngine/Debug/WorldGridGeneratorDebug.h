@@ -5,6 +5,6 @@
 namespace Debug
 {
 	vec3f DeduceBiomeColor(TerrainGeneration::Biome aBiome);
-	void DrawGrid(const TerrainGeneration::WorldGrid& aGrid, const unsigned int anImageSize, const unsigned int metersPerPixel);
+	void DrawGrid(const TerrainGeneration::WorldGrid& aGrid);
 }
 

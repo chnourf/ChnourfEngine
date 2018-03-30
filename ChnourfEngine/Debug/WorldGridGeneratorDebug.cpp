@@ -2,22 +2,25 @@
 #include "ppm.h"
 #include "../Core/Vector.h"
 #include <algorithm>
+#include <future>
 #include "../WorldGenerator/TerrainGenerationFunctions.h"
 
 namespace Debug
 {
+	const unsigned int locPictureDimension{ 512 };// TerrainGeneration::GetMapTileAmount() };
+	const unsigned int MetersPerPixel{ unsigned(TerrainGeneration::GetMapSize()) / locPictureDimension };
 	const auto locWaterCol = vec3i(37, 125, 177);
 	const auto locWaterColFloat = vec3f(locWaterCol.x / 255.f, locWaterCol.y / 255.f, locWaterCol.z / 255.f);
 
-	vec2i PositionToPixel(vec2f aPostion, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	vec2i PositionToPixel(vec2f aPostion)
 	{
-		unsigned int xPixel = (unsigned int)aPostion.x / metersPerPixel;
-		unsigned int yPixel = (unsigned int)aPostion.y / metersPerPixel;
-		if (yPixel == anImageSize)
+		unsigned int xPixel = (unsigned int)aPostion.x / MetersPerPixel;
+		unsigned int yPixel = (unsigned int)aPostion.y / MetersPerPixel;
+		if (yPixel == locPictureDimension)
 		{
 			yPixel -= 1u;
 		}
-		if (xPixel == anImageSize)
+		if (xPixel == locPictureDimension)
 		{
 			xPixel -= 1u;
 		}
@@ -86,7 +89,7 @@ namespace Debug
 		}
 	}
 
-	void DrawTriangle(ppm* anImage, const TerrainGeneration::Triangle& triangle, vec3i color, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	void DrawTriangle(ppm* anImage, const TerrainGeneration::Triangle& triangle, vec3i color)
 	{
 		auto& a = *triangle.myA;
 		auto& b = *triangle.myB;
@@ -103,9 +106,9 @@ namespace Debug
 		minBound.x = std::min(a.myPosition.x, std::min(b.myPosition.x, c.myPosition.x));
 		minBound.y = std::min(a.myPosition.y, std::min(b.myPosition.y, c.myPosition.y));
 
-		for (float i = minBound.x; i < maxBound.x; i += (float)metersPerPixel / 2.f)
+		for (float i = minBound.x; i < maxBound.x; i += (float)MetersPerPixel / 2.f)
 		{
-			for (float j = minBound.y; j < maxBound.y; j += (float)metersPerPixel / 2.f)
+			for (float j = minBound.y; j < maxBound.y; j += (float)MetersPerPixel / 2.f)
 			{
 				Vector2<float> atoPixel = Vector2<float>(i - a.myPosition.x, j - a.myPosition.y);
 				Vector2<float> btoPixel = Vector2<float>(i - b.myPosition.x, j - b.myPosition.y);
@@ -114,13 +117,13 @@ namespace Debug
 
 				if (isInTriangle)
 				{
-					anImage->setPixel(PositionToPixel(vec2f(i, j), anImageSize, metersPerPixel), color);
+					anImage->setPixel(PositionToPixel(vec2f(i, j)), color);
 				}
 			}
 		}
 	}
 
-	void DrawCellBiome(ppm* anImage, const TerrainGeneration::Cell& cell, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	void DrawCellBiome(ppm* anImage, const TerrainGeneration::Cell& cell)
 	{
 		auto biomeCol = locWaterCol;
 
@@ -136,11 +139,11 @@ namespace Debug
 			TerrainGeneration::Point point;
 			point.myPosition = center;
 			TerrainGeneration::Triangle triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, biomeCol, anImageSize, metersPerPixel);
+			DrawTriangle(anImage, triangle, biomeCol);
 		}
 	}
 
-	void DrawCellRainfall(ppm* anImage, const TerrainGeneration::Cell& cell, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	void DrawCellRainfall(ppm* anImage, const TerrainGeneration::Cell& cell)
 	{
 		auto rainfallCol = vec3i(255 * cell.GetRainfall());
 
@@ -155,11 +158,11 @@ namespace Debug
 			TerrainGeneration::Point point;
 			point.myPosition = center;
 			auto triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, rainfallCol, anImageSize, metersPerPixel);
+			DrawTriangle(anImage, triangle, rainfallCol);
 		}
 	}
 
-	void DrawCellTemperature(ppm* anImage, const TerrainGeneration::Cell& cell, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	void DrawCellTemperature(ppm* anImage, const TerrainGeneration::Cell& cell)
 	{
 		auto tempColor = vec3i(255 * cell.GetTemperature());
 
@@ -169,11 +172,11 @@ namespace Debug
 			TerrainGeneration::Point point;
 			point.myPosition = center;
 			auto triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, tempColor, anImageSize, metersPerPixel);
+			DrawTriangle(anImage, triangle, tempColor);
 		}
 	}
 
-	void DrawCellElevation(ppm* anImage, const TerrainGeneration::Cell& cell, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	void DrawCellElevation(ppm* anImage, const TerrainGeneration::Cell& cell)
 	{
 		auto elevationCol = vec3i(255 * ( 0.3f + 0.5f*cell.GetElevation()/ TerrainGeneration::GetMultiplier()));
 
@@ -193,58 +196,70 @@ namespace Debug
 			TerrainGeneration::Point point;
 			point.myPosition = center;
 			auto triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, elevationCol, anImageSize, metersPerPixel);
+			DrawTriangle(anImage, triangle, elevationCol);
 		}
 	}
 
-	void DrawRiver(ppm* anImage, std::vector<TerrainGeneration::Point*> aRiver, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	void DrawRiver(ppm* anImage, std::vector<TerrainGeneration::Point*> aRiver)
 	{
 		for (auto it = aRiver.begin(); it < aRiver.end() - 1; ++it)
 		{
 			DrawLine(anImage,
-				PositionToPixel((*it)->myPosition, anImageSize, metersPerPixel),
-				PositionToPixel((*(it + 1))->myPosition, anImageSize, metersPerPixel),
+				PositionToPixel((*it)->myPosition),
+				PositionToPixel((*(it + 1))->myPosition),
 				locWaterCol);
 		}
 	}
 
-	void DrawGrid(const TerrainGeneration::WorldGrid& aGrid, const unsigned int anImageSize, const unsigned int metersPerPixel)
+	const int numThreads = 4;
+
+	void DrawGrid(const TerrainGeneration::WorldGrid& aGrid)
 	{
 		// Create an empty PPM image
-		auto biomeImage = new ppm(anImageSize, anImageSize);
-		auto elevationImage = new ppm(anImageSize, anImageSize);
-		auto rainfallImage = new ppm(anImageSize, anImageSize);
-		auto temperatureImage = new ppm(anImageSize, anImageSize);
+		auto biomeImage = new ppm(locPictureDimension, locPictureDimension);
+		auto elevationImage = new ppm(locPictureDimension, locPictureDimension);
+		auto rainfallImage = new ppm(locPictureDimension, locPictureDimension);
+		auto temperatureImage = new ppm(locPictureDimension, locPictureDimension);
 
-		//for (auto cell : aGrid.myCells)
-		//{
-		//	DrawCellBiome(biomeImage, cell, anImageSize, metersPerPixel);
-		//	DrawCellElevation(elevationImage, cell, anImageSize, metersPerPixel);
-		//	DrawCellRainfall(rainfallImage, cell, anImageSize, metersPerPixel);
-		//	DrawCellTemperature(temperatureImage, cell, anImageSize, metersPerPixel);
-		//}
-		for (int i = 0; i < anImageSize; ++i)
+		std::vector<std::future<void>> handles;
+		auto linesProcessedPerThread = locPictureDimension / numThreads;
+		auto currentMin = 0;
+
+		for (auto thread = 0; thread < numThreads; thread++)
 		{
-			for (int j = 0; j < anImageSize; ++j)
-			{
-				const float x = float(metersPerPixel) * float(i - int(anImageSize)/2);
-				const float y = float(metersPerPixel) * float(j - int(anImageSize)/2);
-				const auto elevation = TerrainGeneration::ComputeElevation(x, y, true);
-				auto elevationCol = elevation < 0.f ? locWaterCol : vec3i(255 * 0.5f * (elevation / TerrainGeneration::GetMultiplier()));
-				const auto temperature = TerrainGeneration::ComputeTemperature(x, elevation, y);
-				const auto rainfall = aGrid.SampleGridRainfall(vec2f(x, y));
-				auto tempCol = vec3i(200 * temperature, 0 , 200 * (1.f - temperature));
-				elevationImage->setPixel(vec2i(i, j), elevationCol);
-				rainfallImage->setPixel(vec2i(i, j), vec3i(255 * rainfall));
-				auto biomeCol = elevation < 0.f ? vec3f(locWaterCol.x/255.f, locWaterCol.y/255.f, locWaterCol.z/255.f) : DeduceBiomeColor(TerrainGeneration::DeduceBiome(temperature, rainfall));
-				biomeImage->setPixel(vec2i(i, j), vec3i(255 * biomeCol.x, 255 * biomeCol.y, 255 * biomeCol.z));
-				temperatureImage->setPixel(vec2i(i, j), tempCol);
-			}
+			handles.push_back(std::async(std::launch::async, [currentMin, linesProcessedPerThread, &aGrid, elevationImage, rainfallImage, biomeImage, temperatureImage]() {
+				for (int i = currentMin; i < currentMin + linesProcessedPerThread; ++i)
+				{
+					for (int j = 0; j < locPictureDimension; ++j)
+					{
+						const float x = float(MetersPerPixel) * float(i - int(locPictureDimension) / 2);
+						const float y = float(MetersPerPixel) * float(j - int(locPictureDimension) / 2);
+						const auto elevation = TerrainGeneration::ComputeElevation(x, y, true);
+						auto elevationCol = elevation < 0.f ? locWaterCol : vec3i(255 * 0.5f * (elevation / TerrainGeneration::GetMultiplier()));
+						const auto temperature = TerrainGeneration::ComputeTemperature(x, elevation, y);
+						const auto rainfall = aGrid.SampleGridRainfall(vec2f(x, y));
+						auto tempCol = vec3i(200 * temperature, 0, 200 * (1.f - temperature));
+						elevationImage->setPixel(vec2i(i, j), elevationCol);
+						rainfallImage->setPixel(vec2i(i, j), vec3i(255 * rainfall));
+						auto biomeCol = elevation < 0.f ? vec3f(locWaterCol.x / 255.f, locWaterCol.y / 255.f, locWaterCol.z / 255.f) : DeduceBiomeColor(TerrainGeneration::DeduceBiome(temperature, rainfall));
+						biomeImage->setPixel(vec2i(i, j), vec3i(255 * biomeCol.x, 255 * biomeCol.y, 255 * biomeCol.z));
+						temperatureImage->setPixel(vec2i(i, j), tempCol);
+					}
+				}
+			}));
+
+			currentMin += linesProcessedPerThread;
 		}
+
+		for (auto& handle : handles)
+		{
+			handle.get();
+		}
+
 		for (const auto& river : aGrid.GetRivers())
 		{
-			DrawRiver(biomeImage, river, anImageSize, metersPerPixel);
-			DrawRiver(elevationImage, river, anImageSize, metersPerPixel);
+			DrawRiver(biomeImage, river);
+			DrawRiver(elevationImage, river);
 		}
 
 		biomeImage->write("Biomes.ppm");
