@@ -430,7 +430,7 @@ namespace TerrainGeneration
 #ifndef NDEBUG
 		// DRAWING
 		std::cout << "drawing debug images..." << std::endl;
-		Debug::DrawGrid(*this);
+		MapDebug::DrawAndSaveDebugImages(*this);
 #endif
 	}
 

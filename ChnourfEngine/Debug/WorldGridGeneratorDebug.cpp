@@ -1,3 +1,4 @@
+#include "../Dependencies/glew/glew.h"
 #include "WorldGridGeneratorDebug.h"
 
 #include "../Core/Vector.h"
@@ -6,20 +7,29 @@
 #include <vector>
 #include "../Dependencies/SOIL/SOIL.h"
 #include "../WorldGenerator/TerrainGenerationFunctions.h"
+#include "../Dependencies/imgui/imgui.h"
+#include "../Dependencies/GLFW/glfw3.h"
+#include "../Rendering/Camera.h"
+#include "../Core/Math.h"
 
 #include <iostream>
 
-namespace Debug
+namespace MapDebug
 {
-	const unsigned int locPictureDimension{ 512 };// TerrainGeneration::GetMapTileAmount() };
-	const unsigned int MetersPerPixel{ unsigned(TerrainGeneration::GetMapSize()) / locPictureDimension };
-	const auto locWaterCol = vec3i(37, 125, 177);
-	const auto locWaterColFloat = vec3f(locWaterCol.x / 255.f, locWaterCol.y / 255.f, locWaterCol.z / 255.f);
-	const int locNumThreads = 4;
+	const unsigned int pictureDimension{ 512 };// TerrainGeneration::GetMapTileAmount() };
+	static const unsigned int MetersPerPixel{ unsigned(TerrainGeneration::GetMapSize()) / pictureDimension };
+	static const auto locWaterCol = vec3i(37, 125, 177);
+	static const auto locWaterColFloat = vec3f(locWaterCol.x / 255.f, locWaterCol.y / 255.f, locWaterCol.z / 255.f);
+	static const int locNumThreads = 4;
+	static const auto midPos = Vector2<float>(TerrainGeneration::GetMapSize() / 2.f, TerrainGeneration::GetMapSize() / 2.f);
+	static GLuint locDebugMap;
+	static const unsigned debugMapAndMinimapSize = 256u;
+	static vec2f locFacingDirection;
+	static const int viewTriangleLength = 30;
 
 	void SetPixel(std::vector<unsigned char>& anImage, const vec2i& pixelPosition, const vec3i& aColor)
 	{
-		auto id = 4 * (pixelPosition.x + locPictureDimension * pixelPosition.y);
+		auto id = 4 * (pixelPosition.x + pictureDimension * pixelPosition.y);
 		auto it = anImage.begin() + id;
 		*it = aColor.x; ++it;
 		*it = aColor.y; ++it;
@@ -30,11 +40,11 @@ namespace Debug
 	{
 		unsigned int xPixel = (unsigned int)aPostion.x / MetersPerPixel;
 		unsigned int yPixel = (unsigned int)aPostion.y / MetersPerPixel;
-		if (yPixel == locPictureDimension)
+		if (yPixel == pictureDimension)
 		{
 			yPixel -= 1u;
 		}
-		if (xPixel == locPictureDimension)
+		if (xPixel == pictureDimension)
 		{
 			xPixel -= 1u;
 		}
@@ -137,83 +147,6 @@ namespace Debug
 		}
 	}
 
-	void DrawCellBiome(std::vector<unsigned char>& anImage, const TerrainGeneration::Cell& cell)
-	{
-		auto biomeCol = locWaterCol;
-
-		if (cell.IsFlag(TerrainGeneration::PointTypeFlags::Land))
-		{
-			auto biomeColFloat = DeduceBiomeColor(cell.GetBiome());
-			biomeCol = vec3i(biomeColFloat.x * 255, biomeColFloat.y * 255, biomeColFloat.z * 255);
-		}
-
-		const Vector2<float> center = cell.GetCenter();
-		for (int i = 0; i < cell.myPoints.size(); ++i)
-		{
-			TerrainGeneration::Point point;
-			point.myPosition = center;
-			TerrainGeneration::Triangle triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, biomeCol);
-		}
-	}
-
-	void DrawCellRainfall(std::vector<unsigned char>& anImage, const TerrainGeneration::Cell& cell)
-	{
-		auto rainfallCol = vec3i(255 * cell.GetRainfall());
-
-		if (!cell.IsFlag(TerrainGeneration::PointTypeFlags::Land))
-		{
-			rainfallCol = locWaterCol;
-		}
-
-		const auto center = cell.GetCenter();
-		for (int i = 0; i < cell.myPoints.size(); ++i)
-		{
-			TerrainGeneration::Point point;
-			point.myPosition = center;
-			auto triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, rainfallCol);
-		}
-	}
-
-	void DrawCellTemperature(std::vector<unsigned char>& anImage, const TerrainGeneration::Cell& cell)
-	{
-		auto tempColor = vec3i(255 * cell.GetTemperature());
-
-		const auto center = cell.GetCenter();
-		for (int i = 0; i < cell.myPoints.size(); ++i)
-		{
-			TerrainGeneration::Point point;
-			point.myPosition = center;
-			auto triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, tempColor);
-		}
-	}
-
-	void DrawCellElevation(std::vector<unsigned char>& anImage, const TerrainGeneration::Cell& cell)
-	{
-		auto elevationCol = vec3i(255 * ( 0.3f + 0.5f*cell.GetElevation()/ TerrainGeneration::GetMultiplier()));
-
-		if (!cell.IsFlag(TerrainGeneration::PointTypeFlags::Land))
-		{
-			elevationCol = locWaterCol;
-		}
-
-		if (cell.IsFlag(TerrainGeneration::PointTypeFlags::Mountain))
-		{
-			elevationCol.z = 0;
-		}
-
-		const auto center = cell.GetCenter();
-		for (int i = 0; i < cell.myPoints.size(); ++i)
-		{
-			TerrainGeneration::Point point;
-			point.myPosition = center;
-			auto triangle = TerrainGeneration::Triangle(cell.myPoints[i], cell.myPoints[(i + 1) % (cell.myPoints.size())], &point);
-			DrawTriangle(anImage, triangle, elevationCol);
-		}
-	}
-
 	void DrawRiver(std::vector<unsigned char>& anImage, std::vector<TerrainGeneration::Point*> aRiver)
 	{
 		for (auto it = aRiver.begin(); it < aRiver.end() - 1; ++it)
@@ -225,22 +158,22 @@ namespace Debug
 		}
 	}
 
-	void DrawGrid(const TerrainGeneration::WorldGrid& aGrid)
+	void DrawAndSaveDebugImages(const TerrainGeneration::WorldGrid& aGrid)
 	{
 		std::chrono::time_point<std::chrono::system_clock> start, end;
 		start = std::chrono::system_clock::now();
 
 		std::vector<unsigned char> biomeImageData;
-		biomeImageData.assign(locPictureDimension * locPictureDimension * 4, 255);
+		biomeImageData.assign(pictureDimension * pictureDimension * 4, 255);
 		std::vector<unsigned char> elevationImageData;
-		elevationImageData.assign(locPictureDimension * locPictureDimension * 4, 255);
+		elevationImageData.assign(pictureDimension * pictureDimension * 4, 255);
 		std::vector<unsigned char> rainfallImageData;
-		rainfallImageData.assign(locPictureDimension * locPictureDimension * 4, 255);
+		rainfallImageData.assign(pictureDimension * pictureDimension * 4, 255);
 		std::vector<unsigned char> temperatureImageData;
-		temperatureImageData.assign(locPictureDimension * locPictureDimension * 4, 255);
+		temperatureImageData.assign(pictureDimension * pictureDimension * 4, 255);
 
 		std::vector<std::future<void>> handles;
-		auto linesProcessedPerThread = locPictureDimension / locNumThreads;
+		auto linesProcessedPerThread = pictureDimension / locNumThreads;
 		auto currentMin = 0;
 
 		for (auto thread = 0; thread < locNumThreads; thread++)
@@ -248,10 +181,10 @@ namespace Debug
 			handles.push_back(std::async(std::launch::async, [currentMin, linesProcessedPerThread, &aGrid, &biomeImageData, &elevationImageData, &rainfallImageData, &temperatureImageData]() {
 				for (int i = currentMin; i < currentMin + linesProcessedPerThread; ++i)
 				{
-					for (int j = 0; j < locPictureDimension; ++j)
+					for (int j = 0; j < pictureDimension; ++j)
 					{
-						const float x = float(MetersPerPixel) * float(i - int(locPictureDimension) / 2);
-						const float y = float(MetersPerPixel) * float(j - int(locPictureDimension) / 2);
+						const float x = float(MetersPerPixel) * float(i - int(pictureDimension) / 2);
+						const float y = float(MetersPerPixel) * float(j - int(pictureDimension) / 2);
 						const auto elevation = TerrainGeneration::ComputeElevation(x, y, true);
 						auto elevationCol = elevation < 0.f ? locWaterCol : vec3i(255 * 0.5f * (elevation / TerrainGeneration::GetMultiplier()));
 						const auto temperature = TerrainGeneration::ComputeTemperature(x, elevation, y);
@@ -288,17 +221,70 @@ namespace Debug
 		}
 
 		SOIL_save_image("biomes.bmp", SOIL_SAVE_TYPE_BMP,
-			locPictureDimension, locPictureDimension, 4,
+			pictureDimension, pictureDimension, 4,
 			&biomeImageData[0]);
 		SOIL_save_image("rainfall.bmp", SOIL_SAVE_TYPE_BMP,
-			locPictureDimension, locPictureDimension, 4,
+			pictureDimension, pictureDimension, 4,
 			&rainfallImageData[0]);
 		SOIL_save_image("temperature.bmp", SOIL_SAVE_TYPE_BMP,
-			locPictureDimension, locPictureDimension, 4,
+			pictureDimension, pictureDimension, 4,
 			&temperatureImageData[0]);
 		SOIL_save_image("elevation.bmp", SOIL_SAVE_TYPE_BMP,
-			locPictureDimension, locPictureDimension, 4,
+			pictureDimension, pictureDimension, 4,
 			&elevationImageData[0]);
+	}
+
+	void CreateMinimapTexture()
+	{
+		glGenTextures(1, &locDebugMap);
+		glBindTexture(GL_TEXTURE_2D, locDebugMap);
+		int width, height;
+		unsigned char* image = SOIL_load_image("biomes.bmp", &width, &height, 0, SOIL_LOAD_RGB);
+		assert(image);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+		SOIL_free_image_data(image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	void SetFacingDirection(const vec2f& aFacingDirection)
+	{
+		locFacingDirection = aFacingDirection;
+	}
+
+	void RenderMinimap(const vec2f& aPosition)
+	{
+		//triangle avec fov
+
+		ImGui::Begin("Debug Map");
+		auto camPosRelativeToMap = 1.f / TerrainGeneration::GetMapSize() * (aPosition + midPos);
+		ImGui::Image((void *)(intptr_t)locDebugMap, ImVec2(debugMapAndMinimapSize, debugMapAndMinimapSize),
+			ImVec2(camPosRelativeToMap.x - 0.1f, camPosRelativeToMap.y - 0.1f),
+			ImVec2(camPosRelativeToMap.x + 0.1f, camPosRelativeToMap.y + 0.1f));
+		const auto debugMiniMapImageCenter = ImVec2((ImGui::GetItemRectMax().x + ImGui::GetItemRectMin().x) / 2,
+			(ImGui::GetItemRectMax().y + ImGui::GetItemRectMin().y) / 2);
+
+		auto aFacingDirectionRotated = vec2f(-locFacingDirection.y, locFacingDirection.x);
+
+		const int triangleHalfWidth = viewTriangleLength * tan(float(Camera::ourFov * M_PI) / 180.f);
+		const auto topLeftVisionTriangeCorner = ImVec2(debugMiniMapImageCenter.x + locFacingDirection.x * viewTriangleLength + aFacingDirectionRotated.x * triangleHalfWidth,
+			debugMiniMapImageCenter.y + locFacingDirection.y * viewTriangleLength + aFacingDirectionRotated.y * triangleHalfWidth);
+		const auto topRightVisionTriangeCorner = ImVec2(debugMiniMapImageCenter.x + locFacingDirection.x * viewTriangleLength - aFacingDirectionRotated.x * triangleHalfWidth,
+			debugMiniMapImageCenter.y + locFacingDirection.y * viewTriangleLength - aFacingDirectionRotated.y * triangleHalfWidth);
+		ImGui::GetWindowDrawList()->AddTriangleFilled(debugMiniMapImageCenter, topLeftVisionTriangeCorner, topRightVisionTriangeCorner, IM_COL32(100, 100, 255, 120));
+
+		ImGui::GetWindowDrawList()->AddCircleFilled(debugMiniMapImageCenter, 4.f, IM_COL32(0, 0, 0, 255));
+		vec2f adjustedPostion = aPosition + midPos;
+		ImGui::Image((void *)(intptr_t)locDebugMap, ImVec2(debugMapAndMinimapSize, debugMapAndMinimapSize));
+		const auto debugMapCamPos = ImVec2(ImGui::GetItemRectMin().x + camPosRelativeToMap.x * debugMapAndMinimapSize,
+			ImGui::GetItemRectMin().y + camPosRelativeToMap.y * debugMapAndMinimapSize);
+		ImGui::GetWindowDrawList()->AddCircleFilled(debugMapCamPos, 2.f, IM_COL32(0, 0, 0, 255));
+		ImGui::Text("Element on Grid : x %d, y %d",
+			int(adjustedPostion.x)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()),
+			int(adjustedPostion.y)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()));
+		ImGui::End();
 	}
 
 }

@@ -77,6 +77,13 @@ Vector2<T> operator-(const Vector2<T>& l, const Vector2<T>& r)
 }
 
 template <class T>
+Vector2<T> operator*(T l, const Vector2<T>& r)
+{
+	return Vector2<T>(l * r.x, l * r.y);
+}
+
+
+template <class T>
 bool operator==(const Vector2<T>& l, const Vector2<T>& r)
 {
 	return l.x == r.x && l.y == r.y;
@@ -168,7 +175,7 @@ Vector3<T> operator-(const Vector3<T>& l, const Vector3<T>& r)
 template <class T>
 Vector3<T> operator*(T l, const Vector3<T>& r)
 {
-	return Vector3<T>(l + r.x, l + r.y, l + r.z);
+	return Vector3<T>(l * r.x, l * r.y, l * r.z);
 }
 
 template <class T>

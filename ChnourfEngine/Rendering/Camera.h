@@ -25,6 +25,8 @@ public:
 	inline const glm::mat4& GetProjectionMatrix() const { return myProjectionMatrix; }
 	inline const Frustum& GetFrustum() const { return myFrustum; }
 
+	static const unsigned ourFov = 45;
+
 private:
 	glm::mat4 myProjectionMatrix;
 	Frustum myFrustum;

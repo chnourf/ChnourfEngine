@@ -5,6 +5,10 @@
 #include "glm\gtx\rotate_vector.hpp"
 #include "../Dependencies/imgui/imgui.h"
 
+#ifndef NDEBUG
+#include "../Debug/WorldGridGeneratorDebug.h"
+#endif
+
 
 Camera::Camera()
 {
@@ -17,7 +21,7 @@ Camera::Camera()
 
 void Camera::Initialize(int aWindowWidth, int aWindowHeight)
 {
-	myProjectionMatrix = glm::perspective(45.0f, (float)aWindowWidth / (float)aWindowHeight, 0.1f, 3000.f);
+	myProjectionMatrix = glm::perspective(float(ourFov), (float)aWindowWidth / (float)aWindowHeight, 0.1f, 3000.f);
 	Manager::InputManager::GetInstance()->OnMouseMotionSlot.Connect(std::bind(&Camera::OnMouseMotion, this, std::placeholders::_1, std::placeholders::_2));
 }
 
@@ -63,6 +67,12 @@ void Camera::Update()
 	myCameraPos = myNextCameraPos;
 	// UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY UGLY
 	myCameraPos -= 50.f * myCameraFront;
+
+#ifndef NDEBUG
+	auto facingDirection2D = vec2f(myCameraFront.x, myCameraFront.z);
+	facingDirection2D.Normalize();
+	MapDebug::SetFacingDirection(facingDirection2D);
+#endif
 
 	auto viewMatrix = glm::lookAt(myCameraPos, myCameraPos + myCameraFront, myCameraUp);
 

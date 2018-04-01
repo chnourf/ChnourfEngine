@@ -9,6 +9,10 @@
 
 #include "TerrainGenerationFunctions.h"
 
+#ifndef NDEBUG
+#include "../Debug/WorldGridGeneratorDebug.h"
+#endif
+
 #include "WorldGrid.h"
 
 #include <array>
@@ -64,6 +68,10 @@ namespace Manager
 		myWorldGrid = std::make_unique<TerrainGeneration::WorldGrid> (mySeed);
 
 		myWorldGrid->Generate();
+
+#ifndef NDEBUG
+		MapDebug::CreateMinimapTexture();
+#endif
 	}
 
 	TerrainManager::~TerrainManager()
@@ -73,8 +81,6 @@ namespace Manager
 			delete tile;
 		}
 	}
-
-	static const auto midPos = Vector2<float>(TerrainGeneration::GetMapSize() / 2.f, TerrainGeneration::GetMapSize() / 2.f);
 
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
@@ -105,9 +111,6 @@ namespace Manager
 			ImGui::Text("Avg Tile heightmap/temperature/rainfall time : %f ms", 1000.f*averageHeightmapTime);
 		}
 		ImGui::End();
-
-		vec2f adjustedPostion = vec2f(aPlayerPosition.x + TerrainGeneration::GetMapSize() / 2.f, aPlayerPosition.z + TerrainGeneration::GetMapSize() / 2.f);
-		ImGui::Text("Element on Grid : x %d, y %d", int(adjustedPostion.x)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()), int(adjustedPostion.y)*TerrainGeneration::GetMapTileAmount() / int(TerrainGeneration::GetMapSize()));
 
 		auto temperature = TerrainGeneration::ComputeTemperature(aPlayerPosition.x, aPlayerPosition.y, aPlayerPosition.z);
 		auto temperatureInCelsius = int(70.f * temperature - 30.f);
@@ -207,6 +210,9 @@ namespace Manager
 		}
 
 		myTileBuilder->Update();
+#ifndef NDEBUG
+		MapDebug::RenderMinimap(vec2f(aPlayerPosition.x, aPlayerPosition.z));
+#endif
 	}
 
 	bool TerrainManager::IsTileLoaded(const vec2i& aTileIndex) const
