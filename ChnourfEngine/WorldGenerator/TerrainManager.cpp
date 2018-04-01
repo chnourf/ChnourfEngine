@@ -84,6 +84,11 @@ namespace Manager
 
 	void TerrainManager::Update(const vec3f& aPlayerPosition)
 	{
+		static const int samplesSize{ 10 };
+		static int i{ 0 };
+		static std::array<int, samplesSize> TMUpdateTimes;
+		const auto start = std::chrono::system_clock::now();
+
 		ImGui::Begin("Terrain Generation");
 		if (ImGui::Button("Invalidate Tiles"))
 		{
@@ -210,6 +215,10 @@ namespace Manager
 		}
 
 		myTileBuilder->Update();
+
+		TMUpdateTimes[i++%samplesSize] = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now() - start).count();
+		ImGui::Text("Terrain manager update time : %d micros", std::accumulate(TMUpdateTimes.begin(), TMUpdateTimes.end(), 0) / samplesSize);
+
 #ifndef NDEBUG
 		MapDebug::RenderMinimap(vec2f(aPlayerPosition.x, aPlayerPosition.z));
 #endif
