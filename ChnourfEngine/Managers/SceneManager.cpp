@@ -274,6 +274,7 @@ void SceneManager::NotifyDisplayFrame()
 	glUniform1f(tileResolution, TerrainManager::GetInstance()->GetResolution());
 	
 	myModelManager->Draw(cameraTransform, myShaderManager.get());
+	mySea.Render(myShaderManager->GetShader("seaShader"));
 
 	// rendering Skybox at last
 	glDepthMask(GL_FALSE);

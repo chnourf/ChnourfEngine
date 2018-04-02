@@ -1,7 +1,7 @@
 //#version 330 core
 in vec3 TexCoords;
 
-out vec4 color;
+out vec3 color;
 
 #define SC (250.0)
 
@@ -91,5 +91,5 @@ void main()
     res = Fog( res, rd * 4000.0, rd, -normalizedToLightDirection );
 
     res = res + vec3(0.0, 0.03, 0.05); //night color
-    color = vec4(res, 1.0f);
+    color = res;
 }

@@ -5,6 +5,7 @@
 #include "ShaderManager.h"
 #include "../Rendering/Camera.h"
 #include "../Rendering/Cubemap.h"
+#include "../Rendering/Sea.h"
 #include "../Rendering/Light/DirectionalLight.h"
 #include "../Core/Init/IListener.h"
 #include "../Core/Singleton.h"
@@ -43,11 +44,12 @@ namespace Manager
 		Camera myCurrentCamera;
 		DirectionalLight myDirectionalLight;
 		Cubemap mySkybox;
+		Sea mySea;
 
 		GLuint fbo; //to be moved, used for framebuffer render
 		GLuint shadowMapFBO;
 		GLuint shadowMapTexture;
-		unsigned int shadowMapResolution = 2048;
+		unsigned int shadowMapResolution = 2048u;
 		GLuint textureColorBuffer;
 		GLuint framebufferQuadVao;
 		GLuint framebufferQuadVbo;

@@ -17,11 +17,15 @@ void ShaderManager::Initialize()
 	CreateProgram("cubemapShader", "Shaders\\Cubemap_Vertex_Shader.glsl", "Shaders\\Cubemap_Pixel_Shader.glsl");
 	CreateProgram("shadowMapShader", "Shaders\\Simple_Depth_Shader.glsl", "Shaders\\Empty_Fragment_Shader.glsl");
 
+	std::vector<std::string> seaPixelShader;
+	seaPixelShader.push_back("Shaders\\Environment.h");
+	seaPixelShader.push_back("Shaders\\Sea_Fragment_Shader.glsl");
+	CreateProgram("seaShader", "Shaders\\Sea_Vertex_Shader.glsl", seaPixelShader);
+
 	std::vector<std::string> skyboxPixelShader;
 	skyboxPixelShader.push_back("Shaders\\Environment.h");
 	skyboxPixelShader.push_back("Shaders\\Skybox_Pixel_Shader.glsl");
 	CreateProgram("skyboxShader", "Shaders\\Cubemap_Vertex_Shader.glsl", skyboxPixelShader);
-
 	CreateProgram("reflectionShader", "Shaders\\Vertex_Shader.glsl", "Shaders\\StandardBlinnReflection_Shader.glsl");
 
 

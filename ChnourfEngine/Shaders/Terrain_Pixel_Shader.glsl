@@ -17,7 +17,7 @@ struct Material {
 	float shininess;
 }; 
 
-out vec4 out_color;
+out vec3 out_color;
 
 uniform Material groundMaterial;
 uniform Material rockMaterial;
@@ -64,10 +64,10 @@ void main()
 	float e = smoothstep(1.0-0.5*h,1.0-0.1*h,normTest.y);
 	float o = 0.3 + 0.7*smoothstep(0.2,0.3,normTest.x+h*h);
 	textureColor = mix(textureColor, texture(snowMaterial.diffuse, fs_in.texcoord), smoothstep(0.4f, 0.6f, e*h*o));
-	if (fs_in.fragPos.y < 0.f)
-	{
-		textureColor = vec4(0, 0.7, 1, 1);
-	}
+	//if (fs_in.fragPos.y < 0.f)
+	//{
+	//	textureColor = vec4(0, 0.7, 1, 1);
+	//}
 	textureColor.rgb = mix(textureColor.rgb, vec3(0.45,.30,0.15), smoothstep(0.f, 1.f, fs_in.erosion));
 	vec3 diffuse = (diff * lightColor + amb + bac) * vec3(textureColor);
 
@@ -83,6 +83,6 @@ void main()
 	//fog
 	result = Fog( result, fs_in.fragPos, viewDir, lightDir );
 
-	out_color = vec4(result, 1.0f);
+	out_color = result;
 }
   
